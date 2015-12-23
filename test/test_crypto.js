@@ -731,8 +731,8 @@ if (!ursa) {
             switch_to_test_certificate_store();
 
             // let use our default 1024 RSA key pair
-            server_public_key = crypto_utils.read_public_rsa_key('alice_public_key_1024.pub');
-            server_private_key = crypto_utils.read_private_rsa_key('alice_key_1024.pem');
+            server_public_key = crypto_utils.read_public_rsa_key(alice_public_key_filename);
+            server_private_key = crypto_utils.read_private_rsa_key(alice_private_key_filename);
             done();
         });
         afterEach(function (done) {
