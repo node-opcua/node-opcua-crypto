@@ -7,7 +7,11 @@
     "test": "mocha test --color -R spec --recursive --timeout 200000 --bail"
   },
   "keywords": [
-    "node-opcua"
+    "OPCUA",
+    "m2m",
+    "iot",
+    "opc ua",
+    "internet of things"
   ],
   "author": "Etienne Rossignon",
   "license": "MIT",
@@ -20,19 +24,13 @@
     "better-assert": "^1.0.2",
     "colors": "^1.1.2",
     "node-jsrsasign": "0.0.7",
+    "ssh-key-to-pem": "^0.11.0",
     "underscore": "^1.8.3"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/node-opcua/node-opcua-crypto.git"
   },
-  "keywords": [
-    "OPCUA",
-    "m2m",
-    "iot",
-    "opc ua",
-    "internet of things"
-  ],
   "bugs": {
     "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
   }
