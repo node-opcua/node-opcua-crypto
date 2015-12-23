@@ -1,0 +1,39 @@
+{
+  "name": "node-opcua-crypto",
+  "version": "0.0.1",
+  "description": "Crypto tools for Node-OPCUA",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test --color -R spec --recursive --timeout 200000 --bail"
+  },
+  "keywords": [
+    "node-opcua"
+  ],
+  "author": "Etienne Rossignon",
+  "license": "MIT",
+  "devDependencies": {
+    "lorem-ipsum": "^1.0.3",
+    "mocha": "^2.3.4",
+    "should": "^8.0.2"
+  },
+  "dependencies": {
+    "better-assert": "^1.0.2",
+    "colors": "^1.1.2",
+    "node-jsrsasign": "0.0.7",
+    "underscore": "^1.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/node-opcua/node-opcua-crypto.git"
+  },
+  "keywords": [
+    "OPCUA",
+    "m2m",
+    "iot",
+    "opc ua",
+    "internet of things"
+  ],
+  "bugs": {
+    "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+  }
+}
