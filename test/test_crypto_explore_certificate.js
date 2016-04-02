@@ -4,10 +4,11 @@ var fs = require("fs");
 var util = require("util");
 
 var crypto_utils = require("../lib/crypto_utils");
-var assert = require("assert");
-
+var assert = require("better-assert");
 
 var exploreCertificate = require("../lib/crypto_explore_certificate").exploreCertificate;
+
+
 
 
 describe(" exploring Certificates", function () {

@@ -762,11 +762,14 @@ describe("extractPublicKeyFromCertificate", function () {
 
         var certificate2 = crypto_utils.readCertificate(bob_certificate_filename);
 
+
         var publickey2 = crypto_utils.readKey(bob_public_key_filename);
+
 
         crypto_utils.extractPublicKeyFromCertificate(certificate2, function (err, publicKey) {
 
             var raw_public_key = crypto_utils.readPEM(publicKey);
+
             raw_public_key.toString("base64").should.eql(publickey2.toString("base64"));
             done(err);
         });
