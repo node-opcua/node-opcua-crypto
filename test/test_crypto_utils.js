@@ -19,8 +19,6 @@ describe("Crypto utils", function () {
         // console.log(certificate.toString("hex"));
         // console.log(certificate.toString("base64"));
         // console.log(hexy.hexy(certificate, {width: 32}));
-
-
         certificate.toString("base64").should.equal(
             "MIIEVTCCAz2gAwIBAgICEJEwDQYJKoZIhvcNAQELBQAwgY4xCzAJBgNVBAYTAkZS" +
             "MQwwCgYDVQQIDANJREYxDjAMBgNVBAcMBVBhcmlzMUIwQAYDVQQKDDlGYWtlIE5v" +
@@ -47,7 +45,6 @@ describe("Crypto utils", function () {
             "SXDGOBbNHWyWf+DqquMvwN0+Ud/n6hhDexyiShstLhKK1gMNpO6ftMZO80HdI/sm" +
             "ynbBVHaSnuA9"
        );
-
     });
 
 
@@ -60,6 +57,26 @@ describe("Crypto utils", function () {
         var arrayCertificate =split_der(certificate);
 
         arrayCertificate.length.should.eql(3);
+
+    });
+
+    it("ZZ should read a certificate chain - write and read it again",function() {
+
+        var fs = require("fs");
+
+        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+
+        var t = crypto_utils.toPem(certificate,"CERTIFICATE");
+
+        var certificate_one_blob =path.join(__dirname,"../tmp/tmp.pem");
+        fs.writeFileSync(certificate_one_blob,t,"ascii");
+        var certificate2 = crypto_utils.readCertificate(certificate_one_blob);
+
+        certificate.toString("base64").should.eql(certificate2.toString("base64"));
+
+    });
+
+    it("makeSHA1Thumbprint on a certificate chain shall extract the finger printof the first certificate", function () {
 
     });
 

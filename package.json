@@ -23,6 +23,7 @@
   "dependencies": {
     "better-assert": "^1.0.2",
     "colors": "^1.1.2",
+    "hexy": "^0.2.7",
     "node-jsrsasign": "0.0.7",
     "ssh-key-to-pem": "^0.11.0",
     "underscore": "^1.8.3"
