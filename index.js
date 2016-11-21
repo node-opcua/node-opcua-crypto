@@ -21,7 +21,7 @@ exports.crypto_utils.verifyChunkSignature         = require("./lib/derived_keys"
 
 
 exports.crypto_utils.exploreCertificate =  require("./lib/explore_certificate").exploreCertificate;
-
+exports.crypto_utils.split_der = require("./lib/explore_certificate").split_der;
 
 exports.crypto_explore_certificate = crypto_explore_certificate;
 
