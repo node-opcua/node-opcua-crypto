@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-crypto",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Crypto tools for Node-OPCUA",
   "main": "index.js",
   "scripts": {
@@ -17,8 +17,8 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "devDependencies": {
-    "lorem-ipsum": "^1.0.3",
-    "mocha": "^3.2.0",
+    "lorem-ipsum": "^1.0.4",
+    "mocha": "^3.3.0",
     "should": "^11.2.1"
   },
   "dependencies": {
