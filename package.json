@@ -4,7 +4,7 @@
   "description": "Crypto tools for Node-OPCUA",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test --color -R spec --recursive --timeout 200000 --bail"
+    "test": "mocha test -R spec --recursive --timeout 200000 --bail"
   },
   "keywords": [
     "OPCUA",
