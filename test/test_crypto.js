@@ -529,10 +529,6 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             };
             var signature = crypto_utils.makeMessageChunkSignature(chunk, options1);
 
-            //xx console.log("signature =".yellow,"\n");
-            //xx console.log(utils.hexDump(signature));
-
-            //xx console.log("SIGNATURE = ".yellow.bold,new Buffer(signature).toString("base64"));
             signature.should.be.instanceOf(Buffer);
             signature.length.should.eql(options1.signatureLength);
 
