@@ -63,6 +63,9 @@ describe("test derived key making", function () {
 
         var derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
 
+        derivedKeys.should.have.ownProperty("sha1or256");
+        derivedKeys.sha1or256.should.eql(options.sha1or256);
+
         var clear_message = make_lorem_ipsum_buffer();
         //xx Buffer.concat([make_lorem_ipsum_buffer(),make_lorem_ipsum_buffer(),make_lorem_ipsum_buffer()]);
         //xx clear_message = Buffer.concat([clear_message,clear_message,clear_message,clear_message,clear_message]);
