@@ -1,6 +1,7 @@
-
+"use strict";
 var crypto_utils = require("..").crypto_utils;
 var should = require("should");
+var crypto = require("crypto");
 
 var loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
 loremIpsum.length.should.be.greaterThan(100);
@@ -11,28 +12,46 @@ function make_lorem_ipsum_buffer() {
 
 describe("test derived key making", function () {
 
-    var crypto = require("crypto");
     var secret = new Buffer("my secret");
     var seed = new Buffer("my seed");
 
     var options_AES_128_CBC = {
-        signingKeyLength: 128,
+        signingKeyLength:    128,
         encryptingKeyLength: 16,
         encryptingBlockSize: 16,
-        signatureLength: 20,
-        algorithm: "aes-128-cbc"
+        signatureLength:     20,
+        algorithm:           "aes-128-cbc",
+        sha1or256:           "SHA1"
     };
     var options_AES_256_CBC = {
-        signingKeyLength: 256,
+        signingKeyLength:    256,
         encryptingKeyLength: 32,
         encryptingBlockSize: 16,
-        signatureLength: 24,
-        algorithm: "aes-256-cbc"
+        signatureLength:     24,
+        algorithm:           "aes-256-cbc",
+        sha1or256:           "SHA1"
     };
-    it("should create a large enough p_SHA buffer (makePseudoRandomBuffer)", function () {
+    var options_AES_256_CBC_SHA256 = {
+        signingKeyLength:    256,
+        encryptingKeyLength: 32,
+        encryptingBlockSize: 16,
+        signatureLength:     24,
+        algorithm:           "aes-256-cbc",
+        sha1or256:           "SHA256"
+    };
+
+    it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA1", function () {
 
         var min_length = 256;
-        var buf = crypto_utils.makePseudoRandomBuffer(secret, seed, min_length);
+        var buf = crypto_utils.makePseudoRandomBuffer(secret, seed, min_length,"SHA1");
+        buf.length.should.be.equal(min_length);
+        //xx console.log(hexDump(buf));
+    });
+
+    it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA256", function () {
+
+        var min_length = 256;
+        var buf = crypto_utils.makePseudoRandomBuffer(secret, seed, min_length,"SHA256");
         buf.length.should.be.equal(min_length);
         //xx console.log(hexDump(buf));
     });
@@ -71,15 +90,15 @@ describe("test derived key making", function () {
     }
 
     it("demonstrating how to use derived keys for symmetric encryption (aes-128-cbc)", function (done) {
-
-
         perform_symmetric_encryption_test(options_AES_128_CBC, done);
-
     });
-    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc)", function (done) {
 
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA1", function (done) {
         perform_symmetric_encryption_test(options_AES_256_CBC, done);
+    });
 
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA256", function (done) {
+        perform_symmetric_encryption_test(options_AES_256_CBC_SHA256, done);
     });
 
     it("should produce a smaller buffer (reduceLength)", function () {
@@ -119,7 +138,7 @@ describe("test derived key making", function () {
         // see https://github.com/leandrob/node-psha1/blob/master/test/lib.index.js#L4
         var secret = new Buffer('GS5olVevYMI4vW1Df/7FUpHcJJopTszp6sodlK4/rP8=', "base64");
         var seed = new Buffer('LmF9Mjf9lYMa9YkxZDjaRFe6iMAfReKjzhLHDx376jA=', "base64");
-        var key = crypto_utils.makePseudoRandomBuffer(secret, seed, 256 / 8);
+        var key = crypto_utils.makePseudoRandomBuffer(secret, seed, 256 / 8,"SHA1");
         key.toString("base64").should.eql('ZMOP1NFa5VKTQ8I2awGXDjzKP+686eujiangAgf5N+Q=');
         done();
     });
