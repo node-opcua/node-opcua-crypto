@@ -27,7 +27,7 @@ describe("test derived key making", function () {
         signingKeyLength:    256,
         encryptingKeyLength: 32,
         encryptingBlockSize: 16,
-        signatureLength:     24,
+        signatureLength:     20,
         algorithm:           "aes-256-cbc",
         sha1or256:           "SHA1"
     };
@@ -35,7 +35,7 @@ describe("test derived key making", function () {
         signingKeyLength:    256,
         encryptingKeyLength: 32,
         encryptingBlockSize: 16,
-        signatureLength:     24,
+        signatureLength:     32,
         algorithm:           "aes-256-cbc",
         sha1or256:           "SHA256"
     };
@@ -112,18 +112,15 @@ describe("test derived key making", function () {
 
     });
 
-    it("demonstrating how to use derived keys for signature", function () {
-
-        var options = options_AES_128_CBC;
-
+    function test_verifyChunkSignatureWithDerivedKeys(options) {
         var derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
 
         var clear_message = make_lorem_ipsum_buffer();
-        console.log(clear_message.toString());
+        //xx console.log(clear_message.toString());
 
         var signature = crypto_utils.makeMessageChunkSignatureWithDerivedKeys(clear_message, derivedKeys);
 
-        signature.length.should.eql(20);
+        signature.length.should.eql(derivedKeys.signatureLength);
 
         var signed_message = Buffer.concat([clear_message, signature]);
 
@@ -134,7 +131,15 @@ describe("test derived key making", function () {
 
         // ... and verify that signature verification returns a failure
         crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(false);
-
+    }
+    it("demonstrating how to use derived keys for signature - AES_128_CBC", function () {
+        test_verifyChunkSignatureWithDerivedKeys(options_AES_128_CBC);
+    });
+    it("demonstrating how to use derived keys for signature - AES_256_CBC", function () {
+        test_verifyChunkSignatureWithDerivedKeys(options_AES_256_CBC);
+    });
+    it("demonstrating how to use derived keys for signature - AES_256_CBC_SHA256", function () {
+        test_verifyChunkSignatureWithDerivedKeys(options_AES_256_CBC_SHA256);
     });
 
     it('should compute key using keysize, client and server keys.', function (done) {
