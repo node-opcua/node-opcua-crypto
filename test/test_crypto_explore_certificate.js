@@ -8,8 +8,7 @@ var assert = require("better-assert");
 
 var exploreCertificate = require("../lib/crypto_explore_certificate").exploreCertificate;
 
-
-
+var exploreCertificate2 = require("../lib/explore_certificate").exploreCertificate;
 
 describe(" exploring Certificates", function () {
 
@@ -49,6 +48,21 @@ describe(" exploring Certificates", function () {
 
     });
 
+    it("should extract the information out of a 4096-bits certificate - 1", function () {
+
+        //  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -config toto.cnf -nodes -subj '/CN=localhost' -sha256
+        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_4096.pem"));
+
+        // console.log(hexDump(certificate))
+        var certificate_info = exploreCertificate(certificate);
+
+        certificate_info.tbsCertificate.version.should.eql(3);
+        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(512);
+        //xx certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
+         var data = exploreCertificate2(certificate);
+    });
+  
+                
     it("should read a V3 X509 certificate (with extensions)", function () {
 
         var filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
