@@ -4,9 +4,11 @@ node_js:
   - "8"
   - "9"
 
-before_script:
+before_install:
   - npm install -g istanbul coveralls
   - npm install -g mocha typescript
+
+before_script:
   - npm install -g codeclimate-test-reporter
 
 after_success:
