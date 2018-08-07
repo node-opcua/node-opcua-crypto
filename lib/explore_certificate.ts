@@ -1,8 +1,9 @@
-"use strict";
-var assert = require("better-assert");
-var exploreCertificate = require("./crypto_explore_certificate").exploreCertificate;
 
-var readPEM = require("./crypto_utils").readPEM;
+import {  exploreCertificate } from "./crypto_explore_certificate";
+import { readPEM } from "./crypto_utils";
+
+const  assert = require("better-assert");
+
 /**
  * @method exploreCertificate
  * @param certificate
@@ -10,18 +11,23 @@ var readPEM = require("./crypto_utils").readPEM;
  * @return object.notBefore
  * @return object.notAfter
  */
-var a = 1;
-exports.exploreCertificate = function (certificate) {
+const a = 1;
+interface CertificateInfo {
+    publicKeyLength: number;
+    notBefore: Date;
+    notAfter: Date;
+}
 
- 
+export function exploreCertificateInfo(certificate: Buffer | string): CertificateInfo {
+
     if (typeof certificate === "string") {
         certificate = readPEM(certificate);
     }
     assert(certificate instanceof Buffer);
 
-    var certInfo = exploreCertificate(certificate);
+    const certInfo = exploreCertificate(certificate);
 
-    var data = {
+    const data : CertificateInfo= {
         publicKeyLength: certInfo.tbsCertificate.subjectPublicKeyInfo.keyLength,
         notBefore:       certInfo.tbsCertificate.validity.notBefore,
         notAfter:        certInfo.tbsCertificate.validity.notAfter
@@ -30,5 +36,5 @@ exports.exploreCertificate = function (certificate) {
         throw new Error("Invalid public key length (expecting 128,256,384 or 512)" + data.publicKeyLength);
     }
     return data;
-};
+}
 

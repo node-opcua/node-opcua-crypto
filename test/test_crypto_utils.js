@@ -1,7 +1,9 @@
 //xx var hexy = require("hexy");
 var should = require("should");
 var path = require("path");
-var crypto_utils = require("../lib/crypto_utils");
+var crypto_utils = require("..");
+var split_der = require("..").split_der;
+
 
 var loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
 loremIpsum.length.should.be.greaterThan(100);
@@ -52,8 +54,6 @@ describe("Crypto utils", function () {
 
         var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
-        var split_der = require("../lib/crypto_explore_certificate").split_der;
-
         var arrayCertificate =split_der(certificate);
 
         arrayCertificate.length.should.eql(3);
@@ -101,7 +101,7 @@ describe("exploreCertificate", function () {
     it("should explore a 1024 bits RSA certificate", function () {
 
         var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
-        var data = crypto_utils.exploreCertificate(certificate);
+        var data = crypto_utils.exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(128);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);
@@ -109,7 +109,7 @@ describe("exploreCertificate", function () {
     });
     it("should explore a 2048 bits RSA certificate", function () {
         var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
-        var data = crypto_utils.exploreCertificate(certificate);
+        var data = crypto_utils.exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(256);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);

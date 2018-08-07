@@ -1,5 +1,5 @@
 
-var crypto_utils = require("../lib/crypto_utils");
+var crypto_utils = require("..");
 
 var should = require("should");
 

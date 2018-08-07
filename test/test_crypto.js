@@ -11,7 +11,7 @@ var assert = require("assert");
 
 var loremIpsum = require("lorem-ipsum")({count: 100});
 
-var crypto_utils = require("../lib/crypto_utils");
+var crypto_utils = require("..");
 
 
 var old_store = null;
@@ -507,14 +507,18 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
     var chunk = new Buffer(loremIpsum);
 
 
-    //xx crypto.getHashes().forEach(function(a){ make_suite(a,128); });
+    console.log("crypto.getHashes() =" ,crypto.getHashes());
+    //  process.exit();
+    // crypto.getHashes().forEach(function(a){ make_suite(a,128); });
+
     make_suite("RSA-SHA384", 128);
     make_suite("RSA-SHA512", 128);
     make_suite("RSA-SHA256", 128);
     make_suite("RSA-SHA1", 128);
     make_suite("RSA-MD4", 128);
     make_suite("sha224WithRSAEncryption", 128);
-    make_suite("shaWithRSAEncryption", 128);
+    make_suite("sha1WithRSAEncryption", 128);
+    make_suite("sha256WithRSAEncryption", 128);
 
 
     function make_suite(algorithm, length) {
@@ -602,7 +606,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
         it("should sign with a private key and verify with the certificate (DER) - " + algorithm, function () {
 
-            var alice_private_key = crypto_utils.readKey(alice_private_key_filename,"ascii");
+            var alice_private_key = crypto_utils.readCertificate(alice_private_key_filename,"ascii");
             var options1 = {
                 algorithm: algorithm,
                 signatureLength: length,
@@ -614,7 +618,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             signature.length.should.eql(options1.signatureLength);
 
 
-            var alice_certificate = crypto_utils.readKey(alice_certificate_filename);
+            var alice_certificate = crypto_utils.readCertificate(alice_certificate_filename);
 
             var options2 = {
                 algorithm: algorithm,
@@ -628,7 +632,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
         it("should sign with a other private key and verify with a OUT OF DATE certificate (ASCII) - " + algorithm, function () {
 
-            var private_key = crypto_utils.readKey(bob_private_key_filename);
+            var private_key = crypto_utils.readCertificate(bob_private_key_filename);
             var options1 = {
                 algorithm: algorithm,
                 signatureLength: length,
@@ -640,7 +644,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             signature.length.should.eql(options1.signatureLength);
 
 
-            var certificate = crypto_utils.readKey(bob_certificate_out_of_date_filename);
+            var certificate = crypto_utils.readCertificate(bob_certificate_out_of_date_filename);
 
             var options2 = {
                 algorithm: algorithm,
@@ -661,7 +665,7 @@ describe("extractPublicKeyFromCertificate", function () {
         var certificate2 = crypto_utils.readCertificate(bob_certificate_filename);
 
 
-        var publickey2 = crypto_utils.readKey(bob_public_key_filename);
+        var publickey2 = crypto_utils.readCertificate(bob_public_key_filename);
 
 
         crypto_utils.extractPublicKeyFromCertificate(certificate2, function (err, publicKey) {

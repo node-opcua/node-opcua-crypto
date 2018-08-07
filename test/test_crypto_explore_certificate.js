@@ -1,14 +1,17 @@
-var should = require("should");
-var path = require("path");
-var fs = require("fs");
-var util = require("util");
+const should = require("should");
+const path = require("path");
+const fs = require("fs");
+const util = require("util");
 
-var crypto_utils = require("../lib/crypto_utils");
-var assert = require("better-assert");
+const crypto_utils = require("..");
+const assert = require("better-assert");
 
-var exploreCertificate = require("../lib/crypto_explore_certificate").exploreCertificate;
+const exploreCertificate = require("..").exploreCertificate;
+const exploreCertificateInfo = require("..").exploreCertificateInfo;
 
-var exploreCertificate2 = require("../lib/explore_certificate").exploreCertificate;
+const combine_der = require("..").combine_der;
+const split_der = require("..").split_der;
+
 
 describe(" exploring Certificates", function () {
 
@@ -16,10 +19,10 @@ describe(" exploring Certificates", function () {
     this.timeout(200000);
     it("should extract the information out of a 1024-bits certificate", function () {
 
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
 
         //xx console.log(hexDump(certificate));
-        var certificate_info = exploreCertificate(certificate);
+        const certificate_info = exploreCertificate(certificate);
 
         //xx console.log(certificate_info.tbsCertificate);
         console.log(" Version                   : ", certificate_info.tbsCertificate.version);
@@ -27,7 +30,6 @@ describe(" exploring Certificates", function () {
         console.log(" uniformResourceIdentifier : ", certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier);
         console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions.subjectAltName.dNSName);
 
-        //xx console.log(require("util").inspect(certificate_info,{colors:true, depth:10}));
         certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(128);
         certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
@@ -37,10 +39,10 @@ describe(" exploring Certificates", function () {
 
     it("should extract the information out of a 2048-bits certificate ", function () {
 
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
 
         // console.log(hexDump(certificate))
-        var certificate_info = exploreCertificate(certificate);
+        const certificate_info = exploreCertificate(certificate);
 
         certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(256);
@@ -51,27 +53,27 @@ describe(" exploring Certificates", function () {
     it("should extract the information out of a 4096-bits certificate - 1", function () {
 
         //  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -config toto.cnf -nodes -subj '/CN=localhost' -sha256
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_4096.pem"));
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_4096.pem"));
 
         // console.log(hexDump(certificate))
-        var certificate_info = exploreCertificate(certificate);
+        const certificate_info = exploreCertificate(certificate);
 
         certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(512);
         //xx certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
-         var data = exploreCertificate2(certificate);
+         const data = exploreCertificate(certificate);
     });
   
                 
     it("should read a V3 X509 certificate (with extensions)", function () {
 
-        var filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
+        const filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
         fs.existsSync(filename).should.equal(true);
 
-        var certificate = crypto_utils.readCertificate(filename);
+        const certificate = crypto_utils.readCertificate(filename);
         //xx console.log(certificate.toString("base64"));
 
-        var certificate_info = exploreCertificate(certificate);
+        const certificate_info = exploreCertificate(certificate);
 
         certificate_info.tbsCertificate.version.should.eql(3);
 
@@ -87,12 +89,12 @@ describe(" exploring Certificates", function () {
 
         // note : http://stackoverflow.com/questions/26788244/how-to-create-a-legacy-v1-or-v2-x-509-cert-for-testing
 
-        var filename = path.join(__dirname, "./fixtures/certs/demo_certificate_x509_V1.pem");
+        const filename = path.join(__dirname, "./fixtures/certs/demo_certificate_x509_V1.pem");
         fs.existsSync(filename).should.equal(true,"certificate file must exist");
 
-        var certificate = crypto_utils.readCertificate(filename);
+        const certificate = crypto_utils.readCertificate(filename);
         //xx console.log(certificate.toString("base64"));
-        var certificate_info = exploreCertificate(certificate);
+        const certificate_info = exploreCertificate(certificate);
 
         certificate_info.tbsCertificate.version.should.eql(1);
         should(certificate_info.tbsCertificate.extensions).eql(null);
@@ -102,32 +104,28 @@ describe(" exploring Certificates", function () {
     });
 });
 
-var fs = require("fs");
 
 describe("exploring certificate chains", function () {
 
-    var combine_der = require("../lib/crypto_explore_certificate").combine_der;
-    var split_der = require("../lib/crypto_explore_certificate").split_der;
-
     it("should combine 2 certificates in a single block", function () {
 
-        var cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
-        var cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
+        const cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
+        const cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
 
         fs.existsSync(cert1_name).should.eql(true);
         fs.existsSync(cert2_name).should.eql(true);
 
-        var cert1 = crypto_utils.readCertificate(cert1_name);
-        var cert2 = crypto_utils.readCertificate(cert2_name);
+        const cert1 = crypto_utils.readCertificate(cert1_name);
+        const cert2 = crypto_utils.readCertificate(cert2_name);
         //xx console.log("cert1 = ",cert1.toString("base64"));
         //xx console.log("cert2 = ",cert2.toString("base64"));
 
-        var combined = combine_der([cert1, cert2]);
+        const combined = combine_der([cert1, cert2]);
         combined.toString("hex").should.equal(cert1.toString("hex") + cert2.toString("hex"));
 
         combined.length.should.eql(cert1.length + cert2.length);
 
-        var chain = split_der(combined);
+        const chain = split_der(combined);
 
         chain.length.should.eql(2);
 
@@ -147,24 +145,24 @@ describe("exploring certificate chains", function () {
 
     it("should combine 3 certificates in a single block", function () {
 
-        var cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
-        var cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
-        var cert3_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
+        const cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
+        const cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
+        const cert3_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
 
         fs.existsSync(cert1_name).should.eql(true);
         fs.existsSync(cert2_name).should.eql(true);
         fs.existsSync(cert3_name).should.eql(true);
 
-        var cert1 = crypto_utils.readCertificate(cert1_name);
-        var cert2 = crypto_utils.readCertificate(cert2_name);
-        var cert3 = crypto_utils.readCertificate(cert3_name);
+        const cert1 = crypto_utils.readCertificate(cert1_name);
+        const cert2 = crypto_utils.readCertificate(cert2_name);
+        const cert3 = crypto_utils.readCertificate(cert3_name);
 
-        var combined = combine_der([cert1, cert2 , cert3]);
+        const combined = combine_der([cert1, cert2 , cert3]);
         combined.toString("hex").should.equal(cert1.toString("hex") + cert2.toString("hex") + cert3.toString("hex"));
 
         combined.length.should.eql(cert1.length + cert2.length + cert3.length);
 
-        var chain = split_der(combined);
+        const chain = split_der(combined);
 
         chain.length.should.eql(3);
 

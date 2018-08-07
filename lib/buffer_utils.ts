@@ -6,12 +6,6 @@
 //       Buffer.alloc and Buffer.allocUnsafe have been introduced in nodejs 5.1.0
 //  in node 0.11 new Buffer
 //
-exports.createFastUninitializedBuffer = Buffer.allocUnsafe ? Buffer.allocUnsafe :  function createFastUninitializedBuffer (size) {
+export const createFastUninitializedBuffer = Buffer.allocUnsafe ? Buffer.allocUnsafe :  function createFastUninitializedBuffer (size: number) {
     return new Buffer(size);
 };
-
-if (!Buffer.from) {
-    Buffer.from = function(data,encoding,length) {
-        return new Buffer(data,encoding,length);
-    };
-}

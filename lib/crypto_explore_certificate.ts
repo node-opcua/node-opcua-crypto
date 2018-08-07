@@ -1,4 +1,3 @@
-"use strict";
 /*jslint bitwise: true */
 // ---------------------------------------------------------------------------------------------------------------------
 // crypto_explore_certificate
@@ -49,17 +48,16 @@
 //  - http://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art030
 //  openssl can be also used to discover the content of a DER file
 //  $ openssl asn1parse -in cert.pem
+import * as _ from "underscore";
 
-var assert = require("better-assert");
-var _ = require("underscore");
-
+const assert = require("better-assert");
 // Converted from: https://www.cs.auckland.ac.nz/~pgut001/dumpasn1.cfg
 // which is made by Peter Gutmann and whose license states:
 // You can use this code in whatever way you want,
 // as long as you don't try to claim you wrote it.
 
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js
-var tagTypes = {
+const tagTypes = {
     BOOLEAN: 0x01,
     INTEGER: 0x02,
     BIT_STRING: 0x03,
@@ -73,11 +71,10 @@ var tagTypes = {
     IA5String: 0x16,
     UTCTime: 0x17,
     GeneralizedTime: 0x18
-
 };
 
 // https://github.com/lapo-luchini/asn1js/blob/master/oids.js
-var oid_map = {
+const oid_map: any = {
 
     "1.2.840.113549.1.1": {"d": "pkcs-1", "c": "", "w": false},
     "1.2.840.113549.1.1.1": {"d": "rsaEncryption", "c": "PKCS #1", "w": false},
@@ -308,84 +305,86 @@ var oid_map = {
     "done": {}
 };
 
-function readTag(buf, pos) {
+interface BlockInfo {
+    tag: number;
+    position: number;
+    length: number;
+}
+
+function readTag(buf: Buffer, pos: number): BlockInfo {
 
     assert(buf instanceof Buffer);
-    assert(_.isNumber(pos) && pos >=0 );
-    if(buf.length <= pos) {
+    assert(_.isNumber(pos) && pos >= 0);
+    if (buf.length <= pos) {
         throw new Error("Invalid position : buf.length=" + buf.length + " pos =" + pos);
     }
-    var tag = buf.readUInt8(pos);
+    const tag = buf.readUInt8(pos);
     pos += 1;
 
-    var length = buf.readUInt8(pos);
+    let length = buf.readUInt8(pos);
     pos += 1;
 
     if (length > 127) {
-        var nbBytes = (length & 0x7F);
+        const nbBytes = (length & 0x7F);
         length = 0;
-        for (var i = 0; i < nbBytes; i++) {
+        for (let i = 0; i < nbBytes; i++) {
             length = length * 256 + buf.readUInt8(pos);
             pos += 1;
         }
     }
-    return {tag: tag, position: pos, length: length};
+    return {tag, position: pos, length};
 }
 
+function readStruct(buf: Buffer, block_info: BlockInfo): BlockInfo[] {
 
-function readStruct(buf, block_info) {
-
-    var length = block_info.length;
-    var cursor = block_info.position;
-    var end = block_info.position + length;
-    var blocks = [];
+    const length = block_info.length;
+    let cursor = block_info.position;
+    const end = block_info.position + length;
+    const blocks: BlockInfo[] = [];
     while (cursor < end) {
-        var inner = readTag(buf, cursor);
+        const inner = readTag(buf, cursor);
         cursor = inner.position + inner.length;
         blocks.push(inner);
     }
     return blocks;
 }
 
-function get_block(buffer, block) {
-    var start = block.position;
-    var end = block.position + block.length;
+function get_block(buffer: Buffer, block: BlockInfo): Buffer {
+    const start = block.position;
+    const end = block.position + block.length;
     return buffer.slice(start, end);
 }
 
 
-function parseBitString(buffer, start, end, maxLength) {
+function parseBitString(buffer: Buffer, start: number, end: number, maxLength: number): string {
 
-    var unusedBit = buffer.readUInt8(start),
+    const unusedBit = buffer.readUInt8(start),
         lenBit = ((end - start - 1) << 3) - unusedBit,
-        intro = "(" + lenBit + " bit)\n",
-        s = "",
+        intro = "(" + lenBit + " bit)\n";
+
+    let s = "",
         skip = unusedBit;
 
-    for (var i = end - 1; i > start; --i) {
+    for (let i = end - 1; i > start; --i) {
 
-        var b = buffer.readUInt8(i);
+        const b = buffer.readUInt8(i);
 
-        for (var j = skip; j < 8; ++j) {
+        for (let j = skip; j < 8; ++j) {
             s += ((b >> j) & 1) ? "1" : "0";
         }
-
         skip = 0;
         assert(s.length <= maxLength);
-
     }
-
     return intro + s;
 }
 
-function read_BitString(buffer, block) {
+function read_BitString(buffer: Buffer, block: BlockInfo) {
 
     assert(block.tag === tagTypes.BIT_STRING);
-
-    var data = get_block(buffer, block);
+    const data = get_block(buffer, block);
 
     // number of skipped bits
-    var ignore_bits = data.readUInt8(0);
+    const ignore_bits = data.readUInt8(0);
 
     return {
         lengthInBits: data.length * 8 - ignore_bits,
@@ -395,53 +394,55 @@ function read_BitString(buffer, block) {
     };
 }
 
-function read_OctetString(buffer,block) {
+
+function read_OctetString(buffer: Buffer, block: BlockInfo): string {
 
     assert(block.tag === tagTypes.OCTET_STRING);
-    var tag = readTag(buffer,block.position);
+    const tag = readTag(buffer, block.position);
     assert(tag.tag === tagTypes.OCTET_STRING);
 
-    var nbBytes = tag.length;
-    var pos = tag.position;
+    const nbBytes = tag.length;
+    let pos = tag.position;
 
-    var value = [];
-    for (var i = 0; i < nbBytes; i++) {
+    const value: string[] = [];
+    for (let i = 0; i < nbBytes; i++) {
         value.push(('00' + buffer.readUInt8(pos).toString(16)).substr(-2, 2));
         pos += 1;
     }
     return value.join(":");
 }
 
-function read_SignatureValue(buffer, block) {
+function read_SignatureValue(buffer: Buffer, block: BlockInfo): string {
     return get_block(buffer, block).toString("hex");
 }
 
-function read_LongIntegerValue(buffer, block) {
+function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): string {
     assert(block.tag === tagTypes.INTEGER, "expecting a INTEGER tag");
-    var pos = block.position;
-    var nbBytes = block.length;
-    var value = [];
-    for (var i = 0; i < nbBytes; i++) {
+    let pos = block.position;
+    const nbBytes = block.length;
+    const value = [];
+    for (let i = 0; i < nbBytes; i++) {
         value.push(('00' + buffer.readUInt8(pos).toString(16)).substr(-2, 2));
         pos += 1;
     }
     return value.join(":");
 }
 
-function read_IntegerValue(buffer, block) {
+function read_IntegerValue(buffer: Buffer, block: BlockInfo): number {
     assert(block.tag === tagTypes.INTEGER, "expecting a INTEGER tag");
-    var pos = block.position;
-    var nbBytes = block.length;
+    let pos = block.position;
+    const nbBytes = block.length;
     assert(nbBytes < 4);
-    var value = 0;
-    for (var i = 0; i < nbBytes; i++) {
+    let value = 0;
+    for (let i = 0; i < nbBytes; i++) {
         value = value * 256 + buffer.readUInt8(pos);
         pos += 1;
     }
     return value;
 
 }
-function read_VersionValue(buffer, block) {
+
+function read_VersionValue(buffer: Buffer, block: BlockInfo): number {
     block = readTag(buffer, block.position);
     return read_IntegerValue(buffer, block);
 }
@@ -477,20 +478,17 @@ function read_VersionValue(buffer, block) {
 
  Where YY is less than 50, the year SHALL be interpreted as 20YY.
  */
-function convertUTCTime(str) {
+function convertUTCTime(str: string): Date {
 
-    var year, month, day, hours, mins, secs;
-    year = parseInt(str.substr(0, 2), 10);
-    month = parseInt(str.substr(2, 2), 10) - 1;
-    day = parseInt(str.substr(4, 2), 10);
-    hours = parseInt(str.substr(6, 2), 10);
-    mins = parseInt(str.substr(8, 2), 10);
-    secs = parseInt(str.substr(10, 2), 10);
+    let year = parseInt(str.substr(0, 2), 10);
+    const month = parseInt(str.substr(2, 2), 10) - 1;
+    const day = parseInt(str.substr(4, 2), 10);
+    const hours = parseInt(str.substr(6, 2), 10);
+    const mins = parseInt(str.substr(8, 2), 10);
+    const secs = parseInt(str.substr(10, 2), 10);
 
     year += year >= 50 ? 1900 : 2000;
-
     return new Date(Date.UTC(year, month, day, hours, mins, secs));
-
 }
 
 /*
@@ -507,9 +505,9 @@ function convertUTCTime(str) {
  GeneralizedTime values MUST NOT include fractional seconds.
 
  */
-function convertGeneralizedTime(str) {
+function convertGeneralizedTime(str: string): Date {
 
-    var year, month, day, hours, mins, secs;
+    let year, month, day, hours, mins, secs;
 
     year = parseInt(str.substr(0, 4), 10);
     month = parseInt(str.substr(4, 2), 10) - 1;
@@ -522,7 +520,7 @@ function convertGeneralizedTime(str) {
 
 }
 
-function read_Value(buffer, block) {
+function read_Value(buffer: Buffer, block: BlockInfo): any {
     switch (block.tag) {
         case tagTypes.PrintableString:
         case tagTypes.TeletexString:
@@ -540,51 +538,52 @@ function read_Value(buffer, block) {
     }
 }
 
-function read_AttributeTypeAndValue(buffer, block) {
+function read_AttributeTypeAndValue(buffer: Buffer, block: BlockInfo) {
 
-    var inner_blocks = readStruct(buffer, block);
+    let inner_blocks = readStruct(buffer, block);
     inner_blocks = readStruct(buffer, inner_blocks[0]);
 
-    var data = {
+    const data = {
         identifier: read_ObjectIdentifier(buffer, inner_blocks[0]),
         value: read_Value(buffer, inner_blocks[1])
     };
 
-    var result = {};
+    const result: any = {};
     _.forEach(data, function (value, key) {
         result[key] = value;
     });
     return result;
 }
 
-function read_RelativeDistinguishedName(buffer, block) {
-    var inner_blocks = readStruct(buffer, block);
-    var data = inner_blocks.map(function (block) {
+function read_RelativeDistinguishedName(buffer: Buffer, block: BlockInfo) {
+    const inner_blocks = readStruct(buffer, block);
+    const data = inner_blocks.map(function (block) {
         return read_AttributeTypeAndValue(buffer, block);
     });
-    var result = {};
+    const result: any = {};
     _.forEach(data, function (e) {
         result[e.identifier] = e.value;
     });
     return result;
 }
 
-function read_Name(buffer, block) {
+function read_Name(buffer: Buffer, block: BlockInfo) {
     return read_RelativeDistinguishedName(buffer, block);
 }
 
-function read_time(buffer, block) {
+function read_time(buffer: Buffer, block: BlockInfo) {
     return read_Value(buffer, block);
 }
-function read_Validity(buffer, block) {
-    var inner_blocks = readStruct(buffer, block);
+
+function read_Validity(buffer: Buffer, block: BlockInfo) {
+    const inner_blocks = readStruct(buffer, block);
     return {
         notBefore: read_time(buffer, inner_blocks[0]),
         notAfter: read_time(buffer, inner_blocks[1])
     };
 }
 
-function read_authorityKeyIdentifier(buffer) {
+function read_authorityKeyIdentifier(buffer: Buffer) {
     // see: https://www.ietf.org/rfc/rfc3280.txt page 25
     // AuthorityKeyIdentifier ::= SEQUENCE {
     //      keyIdentifier             [0] KeyIdentifier           OPTIONAL,
@@ -592,59 +591,60 @@ function read_authorityKeyIdentifier(buffer) {
     //      authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
     // KeyIdentifier ::= OCTET STRING
 
-    var block = readTag(buffer, 0);
-    var inner_blocks = readStruct(buffer, block);
+    const block = readTag(buffer, 0);
+    const inner_blocks = readStruct(buffer, block);
 
-    var keyIdentifier_block              = find_block_at_index(inner_blocks, 0);
-    var authorityCertIssuer_block        = find_block_at_index(inner_blocks, 1);
-    var authorityCertSerialNumber_block  = find_block_at_index(inner_blocks, 2);
+    const keyIdentifier_block = find_block_at_index(inner_blocks, 0);
+    const authorityCertIssuer_block = find_block_at_index(inner_blocks, 1);
+    const authorityCertSerialNumber_block = find_block_at_index(inner_blocks, 2);
 
-    function readNames(buffer,block) {
+    function readNames(buffer: Buffer, block: BlockInfo) {
         // AttributeTypeAndValue ::= SEQUENCE {
         //    type   ATTRIBUTE.&id({SupportedAttributes}),
         //    value  ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-        var inner_blocks = readStruct(buffer,block);
-        var names = {};
-        inner_blocks.forEach(function(sequence_block) {
+        const inner_blocks = readStruct(buffer, block);
+        const names: any = {};
+        inner_blocks.forEach((sequence_block) => {
 
             assert(sequence_block.tag === 0x30);
-
-            var set_blocks = readStruct(buffer,sequence_block);
-
-            set_blocks.forEach(function(set_block){
+            const set_blocks = readStruct(buffer, sequence_block);
+            set_blocks.forEach((set_block) => {
                 assert(set_block.tag === 0x31);
-
-                var blocks = readStruct(buffer,set_block);
+                const blocks = readStruct(buffer, set_block);
                 assert(blocks.length === 1);
                 assert(blocks[0].tag === 0x30);
 
-                var _blocks = readStruct(buffer,blocks[0]);
+                const _blocks = readStruct(buffer, blocks[0]);
                 assert(_blocks.length === 2);
 
-                var type  =  read_ObjectIdentifier(buffer, _blocks[0]);
+                const type = read_ObjectIdentifier(buffer, _blocks[0]);
 
-                var value =  read_Value(buffer, _blocks[1]);
-                names[type] = value;
+                names[type] = read_Value(buffer, _blocks[1]);
 
             });
         });
         return names;
     }
-    function read_authorithyCertIssuer(block) {
-        var inner_blocks = readStruct(buffer,block);
 
-        var directoryName_block = find_block_at_index(inner_blocks, 4);
+    function read_authorithyCertIssuer(block: BlockInfo) {
+        const inner_blocks = readStruct(buffer, block);
+
+        const directoryName_block = find_block_at_index(inner_blocks, 4);
         if (directoryName_block) {
             return {
-                directoryName: readNames(buffer,directoryName_block)
+                directoryName: readNames(buffer, directoryName_block)
             };
+        } else {
+            throw new Error("Invalid read_authorithyCertIssuer");
         }
-        return read_GeneralNames(buffer,directoryName_block);
+        //  return read_GeneralNames(buffer, directoryName_block);
     }
+
     return {
         authorityCertIssuer: authorityCertIssuer_block ? read_authorithyCertIssuer(authorityCertIssuer_block) : null
     };
 }
+
 /*
  Extension  ::=  SEQUENCE  {
  extnID      OBJECT IDENTIFIER,
@@ -655,23 +655,22 @@ function read_authorityKeyIdentifier(buffer) {
  -- by extnID
  }
  */
-function read_Extension(buffer, block) {
+function read_Extension(buffer: Buffer, block: BlockInfo) {
 
-
-    var inner_blocks = readStruct(buffer, block);
+    const inner_blocks = readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
         assert(inner_blocks[1].tag === tagTypes.BOOLEAN);
         inner_blocks[1] = inner_blocks[2];
     }
 
-    var identifier = read_ObjectIdentifier(buffer, inner_blocks[0]);
-    var buf = get_block(buffer, inner_blocks[1]);
+    const identifier = read_ObjectIdentifier(buffer, inner_blocks[0]);
+    const buf = get_block(buffer, inner_blocks[1]);
 
-    var value = null;
+    let value = null;
     switch (identifier) {
         case "subjectKeyIdentifier":
-            value = read_OctetString(buffer,inner_blocks[1]);
+            value = read_OctetString(buffer, inner_blocks[1]);
             break;
         case "subjectAltName":
             value = read_subjectAltNames(buf);
@@ -692,40 +691,36 @@ function read_Extension(buffer, block) {
 
 
 // Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
-function read_Extensions(buffer, block) {
+function read_Extensions(buffer: Buffer, block: BlockInfo) {
 
     assert(block.tag === 0xa3);
 
-    var inner_blocks = readStruct(buffer, block);
+    let inner_blocks = readStruct(buffer, block);
     inner_blocks = readStruct(buffer, inner_blocks[0]);
 
-    var exts = inner_blocks.map(function (block) {
-        return read_Extension(buffer, block);
-    });
+    const exts = inner_blocks.map((block) => read_Extension(buffer, block));
 
-    var result = {};
-    _.forEach(exts, function (e) {
-        result[e.identifier] = e.value;
-    });
+    const result: any = {};
+    _.forEach(exts, (e) => result[e.identifier] = e.value);
     return result;
 }
 
-function parseOID(buffer, start, end) {
+function parseOID(buffer: Buffer, start: number, end: number) {
     // ASN.1 JavaScript decoder
     // Copyright (c) 2008-2014 Lapo Luchini <lapo@lapo.it>
-    var s = '',
+    let s = '',
         n = 0,
         bits = 0;
-    for (var i = start; i < end; ++i) {
+    for (let i = start; i < end; ++i) {
 
-        var v = buffer.readUInt8(i);
+        const v = buffer.readUInt8(i);
 
         n = n * 128 + (v & 0x7F);
         bits += 7;
 
         if (!(v & 0x80)) { // finished
             if (s === '') {
-                var m = n < 80 ? n < 40 ? 0 : 1 : 2;
+                const m = n < 80 ? n < 40 ? 0 : 1 : 2;
                 s = m + "." + (n - m * 40);
             } else {
                 s += "." + n.toString();
@@ -739,20 +734,18 @@ function parseOID(buffer, start, end) {
 }
 
 
-function read_ObjectIdentifier(buffer, block) {
+function read_ObjectIdentifier(buffer: Buffer, block: BlockInfo) {
     assert(block.tag === tagTypes.OBJECT_IDENTIFIER);
-    var b = buffer.slice(block.position, block.position + block.length);
-    var oid = parseOID(b, 0, block.length);
+    const b = buffer.slice(block.position, block.position + block.length);
+    const oid = parseOID(b, 0, block.length);
     return oid_map[oid] ? oid_map[oid].d : oid;
 }
 
 
-function find_block_at_index(blocks, index) {
-    var tmp = blocks.filter(function (b) {
-        return b.tag === 0xa0 + index;
-    });
+function find_block_at_index(blocks: BlockInfo[], index: number): BlockInfo| null {
+    const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index);
     if (tmp.length === 0) {
-        return null;
+       return null;
     }
     return tmp[0];
 }
@@ -769,21 +762,21 @@ function find_block_at_index(blocks, index) {
 //        uniformResourceIdentifier [6]  IA5String,
 //        iPAddress                 [7]  OCTET STRING,
 //        registeredID              [8]  OBJECT IDENTIFIER }
-function read_GeneralNames(buffer, block) {
+function read_GeneralNames(buffer: Buffer, block: BlockInfo) {
 
-    var _data = {
-        1: {name: "rfc822Name",    type: "IA5String"},
-        2: {name: "dNSName",       type: "IA5String"},
-        3: {name: "x400Address",   type: "ORAddress"},
+    const _data: any = {
+        1: {name: "rfc822Name", type: "IA5String"},
+        2: {name: "dNSName", type: "IA5String"},
+        3: {name: "x400Address", type: "ORAddress"},
         4: {name: "directoryName", type: "Name"},
-        5: {name: "ediPartyName",  type: "EDIPartyName"},
+        5: {name: "ediPartyName", type: "EDIPartyName"},
         6: {name: "uniformResourceIdentifier", type: "IA5String"},
-        7: {name: "iPAddress",     type: "OCTET_STRING"},
-        8: {name: "registeredID",  type: "OBJECT_IDENTIFIER"},
+        7: {name: "iPAddress", type: "OCTET_STRING"},
+        8: {name: "registeredID", type: "OBJECT_IDENTIFIER"},
     };
-    var blocks = readStruct(buffer, block);
+    const blocks = readStruct(buffer, block);
 
-    function read_from_type(buffer, block, type) {
+    function read_from_type(buffer: Buffer, block: BlockInfo, type: string) {
         switch (type) {
             case "IA5String":
                 return buffer.slice(block.position, block.position + block.length).toString("ascii");
@@ -792,16 +785,16 @@ function read_GeneralNames(buffer, block) {
         }
     }
 
-    var n = {};
-    for (var i = 0; i < blocks.length; i++) {
+    const n:any = {};
+    for (let i = 0; i < blocks.length; i++) {
         block = blocks[i];
         assert((block.tag & 0x80) === 0x80);
-        var t = (block.tag & 0x7F);
-        var type = _data[t];
+        const t = (block.tag & 0x7F);
+        const type = _data[t];
 
         // istanbul ignore next
         if (!type) {
-            console.log(" INVALID TYPE =>",t,"0x"+ t.toString(16));
+            console.log(" INVALID TYPE =>", t, "0x" + t.toString(16));
         }
         n[type.name] = n[type.name] || [];
         n[type.name].push(read_from_type(buffer, block, type.type));
@@ -809,8 +802,8 @@ function read_GeneralNames(buffer, block) {
     return n;
 }
 
-function read_subjectAltNames(buffer) {
-    var block_info = readTag(buffer, 0);
+function read_subjectAltNames(buffer: Buffer) {
+    const block_info = readTag(buffer, 0);
     return read_GeneralNames(buffer, block_info);
 }
 
@@ -838,29 +831,31 @@ function read_subjectAltNames(buffer) {
  :         }
  :       }
  */
-function read_IntegerAsByteString(buffer, block) {
+function read_IntegerAsByteString(buffer: Buffer, block: BlockInfo) {
     return get_block(buffer, block);
 }
-function read_ListOfInteger(buffer) {
-    var block = readTag(buffer, 0);
-    var inner_blocks = readStruct(buffer, block);
+
+function read_ListOfInteger(buffer: Buffer) {
+    const block = readTag(buffer, 0);
+    const inner_blocks = readStruct(buffer, block);
 
     return inner_blocks.map(function (block) {
         return read_IntegerAsByteString(buffer, block);
     });
 }
-function read_SubjectPublicKeyInfo(buffer, block) {
-    var inner_blocks = readStruct(buffer, block);
+
+function read_SubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo) {
+    const inner_blocks = readStruct(buffer, block);
 
     // algorithm identifier
-    var algorithm = read_AlgorithmIdentifier(buffer, inner_blocks[0]);
-    //var parameters         = read_BitString(buffer,inner_blocks[1]);
-    var subjectPublicKey = read_BitString(buffer, inner_blocks[1]);
+    const algorithm = read_AlgorithmIdentifier(buffer, inner_blocks[0]);
+    //const parameters         = read_BitString(buffer,inner_blocks[1]);
+    const subjectPublicKey = read_BitString(buffer, inner_blocks[1]);
 
     // read the 2 big integers of the key
-    var data = subjectPublicKey.data;
-    var values = read_ListOfInteger(data);
-    // xx var value = read_ListOfInteger(data);
+    const data = subjectPublicKey.data;
+    const values = read_ListOfInteger(data);
+    // xx const value = read_ListOfInteger(data);
     return {
         algorithm: algorithm.identifier,
         subjectPublicKey: subjectPublicKey,
@@ -869,80 +864,82 @@ function read_SubjectPublicKeyInfo(buffer, block) {
         //xx values_length : values.map(function (a){ return a.length; })
     };
 }
-function read_tbsCertificate(buffer, block) {
 
-    var blocks = readStruct(buffer, block);
+function read_tbsCertificate(buffer: Buffer, block: BlockInfo) {
 
-    var version, serialNumber, signature, issuer, validity, subject, subjectPublicKeyInfo, extensions;
+    const blocks = readStruct(buffer, block);
 
-    if (blocks.length === 6 ) {
+    let version, serialNumber, signature, issuer, validity, subject, subjectPublicKeyInfo, extensions;
+
+    if (blocks.length === 6) {
         // X509 Version 1:
         version = 1;
 
-        serialNumber  = read_LongIntegerValue(buffer, blocks[0]);
-        signature     = read_AlgorithmIdentifier(buffer, blocks[1]);
-        issuer        = read_Name(buffer, blocks[2]);
-        validity      = read_Validity(buffer, blocks[3]);
-        subject       = read_Name(buffer, blocks[4]);
+        serialNumber = read_LongIntegerValue(buffer, blocks[0]);
+        signature = read_AlgorithmIdentifier(buffer, blocks[1]);
+        issuer = read_Name(buffer, blocks[2]);
+        validity = read_Validity(buffer, blocks[3]);
+        subject = read_Name(buffer, blocks[4]);
         subjectPublicKeyInfo = read_SubjectPublicKeyInfo(buffer, blocks[5]);
 
-        extensions    = null;
+        extensions = null;
     } else {
         // X509 Version 3:
 
-        var version_block = find_block_at_index(blocks, 0);
-
-        version       = read_VersionValue(buffer,version_block)  + 1 ;
-        serialNumber  = read_LongIntegerValue(buffer, blocks[1]);
-        signature     = read_AlgorithmIdentifier(buffer, blocks[2]);
-        issuer        = read_Name(buffer, blocks[3]);
-        validity      = read_Validity(buffer, blocks[4]);
-        subject       = read_Name(buffer, blocks[5]);
+        const version_block = find_block_at_index(blocks, 0);
+        if (!version_block) {
+            throw new Error("cannot find version block");
+        }
+        version = read_VersionValue(buffer, version_block) + 1;
+        serialNumber = read_LongIntegerValue(buffer, blocks[1]);
+        signature = read_AlgorithmIdentifier(buffer, blocks[2]);
+        issuer = read_Name(buffer, blocks[3]);
+        validity = read_Validity(buffer, blocks[4]);
+        subject = read_Name(buffer, blocks[5]);
         subjectPublicKeyInfo = read_SubjectPublicKeyInfo(buffer, blocks[6]);
 
-        var extensionBlock  = find_block_at_index(blocks, 3);
-        extensions    = read_Extensions(buffer,extensionBlock);
+        const extensionBlock = find_block_at_index(blocks, 3);
+        if (!extensionBlock) {
+            throw new Error("cannot find extention block");
+        }
+        extensions = read_Extensions(buffer, extensionBlock);
 
     }
 
     return {
-        version:      version,
-
+        version: version,
         serialNumber: serialNumber,
-        signature:    signature,
-        issuer:       issuer,
-        validity:     validity,
-        subject:      subject,
-        subjectPublicKeyInfo:  subjectPublicKeyInfo,
-
-        extensions:      extensions
+        signature: signature,
+        issuer: issuer,
+        validity: validity,
+        subject: subject,
+        subjectPublicKeyInfo: subjectPublicKeyInfo,
+        extensions: extensions
     };
 
 }
-function read_AlgorithmIdentifier(buffer, block) {
 
-    var inner_blocks = readStruct(buffer, block);
+function read_AlgorithmIdentifier(buffer: Buffer, block: BlockInfo) {
+    const inner_blocks = readStruct(buffer, block);
     return {
         identifier: read_ObjectIdentifier(buffer, inner_blocks[0])
     };
 }
-function exploreCertificate(buffer) {
+
+export function exploreCertificate(buffer: Buffer) {
 
     assert(buffer instanceof Buffer);
-    if (!buffer._exploreCertificate_cache) {
-        var block_info = readTag(buffer, 0);
-        var blocks = readStruct(buffer, block_info);
-        buffer._exploreCertificate_cache = {
+    if (!(buffer as any)._exploreCertificate_cache) {
+        const block_info = readTag(buffer, 0);
+        const blocks = readStruct(buffer, block_info);
+        (buffer as any)._exploreCertificate_cache = {
             tbsCertificate: read_tbsCertificate(buffer, blocks[0]),
             signatureAlgorithm: read_AlgorithmIdentifier(buffer, blocks[1]),
             signatureValue: read_SignatureValue(buffer, blocks[2])
         };
     }
-    return buffer._exploreCertificate_cache;
-
+    return (buffer as any)._exploreCertificate_cache;
 }
-
-exports.exploreCertificate = exploreCertificate;
 
 
 /**
@@ -950,18 +947,18 @@ exports.exploreCertificate = exploreCertificate;
  * combine an array of certificates into a single blob
  * @param certificates {Buffer[]}
  * @return {Buffer}
-  */
-exports.combine_der = function (certificates) {
+ */
+export function combine_der(certificates: Buffer[]) {
 
     assert(_.isArray(certificates));
 
     // perform some sanity check
-    certificates.forEach(function(cert) {
+    certificates.forEach(function (cert) {
 
-        var b = exports.split_der(cert);
-        var sum =0;
-        b.forEach(function(block){
-            var block_info = readTag(block, 0);
+        const b = split_der(cert);
+        let sum = 0;
+        b.forEach((block) => {
+            const block_info = readTag(block, 0);
             //xx console.log("xxxx" ,cert.length,block_info);
             //xx console.log(cert.toString("base64"));
             assert(block_info.position + block_info.length == block.length);
@@ -970,30 +967,23 @@ exports.combine_der = function (certificates) {
         assert(sum === cert.length);
     });
     return Buffer.concat(certificates);
-};
-
+}
 /**
  * @method split_der
  * split a multi chain certificates
  * @param buffer {Buffer}
  * @return {Buffer[]}
  */
-exports.split_der = function (buffer) {
+export function split_der(buffer: Buffer): Buffer[] {
 
-    var certificate_chain = [];
+    const certificate_chain: Buffer[]=[];
 
     do {
-        var block_info = readTag(buffer, 0);
-
-        var length = block_info.position + block_info.length;
-
-        var der_certificate = buffer.slice(0,length);
-
+        const block_info = readTag(buffer, 0);
+        const length = block_info.position + block_info.length;
+        const der_certificate = buffer.slice(0, length);
         certificate_chain.push(der_certificate);
-
         buffer = buffer.slice(length);
-
-    } while (buffer.length>0);
-
+    } while (buffer.length > 0);
     return certificate_chain;
-};
+}

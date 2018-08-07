@@ -1,15 +1,12 @@
 sudo: false
 language: node_js
 node_js:
-  - "4"
-  - "5"
-  - "6"
   - "8"
   - "9"
 
 before_script:
   - npm install -g istanbul coveralls
-  - npm install -g mocha colors
+  - npm install -g mocha typescript
   - npm install -g codeclimate-test-reporter
 
 after_success:
