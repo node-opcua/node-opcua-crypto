@@ -4,3 +4,4 @@ tmp/
 .travis.yml
 appveyor.yml
 Makefile
+.idea
