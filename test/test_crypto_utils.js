@@ -1,11 +1,11 @@
-//xx var hexy = require("hexy");
-var should = require("should");
-var path = require("path");
-var crypto_utils = require("..");
-var split_der = require("..").split_der;
+//xx const hexy = require("hexy");
+const should = require("should");
+const path = require("path");
+const crypto_utils = require("..");
+const split_der = require("..").split_der;
 
 
-var loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
+const loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
 loremIpsum.length.should.be.greaterThan(100);
 
 function make_lorem_ipsum_buffer() {
@@ -16,7 +16,7 @@ describe("Crypto utils", function () {
 
     it("should read a PEM file", function () {
 
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
 
         // console.log(certificate.toString("hex"));
         // console.log(certificate.toString("base64"));
@@ -52,9 +52,9 @@ describe("Crypto utils", function () {
 
     it("should read a certificate chain",function() {
 
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
-        var arrayCertificate =split_der(certificate);
+        const arrayCertificate =split_der(certificate);
 
         arrayCertificate.length.should.eql(3);
 
@@ -62,15 +62,15 @@ describe("Crypto utils", function () {
 
     it("ZZ should read a certificate chain - write and read it again",function() {
 
-        var fs = require("fs");
+        const fs = require("fs");
 
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
-        var t = crypto_utils.toPem(certificate,"CERTIFICATE");
+        const t = crypto_utils.toPem(certificate,"CERTIFICATE");
 
-        var certificate_one_blob =path.join(__dirname,"../tmp/tmp.pem");
+        const certificate_one_blob =path.join(__dirname,"../tmp/tmp.pem");
         fs.writeFileSync(certificate_one_blob,t,"ascii");
-        var certificate2 = crypto_utils.readCertificate(certificate_one_blob);
+        const certificate2 = crypto_utils.readCertificate(certificate_one_blob);
 
         certificate.toString("base64").should.eql(certificate2.toString("base64"));
 
@@ -84,9 +84,9 @@ describe("Crypto utils", function () {
     it("makeSHA1Thumbprint should produce a 20-byte thumbprint ", function () {
 
 
-        var buf = make_lorem_ipsum_buffer();
+        const buf = make_lorem_ipsum_buffer();
 
-        var digest = crypto_utils.makeSHA1Thumbprint(buf);
+        const digest = crypto_utils.makeSHA1Thumbprint(buf);
 
         digest.should.be.instanceOf(Buffer);
 
@@ -100,16 +100,16 @@ describe("exploreCertificate", function () {
 
     it("should explore a 1024 bits RSA certificate", function () {
 
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
-        var data = crypto_utils.exploreCertificateInfo(certificate);
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
+        const data = crypto_utils.exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(128);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);
 
     });
     it("should explore a 2048 bits RSA certificate", function () {
-        var certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
-        var data = crypto_utils.exploreCertificateInfo(certificate);
+        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
+        const data = crypto_utils.exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(256);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);

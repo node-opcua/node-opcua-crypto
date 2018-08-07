@@ -1,12 +1,12 @@
 
-var crypto_utils = require("..");
+const crypto_utils = require("..");
 
-var should = require("should");
+const should = require("should");
 
-var makebuffer_from_trace = require("./helpers/makebuffer_from_trace").makebuffer_from_trace;
-var inlineText = require("./helpers/makebuffer_from_trace").inlineText;
+const makebuffer_from_trace = require("./helpers/makebuffer_from_trace").makebuffer_from_trace;
+const inlineText = require("./helpers/makebuffer_from_trace").inlineText;
 
-var buffer = makebuffer_from_trace(
+const buffer = makebuffer_from_trace(
     function () {
         /*
          00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
@@ -63,7 +63,7 @@ var buffer = makebuffer_from_trace(
          */
     });
 
-var privateKey = inlineText(
+const privateKey = inlineText(
     function () {
         /*
          -----BEGIN RSA PRIVATE KEY-----
@@ -84,7 +84,7 @@ var privateKey = inlineText(
          */
     });
 
-var _describe = crypto_utils.isFullySupported ? describe : xdescribe;
+const _describe = crypto_utils.isFullySupported ? describe : xdescribe;
 
 _describe("testing message decryption", function () {
 
@@ -93,14 +93,14 @@ _describe("testing message decryption", function () {
 
 
         // extract the client certificate from the unencrypted part
-        var senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
+        const senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
 
         // where the encrypted  part starts
-        var start = buffer.length - ( 128 * 3 );
-        var encrypted_part = buffer.slice(start);
+        const start = buffer.length - ( 128 * 3 );
+        const encrypted_part = buffer.slice(start);
 
         // decrypt the encrypted part
-        var decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
+        const decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
 
         // recompose the buffer
         decrypted_part.copy(buffer, start);
@@ -108,23 +108,23 @@ _describe("testing message decryption", function () {
         buffer.length.should.equal(start + 3 * (128 - 11));
 
         // verify signature
-        var publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
-        var options = {
+        const publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
+        const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
             publicKey: publicKey
         };
-        var boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
+        const boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
 
         boolSignatureIsOK.should.eql(true);
 
         // now without knowledge of the signatureLength
-        var options1 = {
+        const options1 = {
             algorithm: "RSA-SHA1",
             //xx signatureLength: 256,
             publicKey: publicKey
         };
-        var boolSignatureIsOK1 = crypto_utils.verifyChunkSignature(buffer, options1);
+        const boolSignatureIsOK1 = crypto_utils.verifyChunkSignature(buffer, options1);
 
         boolSignatureIsOK1.should.eql(true);
 

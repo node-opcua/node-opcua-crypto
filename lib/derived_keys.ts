@@ -69,7 +69,7 @@ export function makePseudoRandomBuffer(secret: Buffer, seed: Buffer, minLength: 
     const a = [];
     a[0] = seed;
     let index = 1;
-    let p_hash = new Buffer(0);
+    let p_hash = createFastUninitializedBuffer(0);
     while (p_hash.length <= minLength) {
         /* eslint  new-cap:0 */
         a[index] = HMAC_HASH(secret, a[index - 1]);

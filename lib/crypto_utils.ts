@@ -47,8 +47,7 @@ export function readCertificate(filename: string): Buffer {
 
     assert(typeof filename === "string");
     if (filename.match(/.*\.der/)) {
-        const der = fs.readFileSync(filename, "binary");
-        return Buffer.from(der);
+        return fs.readFileSync(filename) as Buffer;
     }
     const raw_key = fs.readFileSync(filename, "ascii");
     return readPEM(raw_key);
@@ -133,7 +132,7 @@ export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChu
     signer.update(chunk);
     const signature = signer.sign(options.privateKey);
     assert(!options.signatureLength || signature.length === options.signatureLength);
-    return Buffer.from(signature); // Buffer
+    return signature as Buffer; // Buffer
 }
 
 export interface VerifyMessageChunkSignatureOptions {
@@ -162,7 +161,7 @@ export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Bu
 
     assert(blockToVerify instanceof Buffer);
     assert(signature instanceof Buffer);
-    assert(typeof options.publicKey === 'string');
+    assert(typeof options.publicKey === "string");
     assert(identifyPemType(options.publicKey));
 
     const verify = crypto.createVerify(options.algorithm);
@@ -171,8 +170,7 @@ export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Bu
 }
 
 export function makeSHA1Thumbprint(buffer: Buffer): Buffer {
-    const digest = crypto.createHash("sha1").update(buffer).digest();
-    return Buffer.from(digest);
+    return crypto.createHash("sha1").update(buffer).digest();
 }
 
 
