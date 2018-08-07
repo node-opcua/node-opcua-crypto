@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "postinstall": "npm run build",
     "test": "mocha test -r source-map-support/register -R spec --recursive --timeout 200000 --bail"
   },
   "keywords": [
