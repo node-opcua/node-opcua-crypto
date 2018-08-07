@@ -1,0 +1,6 @@
+test/
+tmp/
+.codeclimate.yml
+.travis.yml
+appveyor.yml
+Makefile
