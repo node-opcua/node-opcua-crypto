@@ -1,9 +1,9 @@
 # Test against this version of Node.js
 environment:
   matrix:
-  - nodejs_version: "4"
   - nodejs_version: "6"
   - nodejs_version: "8"
+  - nodejs_version: "10"
 
 platform:
   - x64
@@ -23,6 +23,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules
+  - npm install -g mocha typescript
   - npm install
 
 # Post-install test scripts.
@@ -30,7 +31,7 @@ test_script:
   # Output useful info for debugging.
   - node --version
   - npm --version
-  - npm install mocha colors -g
+  - npm install mocha colors typescript -g
   - npm install
   # run tests
   - npm test
