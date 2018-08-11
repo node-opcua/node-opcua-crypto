@@ -1,8 +1,11 @@
+/**
+ * @module node_opcua_crypto
+ */
 import * as crypto from "crypto";
 import * as  _ from "underscore";
 import {createFastUninitializedBuffer} from "./buffer_utils";
 import {verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions} from "./crypto_utils";
-import {exploreCertificate} from "./crypto_explore_certificate";
+import {exploreCertificateInfo} from "./explore_certificate";
 
 const assert = require("better-assert");
 
@@ -79,16 +82,32 @@ export function makePseudoRandomBuffer(secret: Buffer, seed: Buffer, minLength: 
     return p_hash.slice(0, minLength);
 }
 
+
 export interface ComputeDerivedKeysOptions {
     signatureLength: number;
     signingKeyLength: number;
     encryptingKeyLength: number;
+
     encryptingBlockSize: number;
     algorithm: string;
     sha1or256?: "SHA1" | "SHA256";
 }
 
-export function computeDerivedKeys(secret: Buffer, seed: Buffer, options: ComputeDerivedKeysOptions) {
+export interface DerivedKeys extends ComputeDerivedKeysOptions {
+    signatureLength: number;
+    signingKeyLength: number;
+    encryptingKeyLength: number;
+
+    encryptingBlockSize: number;
+    algorithm: string;
+    sha1or256: "SHA1" | "SHA256";
+
+    signingKey: Buffer;
+    encryptingKey: Buffer;
+    initializationVector: Buffer;
+}
+
+export function computeDerivedKeys(secret: Buffer, seed: Buffer, options: ComputeDerivedKeysOptions): DerivedKeys {
     assert(_.isFinite(options.signatureLength));
     assert(_.isFinite(options.encryptingKeyLength));
     assert(_.isFinite(options.encryptingBlockSize));
@@ -98,20 +117,23 @@ export function computeDerivedKeys(secret: Buffer, seed: Buffer, options: Comput
 
     const offset1 = options.signingKeyLength;
     const offset2 = offset1 + options.encryptingKeyLength;
-    const offset3 = offset2 + options.encryptingBlockSize;
-    const minLength = offset3;
+    const minLength = offset2 + options.encryptingBlockSize;
+
     const buf = makePseudoRandomBuffer(secret, seed, minLength, options.sha1or256);
 
     return {
-        signingKey: buf.slice(0, offset1),
-        encryptingKey: buf.slice(offset1, offset2),
-        initializationVector: buf.slice(offset2, offset3),
+
+        signatureLength: options.signatureLength,
         signingKeyLength: options.signingKeyLength,
         encryptingKeyLength: options.encryptingKeyLength,
+
         encryptingBlockSize: options.encryptingBlockSize,
-        signatureLength: options.signatureLength,
         algorithm: options.algorithm,
-        sha1or256: options.sha1or256
+        sha1or256: options.sha1or256,
+
+        signingKey:    buf.slice(0, offset1),
+        encryptingKey: buf.slice(offset1, offset2),
+        initializationVector: buf.slice(offset2, minLength),
     };
 }
 
@@ -162,7 +184,7 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
     if (signatureLength === 0) {
         // let's get the signatureLength by checking the size
         // of the certificate's public key
-        const cert = exploreCertificate(options.publicKey);
+        const cert = exploreCertificateInfo(options.publicKey);
         signatureLength = cert.publicKeyLength || 0; // 1024 bits = 128Bytes or 2048=256Bytes
     }
     const block_to_verify = chunk.slice(0, chunk.length - signatureLength);
@@ -171,19 +193,9 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
 }
 
 
-interface DerivedKeys {
-    signingKey: Buffer;
-    signatureLength: number;
-    encryptingBlockSize: number;
-    sha1or256: "SHA1" | "SHA256";
-    algorithm: string;
-    encryptingKey: Buffer;
-    initializationVector: Buffer;
-}
-
 
 // /**
-//  * extract the publickey from a certificate - using the pem module
+//  * extract the public key from a certificate - using the pem module
 //  *
 //  * @method extractPublicKeyFromCertificate_WithPem
 //  * @async

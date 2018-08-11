@@ -1,23 +1,31 @@
+/**
+ * @module node_opcua_crypto
+ */
 
 import {  exploreCertificate } from "./crypto_explore_certificate";
 import { readPEM } from "./crypto_utils";
 
 const  assert = require("better-assert");
 
+export type PublicKeyLength = 128 | 256 | 384 | 512 ;
+
 /**
- * @method exploreCertificate
- * @param certificate
- * @return object.publicKeyLength
- * @return object.notBefore
- * @return object.notAfter
+ * A structure exposing useful information about a certificate
  */
-const a = 1;
-interface CertificateInfo {
-    publicKeyLength: number;
+export interface CertificateInfo {
+    /** the public key length in bits */
+    publicKeyLength: PublicKeyLength;
+    /** the date at which the certificate starts to be valid */
     notBefore: Date;
+    /** the date after which the certificate is not valid any more */
     notAfter: Date;
 }
 
+/**
+ * @method exploreCertificateInfo
+ * returns useful information about the certificate such as public key length, start date and end of validity date
+ * @param certificate the certificate to explore
+ */
 export function exploreCertificateInfo(certificate: Buffer | string): CertificateInfo {
 
     if (typeof certificate === "string") {

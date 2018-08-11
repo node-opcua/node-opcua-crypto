@@ -6,7 +6,6 @@ const path = require("path");
 
 
 const should = require("should");
-const colors = require("colors");
 const assert = require("assert");
 
 const loremIpsum = require("lorem-ipsum")({count: 100});
@@ -167,6 +166,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
             const bob_sign = crypto.createSign("RSA-SHA256");
             bob_sign.update("HelloWorld");
             const signature = bob_sign.sign(alice_public_key);
+
+            signature.length.should.be.greaterThan(0);
             //xx console.log("buffer length= ", signature.length);
             //xx console.log("buffer= ", signature.toString("hex"));
         }).throwError();
@@ -452,7 +453,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
     it("exploring crypto api with symmetrical encryption/decryption", function () {
 
-        const crypto = require("crypto");
+
         const  key = 'salt_from_the_user_document'
             , buffer = new Buffer('This is a top , very top secret message !! ah ah' + loremIpsum);
 
@@ -605,7 +606,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
         it("should sign with a private key and verify with the certificate (DER) - " + algorithm, function () {
 
-            const alice_private_key = crypto_utils.readCertificate(alice_private_key_filename,"ascii");
+            const alice_private_key = crypto_utils.readPrivateKey(alice_private_key_filename,"ascii");
             const options1 = {
                 algorithm: algorithm,
                 signatureLength: length,
@@ -631,7 +632,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
         it("should sign with a other private key and verify with a OUT OF DATE certificate (ASCII) - " + algorithm, function () {
 
-            const private_key = crypto_utils.readCertificate(bob_private_key_filename);
+            const private_key = crypto_utils.readPrivateKey(bob_private_key_filename);
             const options1 = {
                 algorithm: algorithm,
                 signatureLength: length,
@@ -664,7 +665,7 @@ describe("extractPublicKeyFromCertificate", function () {
         const certificate2 = crypto_utils.readCertificate(bob_certificate_filename);
 
 
-        const publickey2 = crypto_utils.readCertificate(bob_public_key_filename);
+        const publickey2 = crypto_utils.readPublicKey(bob_public_key_filename);
 
 
         crypto_utils.extractPublicKeyFromCertificate(certificate2, function (err, publicKey) {

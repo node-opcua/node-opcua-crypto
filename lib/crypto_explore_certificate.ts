@@ -1,3 +1,6 @@
+/**
+ * @module node_opcua_crypto
+ */
 /*jslint bitwise: true */
 // ---------------------------------------------------------------------------------------------------------------------
 // crypto_explore_certificate
@@ -370,6 +373,7 @@ function parseBitString(buffer: Buffer, start: number, end: number, maxLength: n
         const b = buffer.readUInt8(i);
 
         for (let j = skip; j < 8; ++j) {
+            // noinspection JSBitwiseOperatorUsage
             s += ((b >> j) & 1) ? "1" : "0";
         }
         skip = 0;
@@ -412,7 +416,9 @@ function read_OctetString(buffer: Buffer, block: BlockInfo): string {
     return value.join(":");
 }
 
-function read_SignatureValue(buffer: Buffer, block: BlockInfo): string {
+export type SignatureValue = string;
+
+function read_SignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
     return get_block(buffer, block).toString("hex");
 }
 
@@ -538,7 +544,10 @@ function read_Value(buffer: Buffer, block: BlockInfo): any {
     }
 }
 
-function read_AttributeTypeAndValue(buffer: Buffer, block: BlockInfo) {
+export interface AttributeTypeAndValue {
+    [key: string]: any
+}
+function read_AttributeTypeAndValue(buffer: Buffer, block: BlockInfo): AttributeTypeAndValue {
 
     let inner_blocks = readStruct(buffer, block);
     inner_blocks = readStruct(buffer, inner_blocks[0]);
@@ -548,14 +557,17 @@ function read_AttributeTypeAndValue(buffer: Buffer, block: BlockInfo) {
         value: read_Value(buffer, inner_blocks[1])
     };
 
-    const result: any = {};
+    const result: AttributeTypeAndValue = {};
     _.forEach(data, function (value, key) {
         result[key] = value;
     });
     return result;
 }
 
-function read_RelativeDistinguishedName(buffer: Buffer, block: BlockInfo) {
+interface RelativeDistinguishedName {
+    [prop: string]: any;
+}
+function read_RelativeDistinguishedName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
     const inner_blocks = readStruct(buffer, block);
     const data = inner_blocks.map(function (block) {
         return read_AttributeTypeAndValue(buffer, block);
@@ -567,7 +579,7 @@ function read_RelativeDistinguishedName(buffer: Buffer, block: BlockInfo) {
     return result;
 }
 
-function read_Name(buffer: Buffer, block: BlockInfo) {
+function read_Name(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
     return read_RelativeDistinguishedName(buffer, block);
 }
 
@@ -575,7 +587,11 @@ function read_time(buffer: Buffer, block: BlockInfo) {
     return read_Value(buffer, block);
 }
 
-function read_Validity(buffer: Buffer, block: BlockInfo) {
+export interface Validity {
+    notBefore: Date;
+    notAfter: Date;
+}
+function read_Validity(buffer: Buffer, block: BlockInfo): Validity {
     const inner_blocks = readStruct(buffer, block);
     return {
         notBefore: read_time(buffer, inner_blocks[0]),
@@ -594,8 +610,10 @@ function read_authorityKeyIdentifier(buffer: Buffer) {
     const block = readTag(buffer, 0);
     const inner_blocks = readStruct(buffer, block);
 
+    // noinspection JSUnusedLocalSymbols
     const keyIdentifier_block = find_block_at_index(inner_blocks, 0);
     const authorityCertIssuer_block = find_block_at_index(inner_blocks, 1);
+    // noinspection JSUnusedLocalSymbols
     const authorityCertSerialNumber_block = find_block_at_index(inner_blocks, 2);
 
     function readNames(buffer: Buffer, block: BlockInfo) {
@@ -718,6 +736,7 @@ function parseOID(buffer: Buffer, start: number, end: number) {
         n = n * 128 + (v & 0x7F);
         bits += 7;
 
+        // noinspection JSBitwiseOperatorUsage
         if (!(v & 0x80)) { // finished
             if (s === '') {
                 const m = n < 80 ? n < 40 ? 0 : 1 : 2;
@@ -865,7 +884,17 @@ function read_SubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo) {
     };
 }
 
-function read_tbsCertificate(buffer: Buffer, block: BlockInfo) {
+export interface TbsCertificate {
+    version: number;
+    serialNumber: string;
+    issuer: any;
+    signature: AlgorithmIdentifier;
+    validity: Validity;
+    subject: any;
+    subjectPublicKeyInfo: any;
+    extensions: any | null;
+}
+function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
 
     const blocks = readStruct(buffer, block);
 
@@ -908,7 +937,7 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo) {
 
     return {
         version: version,
-        serialNumber: serialNumber,
+        serialNumber,
         signature: signature,
         issuer: issuer,
         validity: validity,
@@ -919,34 +948,50 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo) {
 
 }
 
-function read_AlgorithmIdentifier(buffer: Buffer, block: BlockInfo) {
+export interface AlgorithmIdentifier
+{
+    identifier: any;
+}
+function read_AlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
     const inner_blocks = readStruct(buffer, block);
     return {
         identifier: read_ObjectIdentifier(buffer, inner_blocks[0])
     };
 }
 
-export function exploreCertificate(buffer: Buffer) {
+export interface CertificateInternals
+{
+    tbsCertificate: TbsCertificate,
+    signatureAlgorithm: AlgorithmIdentifier,
+    signatureValue: SignatureValue;
+}
 
-    assert(buffer instanceof Buffer);
-    if (!(buffer as any)._exploreCertificate_cache) {
-        const block_info = readTag(buffer, 0);
-        const blocks = readStruct(buffer, block_info);
-        (buffer as any)._exploreCertificate_cache = {
-            tbsCertificate: read_tbsCertificate(buffer, blocks[0]),
-            signatureAlgorithm: read_AlgorithmIdentifier(buffer, blocks[1]),
-            signatureValue: read_SignatureValue(buffer, blocks[2])
+/**
+ * explore a certificate structure
+ * @param certificate
+ * @returns a json object that exhibits the internal data of the certificate
+ */
+export function exploreCertificate(certificate: Buffer): CertificateInternals {
+
+    assert(certificate instanceof Buffer);
+    if (!(certificate as any)._exploreCertificate_cache) {
+        const block_info = readTag(certificate, 0);
+        const blocks = readStruct(certificate, block_info);
+        (certificate as any)._exploreCertificate_cache = {
+            tbsCertificate: read_tbsCertificate(certificate, blocks[0]),
+            signatureAlgorithm: read_AlgorithmIdentifier(certificate, blocks[1]),
+            signatureValue: read_SignatureValue(certificate, blocks[2])
         };
     }
-    return (buffer as any)._exploreCertificate_cache;
+    return (certificate as any)._exploreCertificate_cache;
 }
 
 
 /**
  * @method combine_der
  * combine an array of certificates into a single blob
- * @param certificates {Buffer[]}
- * @return {Buffer}
+ * @param certificates a array with the individual DER certificates of the chain
+ * @return a concatenated buffer containing the certificates
  */
 export function combine_der(certificates: Buffer[]) {
 
@@ -971,19 +1016,19 @@ export function combine_der(certificates: Buffer[]) {
 /**
  * @method split_der
  * split a multi chain certificates
- * @param buffer {Buffer}
- * @return {Buffer[]}
+ * @param certificateChain  the certificate chain in der (binary) format}
+ * @returns an array of Der , each element of the array is one certificate of the chain
  */
-export function split_der(buffer: Buffer): Buffer[] {
+export function split_der(certificateChain: Buffer): Buffer[] {
 
     const certificate_chain: Buffer[]=[];
 
     do {
-        const block_info = readTag(buffer, 0);
+        const block_info = readTag(certificateChain, 0);
         const length = block_info.position + block_info.length;
-        const der_certificate = buffer.slice(0, length);
+        const der_certificate = certificateChain.slice(0, length);
         certificate_chain.push(der_certificate);
-        buffer = buffer.slice(length);
-    } while (buffer.length > 0);
+        certificateChain = certificateChain.slice(length);
+    } while (certificateChain.length > 0);
     return certificate_chain;
 }

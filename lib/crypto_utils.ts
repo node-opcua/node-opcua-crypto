@@ -1,3 +1,6 @@
+/**
+ * @module node_opcua_crypto
+ */
 import * as  path from "path";
 import * as fs from "fs";
 import * as  crypto from "crypto";
@@ -43,7 +46,7 @@ export function readPEM(raw_key: string) {
     return combine_der(parts);
 }
 
-export function readCertificate(filename: string): Buffer {
+export function readPemFile(filename: string): Buffer {
 
     assert(typeof filename === "string");
     if (filename.match(/.*\.der/)) {
@@ -52,6 +55,18 @@ export function readCertificate(filename: string): Buffer {
     const raw_key = fs.readFileSync(filename, "ascii");
     return readPEM(raw_key);
 }
+
+export function readCertificate(filename: string): Buffer {
+    return readPemFile(filename);
+}
+export function readPublicKey(filename: string): Buffer {
+    return readPemFile(filename);
+}
+export function readPrivateKey(filename: string): Buffer {
+    return readPemFile(filename);
+}
+
+
 
 /**
  * @method readKeyPem
@@ -138,7 +153,7 @@ export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChu
 export interface VerifyMessageChunkSignatureOptions {
     signatureLength: number;
     algorithm: string;
-    publicKey: Buffer;
+    publicKey: string;
 }
 
 /**
@@ -169,7 +184,7 @@ export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Bu
     return verify.verify(options.publicKey, signature);
 }
 
-export function makeSHA1Thumbprint(buffer: Buffer): Buffer {
+export   function makeSHA1Thumbprint(buffer: Buffer): Buffer {
     return crypto.createHash("sha1").update(buffer).digest();
 }
 
@@ -213,14 +228,23 @@ export function read_public_rsa_key(filename: string): string {
 // key is 936 bits because of this (unless you disable the padding by adding the OPENSSL_NO_PADDING flag,
 // in which case you can go up to 1023-1024 bits). With a 2048-bit key it's 1960 bits instead.
 
-export const RSA_PKCS1_OAEP_PADDING = constants.RSA_PKCS1_OAEP_PADDING;
-export const RSA_PKCS1_PADDING = constants.RSA_PKCS1_PADDING;
+export const RSA_PKCS1_OAEP_PADDING: number = constants.RSA_PKCS1_OAEP_PADDING;
+export const RSA_PKCS1_PADDING: number = constants.RSA_PKCS1_PADDING;
+
+export enum PaddingAlgorithm {
+    RSA_PKCS1_OAEP_PADDING= 4,
+    RSA_PKCS1_PADDING= 1
+}
+assert(PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING === constants.RSA_PKCS1_OAEP_PADDING);
+assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 
 // publicEncrypt and  privateDecrypt only work with
 // small buffer that depends of the key size.
-export function publicEncrypt_native(buffer: Buffer, publicKey: string, algorithm: number) {
+export function publicEncrypt_native(buffer: Buffer, publicKey: string, algorithm?: PaddingAlgorithm) {
 
-    algorithm = algorithm || RSA_PKCS1_PADDING;
+    if (algorithm === undefined) {
+        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
+    }
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
     assert(buffer instanceof Buffer, "Expecting a buffer");
     return crypto.publicEncrypt({
@@ -229,8 +253,10 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: string, algorith
     }, buffer);
 }
 
-export function privateDecrypt_native(buffer: Buffer, privateKey: string, algorithm: number) {
-    algorithm = algorithm || RSA_PKCS1_PADDING;
+export function privateDecrypt_native(buffer: Buffer, privateKey: string, algorithm: PaddingAlgorithm) {
+    if (algorithm === undefined) {
+        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
+    }
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
     assert(buffer instanceof Buffer, "Expecting a buffer");
     try {
@@ -244,8 +270,12 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: string, algori
     }
 }
 
-export function publicEncrypt_long(buffer: Buffer, key: string, blockSize: number, padding: number, algorithm: number) {
-    algorithm = algorithm || RSA_PKCS1_PADDING;
+
+
+export function publicEncrypt_long(buffer: Buffer, key: string, blockSize: number, padding: number, algorithm?: PaddingAlgorithm) {
+    if (algorithm === undefined) {
+        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING ;
+    }
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
 
     const chunk_size = blockSize - padding;
