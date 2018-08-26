@@ -668,7 +668,7 @@ describe("extractPublicKeyFromCertificate", function () {
 
         crypto_utils.extractPublicKeyFromCertificate(certificate2, function (err, publicKey) {
 
-            const raw_public_key = crypto_utils.readPEM(publicKey);
+            const raw_public_key = crypto_utils.readPemFileAsDER(publicKey);
 
             raw_public_key.toString("base64").should.eql(publickey2.toString("base64"));
             done(err);
