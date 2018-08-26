@@ -1,12 +1,11 @@
 
-function inlineText(f) {
+export function inlineText(f: Function): string {
     var k = f.toString().
         replace(/^[^\/]+\/\*!?/, '').
         replace(/\*\/[^\/]+$/, '');
     k = k.split("\n").map(function(t){  t = t.trim(); return t; }).join("\n");
     return k;
 }
-exports.inlineText = inlineText;
 
 
 /**
@@ -19,7 +18,7 @@ exports.inlineText = inlineText;
  * @param listOfBytes
  * @return {Buffer}
  */
-function makeBuffer(listOfBytes) {
+export function makeBuffer(listOfBytes: string): Buffer {
     var l = listOfBytes.split(" ");
     var b = new Buffer(l.length);
     var i = 0;
@@ -30,7 +29,7 @@ function makeBuffer(listOfBytes) {
     return b;
 }
 
-var hexString = function (str) {
+export  function hexString(str: string): string {
     var hexline = "";
     var lines = str.split("\n");
     lines.forEach(function (line) {
@@ -45,9 +44,8 @@ var hexString = function (str) {
         }
     });
     return hexline;
-};
+}
 
-function makebuffer_from_trace(func) {
+export function makebuffer_from_trace(func: Function) {
     return makeBuffer(hexString(inlineText(func)));
 }
-exports.makebuffer_from_trace = makebuffer_from_trace;

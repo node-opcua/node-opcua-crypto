@@ -1,29 +1,30 @@
-"use strict";
+import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
+import * as should  from "should";
 
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
-
-
-const should = require("should");
 const assert = require("assert");
-
 const loremIpsum = require("lorem-ipsum")({count: 100});
 
-const crypto_utils = require("..");
+import * as crypto_utils from "..";
+import {DER, PublicKey, PublicKeyPEM} from "..";
+import {convertPEMtoDER} from "../lib";
 
 
-let old_store = null;
+let old_store: string|null = null;
 function switch_to_test_certificate_store() {
     assert(old_store === null);
     old_store = crypto_utils.setCertificateStore(path.join(__dirname, "./fixtures/certs/"));
 }
 function restore_default_certificate_store() {
-    assert(old_store !== null);
+    if (old_store === null) {
+        throw new Error("cannot restore certificate store");
+    }
+
     crypto_utils.setCertificateStore(old_store);
     old_store = null;
-
 }
+
 
 const alice_private_key_filename                    = path.join(__dirname, "./fixtures/alice_bob/alice_key_1024.pem");
 const alice_public_key_filename                     = path.join(__dirname, "./fixtures/alice_bob/alice_public_key_1024.pub");
@@ -37,7 +38,7 @@ const bob_certificate_out_of_date_filename          = path.join(__dirname, "./fi
 
 const doDebug = false;
 //Xx doDebug = true;
-function debugLog() {
+function debugLog(...args: any[]) {
     if (doDebug) {
         console.log.apply(console, arguments);
     }
@@ -45,18 +46,15 @@ function debugLog() {
 
 
 // symmetric encryption and decryption
-function encrypt_buffer(buffer, algorithm, key) {
-    const crypto = require("crypto");
-    const cipher = crypto.createCipher(algorithm, key);
+function encrypt_buffer(buffer: Buffer, algorithm: string, password: string| Buffer) : Buffer {
+    const cipher = crypto.createCipher(algorithm, password);
     const encrypted_chunks = [];
     encrypted_chunks.push(cipher.update(buffer));
     encrypted_chunks.push(cipher.final());
-
     return Buffer.concat(encrypted_chunks);
 }
 
-function decrypt_buffer(buffer, algorithm, key) {
-    const crypto = require("crypto");
+function decrypt_buffer(buffer: Buffer, algorithm: string, key: string | Buffer): Buffer {
     const decipher = crypto.createDecipher(algorithm, key);
     const decrypted_chunks = [];
     decrypted_chunks.push(decipher.update(buffer));
@@ -180,20 +178,26 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         it("should check that bob rsa key is 2048bit long (256 bytes)", function () {
 
-            const key = crypto_utils.read_sshkey_as_pem('bob_id_rsa.pub');
+            const key: PublicKeyPEM = crypto_utils.read_sshkey_as_pem('bob_id_rsa.pub');
             crypto_utils.rsa_length(key).should.equal(256);
+
+            const keyDer: PublicKey = crypto_utils.convertPEMtoDER(key);
+            crypto_utils.rsa_length(keyDer).should.equal(256);
 
         });
 
         it("should check that john rsa key is 1024bit long (128 bytes)", function () {
 
-            const key = crypto_utils.read_sshkey_as_pem('john_id_rsa.pub');
+            const key:PublicKeyPEM = crypto_utils.read_sshkey_as_pem('john_id_rsa.pub');
             crypto_utils.rsa_length(key).should.equal(128);
+
+            const keyDer: PublicKey = crypto_utils.convertPEMtoDER(key);
+            crypto_utils.rsa_length(keyDer).should.equal(128);
 
         });
         it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
 
-            const john_public_key = read_sshkey_as_pem('john_id_rsa.pub'); // 1024 bit RSA
+            const john_public_key: PublicKeyPEM = read_sshkey_as_pem('john_id_rsa.pub'); // 1024 bit RSA
             debugLog('john_public_key', john_public_key);
             let encryptedBuffer;
 
@@ -227,7 +231,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         it("RSA_PKCS1_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
 
             //
-            const bob_public_key = read_sshkey_as_pem('bob_id_rsa.pub');
+            const bob_public_key: PublicKeyPEM = read_sshkey_as_pem('bob_id_rsa.pub');
             debugLog('bob_public_key', bob_public_key);
             let encryptedBuffer;
 
@@ -427,12 +431,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
-        let public_key = fs.readFileSync(alice_public_key_filename);
+        let public_key = fs.readFileSync(alice_public_key_filename).toString('ascii');
 
-        public_key = public_key.toString('ascii');
-
-
-        // const pubkey = ursa.createPublicKey(public_k ey);
 
         const buf = new Buffer(16);
         buf.writeDoubleLE(3.14, 0);
@@ -521,7 +521,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
     make_suite("sha256WithRSAEncryption", 128);
 
 
-    function make_suite(algorithm, length) {
+    function make_suite(algorithm: string, length: number) {
 
         it("should sign with a private key and verify with the public key (ASCII) - " + algorithm, function () {
 
@@ -536,7 +536,8 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             signature.should.be.instanceOf(Buffer);
             signature.length.should.eql(options1.signatureLength);
 
-            const alice_public_key = fs.readFileSync(alice_public_key_filename).toString('ascii');
+            const alice_public_key = fs.readFileSync(alice_public_key_filename,"ascii");
+
             const options2 = {
                 algorithm: algorithm,
                 signatureLength: length,
@@ -554,14 +555,14 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 signatureLength: length,
                 privateKey: alice_private_key
             };
-            const signature = new Buffer(crypto_utils.makeMessageChunkSignature(chunk, options1), "binary"); // Buffer
 
+            const signature = crypto_utils.makeMessageChunkSignature(chunk, options1);
 
             signature.should.be.instanceOf(Buffer);
             signature.length.should.eql(options1.signatureLength);
 
 
-            const alice_certificate = fs.readFileSync(alice_certificate_filename).toString('ascii');
+            const alice_certificate = fs.readFileSync(alice_certificate_filename,"ascii");
 
             const options2 = {
                 algorithm: algorithm,
@@ -581,8 +582,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 signatureLength: length,
                 privateKey: alice_private_key
             };
-            const signature = new Buffer(crypto_utils.makeMessageChunkSignature(chunk, options1), "binary"); // Buffer
-
+            const signature = crypto_utils.makeMessageChunkSignature(chunk, options1);
 
             signature.should.be.instanceOf(Buffer);
             signature.length.should.eql(options1.signatureLength);
@@ -604,13 +604,13 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
         it("should sign with a private key and verify with the certificate (DER) - " + algorithm, function () {
 
-            const alice_private_key = crypto_utils.readPrivateKey(alice_private_key_filename,"ascii");
+            const alice_private_key: DER = crypto_utils.readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm: algorithm,
                 signatureLength: length,
                 privateKey: crypto_utils.toPem(alice_private_key, "RSA PRIVATE KEY")
             };
-            const signature = new Buffer(crypto_utils.makeMessageChunkSignature(chunk, options1), "binary"); // Buffer
+            const signature = crypto_utils.makeMessageChunkSignature(chunk, options1);
 
             signature.should.be.instanceOf(Buffer);
             signature.length.should.eql(options1.signatureLength);
@@ -636,7 +636,8 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 signatureLength: length,
                 privateKey: crypto_utils.toPem(private_key, "RSA PRIVATE KEY")
             };
-            const signature = new Buffer(crypto_utils.makeMessageChunkSignature(chunk, options1), "binary"); // Buffer
+
+            const signature = crypto_utils.makeMessageChunkSignature(chunk, options1);
 
             signature.should.be.instanceOf(Buffer);
             signature.length.should.eql(options1.signatureLength);
@@ -649,7 +650,9 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 signatureLength: length,
                 publicKey: crypto_utils.toPem(certificate, "CERTIFICATE")
             };
+
             const signVerif = crypto_utils.verifyMessageChunkSignature(chunk, signature, options2);
+
             signVerif.should.eql(true);
 
         });
@@ -666,9 +669,12 @@ describe("extractPublicKeyFromCertificate", function () {
         const publickey2 = crypto_utils.readPublicKey(bob_public_key_filename);
 
 
-        crypto_utils.extractPublicKeyFromCertificate(certificate2, function (err, publicKey) {
+        crypto_utils.extractPublicKeyFromCertificate(certificate2, (err: Error | null, publicKey?: PublicKeyPEM) => {
 
-            const raw_public_key = crypto_utils.readPemFileAsDER(publicKey);
+            if (!publicKey) {
+                return done(new Error("Error"));
+            }
+            const raw_public_key = crypto_utils.convertPEMtoDER(publicKey);
 
             raw_public_key.toString("base64").should.eql(publickey2.toString("base64"));
             done(err);

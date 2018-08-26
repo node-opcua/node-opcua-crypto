@@ -6,3 +6,4 @@ appveyor.yml
 Makefile
 .idea
 *.tgz
+doc/

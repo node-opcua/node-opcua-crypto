@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "postinstall": "npm run build",
-    "test": "mocha test -r source-map-support/register -R spec --recursive --timeout 200000 --bail"
+    "test": "mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
+    "makedoc": "typedoc -out doc"
   },
   "keywords": [
     "OPCUA",
@@ -20,9 +21,13 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "devDependencies": {
+    "@types/mocha": "^5.2.5",
+    "@types/should": "^13.0.0",
     "lorem-ipsum": "^1.0.5",
     "mocha": "^5.2.0",
-    "should": "^13.2.3"
+    "should": "^13.2.3",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.0.1"
   },
   "dependencies": {
     "@types/chalk": "^2.2.0",

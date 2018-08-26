@@ -6,11 +6,23 @@ import * as fs from "fs";
 import * as  crypto from "crypto";
 import {createFastUninitializedBuffer} from "./buffer_utils";
 import {combine_der} from "./crypto_explore_certificate";
+import {
+    Certificate,
+    CertificatePEM,
+    DER,
+    PEM,
+    PrivateKey,
+    PrivateKeyPEM,
+    PublicKey,
+    PublicKeyPEM,
+    Signature
+} from "./common";
+import {coerceCertificate} from "./explore_certificate";
+import * as constants from "constants";
 
 const hexy = require("hexy");
 const assert = require("better-assert");
 const jsrsasign = require("jsrsasign");
-const constants = require("constants");
 const sshKeyToPEM = require("ssh-key-to-pem");
 
 
@@ -33,9 +45,11 @@ export function identifyPemType(rawKey: Buffer | string): undefined | string {
     return !match ? undefined : match[2];
 }
 
-export function readPEM(raw_key: string) {
+export function convertPEMtoDER(raw_key: PEM): DER {
+
     let match, pemType, base64str;
-    const parts = [];
+
+    const parts: DER[] = [];
     while ((match = PEM_REGEX.exec(raw_key)) !== null) {
         pemType = match[2];
         // pemType shall be "RSA PRIVATE KEY" , "PUBLIC KEY", "CERTIFICATE"
@@ -46,24 +60,39 @@ export function readPEM(raw_key: string) {
     return combine_der(parts);
 }
 
-export function readPemFile(filename: string): Buffer {
-
+function _readPemFile(filename: string): PEM {
     assert(typeof filename === "string");
+    const raw_key = fs.readFileSync(filename, "ascii");
+    return raw_key;
+}
+
+function _readPemFileAsDER(filename: string): DER {
     if (filename.match(/.*\.der/)) {
         return fs.readFileSync(filename) as Buffer;
     }
-    const raw_key = fs.readFileSync(filename, "ascii");
-    return readPEM(raw_key);
+    const raw_key = _readPemFile(filename);
+    return convertPEMtoDER(raw_key);
 }
 
-export function readCertificate(filename: string): Buffer {
-    return readPemFile(filename);
+export function readCertificate(filename: string): Certificate {
+    return _readPemFileAsDER(filename) as Certificate;
 }
-export function readPublicKey(filename: string): Buffer {
-    return readPemFile(filename);
+export function readPublicKey(filename: string): PublicKey {
+    return _readPemFileAsDER(filename) as PublicKey;
 }
-export function readPrivateKey(filename: string): Buffer {
-    return readPemFile(filename);
+export function readPrivateKey(filename: string): PrivateKey {
+    return _readPemFileAsDER(filename) as PrivateKey;
+}
+
+
+export function readCertificatePEM(filename: string): CertificatePEM {
+    return _readPemFile(filename);
+}
+export function readPublicKeyPEM(filename: string): PublicKeyPEM{
+    return _readPemFile(filename);
+}
+export function readPrivateKeyPEM(filename: string): PrivateKeyPEM {
+    return _readPemFile(filename);
 }
 
 
@@ -123,7 +152,7 @@ export function hexDump(buffer: Buffer, width?: number) {
 interface MakeMessageChunkSignatureOptions {
     signatureLength: number;
     algorithm: string;
-    privateKey: string;
+    privateKey: CertificatePEM;
 }
 
 /**
@@ -137,8 +166,6 @@ interface MakeMessageChunkSignatureOptions {
  */
 export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChunkSignatureOptions): Buffer {
 
-
-
     assert(options.hasOwnProperty("algorithm"));
     assert(chunk instanceof Buffer);
     assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(options.privateKey) as string) >= 0);
@@ -151,9 +178,9 @@ export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChu
 }
 
 export interface VerifyMessageChunkSignatureOptions {
-    signatureLength: number;
+    signatureLength?: number;
     algorithm: string;
-    publicKey: string;
+    publicKey: PublicKeyPEM;
 }
 
 /**
@@ -172,7 +199,7 @@ export interface VerifyMessageChunkSignatureOptions {
  * @param options.publicKey {Buffer}
  * @return {Boolean} - true if the signature is valid
  */
-export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Buffer, options: VerifyMessageChunkSignatureOptions) {
+export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Signature, options: VerifyMessageChunkSignatureOptions) {
 
     assert(blockToVerify instanceof Buffer);
     assert(signature instanceof Buffer);
@@ -184,7 +211,7 @@ export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Bu
     return verify.verify(options.publicKey, signature);
 }
 
-export   function makeSHA1Thumbprint(buffer: Buffer): Buffer {
+export function makeSHA1Thumbprint(buffer: Buffer): Signature {
     return crypto.createHash("sha1").update(buffer).digest();
 }
 
@@ -197,9 +224,8 @@ export function setCertificateStore(store: string) {
     return old_store;
 }
 
-export type PEM = string;
 
-export function read_sshkey_as_pem(filename: string): PEM {
+export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
     if (filename.substr(0, 1) !== '.') {
         filename = __certificate_store + filename;
     }
@@ -208,14 +234,18 @@ export function read_sshkey_as_pem(filename: string): PEM {
     return key as PEM;
 }
 
-export function read_private_rsa_key(filename: string): string {
+/**
+ *
+ * @param filename
+ */
+export function read_private_rsa_key(filename: string): PrivateKeyPEM {
     if (filename.substr(0, 1) !== '.' && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
     return fs.readFileSync(filename, "ascii") as string;
 }
 
-export function read_public_rsa_key(filename: string): string {
+export function read_public_rsa_key(filename: string): PublicKeyPEM {
     return read_private_rsa_key(filename);
 }
 
@@ -240,7 +270,7 @@ assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 
 // publicEncrypt and  privateDecrypt only work with
 // small buffer that depends of the key size.
-export function publicEncrypt_native(buffer: Buffer, publicKey: string, algorithm?: PaddingAlgorithm) {
+export function publicEncrypt_native(buffer: Buffer, publicKey: PublicKeyPEM, algorithm?: PaddingAlgorithm) {
 
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
@@ -253,10 +283,12 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: string, algorith
     }, buffer);
 }
 
-export function privateDecrypt_native(buffer: Buffer, privateKey: string, algorithm: PaddingAlgorithm) {
+export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM, algorithm?: PaddingAlgorithm) {
+
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
+
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
     assert(buffer instanceof Buffer, "Expecting a buffer");
     try {
@@ -272,7 +304,7 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: string, algori
 
 
 
-export function publicEncrypt_long(buffer: Buffer, key: string, blockSize: number, padding: number, algorithm?: PaddingAlgorithm) {
+export function publicEncrypt_long(buffer: Buffer, publicKey: PublicKeyPEM, blockSize: number, padding: number, algorithm?: PaddingAlgorithm) {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING ;
     }
@@ -284,14 +316,14 @@ export function publicEncrypt_long(buffer: Buffer, key: string, blockSize: numbe
     const outputBuffer = createFastUninitializedBuffer(nbBlocks * blockSize);
     for (let i = 0; i < nbBlocks; i++) {
         const currentBlock = buffer.slice(chunk_size * i, chunk_size * (i + 1));
-        const encrypted_chunk = publicEncrypt(currentBlock, key, algorithm);
+        const encrypted_chunk = publicEncrypt(currentBlock, publicKey, algorithm);
         assert(encrypted_chunk.length === blockSize);
         encrypted_chunk.copy(outputBuffer, i * blockSize);
     }
     return outputBuffer;
 }
 
-export function privateDecrypt_long(buffer: Buffer, key: string, blockSize: number, algorithm: number) {
+export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKeyPEM, blockSize: number, algorithm?: number) {
 
     algorithm = algorithm || RSA_PKCS1_PADDING;
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
@@ -303,7 +335,7 @@ export function privateDecrypt_long(buffer: Buffer, key: string, blockSize: numb
     let total_length = 0;
     for (let i = 0; i < nbBlocks; i++) {
         const currentBlock = buffer.slice(blockSize * i, Math.min(blockSize * (i + 1), buffer.length));
-        const decrypted_buf = privateDecrypt(currentBlock, key, algorithm);
+        const decrypted_buf = privateDecrypt(currentBlock, privateKey, algorithm);
         decrypted_buf.copy(outputBuffer, total_length);
         total_length += decrypted_buf.length;
     }
@@ -314,25 +346,43 @@ export const publicEncrypt = publicEncrypt_native;
 export const privateDecrypt = privateDecrypt_native;
 
 
+
+export function coerceCertificatePem(certificate: Certificate | CertificatePEM): CertificatePEM {
+    if (certificate instanceof Buffer) {
+        certificate = toPem(certificate, "CERTIFICATE");
+    }
+    assert(typeof certificate === "string");
+    return certificate;
+}
+export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
+    if (publicKey instanceof Buffer) {
+        publicKey = toPem(publicKey, "PUBLIC KEY");
+    }
+    assert(typeof publicKey === "string");
+    return publicKey;
+}
+
 /***
  * @method rsa_length
  * A very expensive way to determine the rsa key length ( i.e 2048bits or 1024bits)
  * @param key {string} a PEM public key or a PEM rsa private key
  * @return {int} the key length in bytes.
  */
-export function rsa_length(key: string): number {
+export function rsa_length(key: PublicKeyPEM | PublicKey): number {
+
+    key = coercePublicKeyPem(key);
+    assert(typeof key === "string");
     const a = jsrsasign.KEYUTIL.getKey(key);
     return a.n.toString(16).length / 2;
 }
 
-export function extractPublicKeyFromCertificateSync(certificate: Buffer | PEM) {
+export function extractPublicKeyFromCertificateSync(certificate: Certificate | CertificatePEM): PublicKeyPEM {
 
-    if (certificate instanceof Buffer) {
-        certificate = toPem(certificate, "CERTIFICATE");
-    }
-    assert(typeof certificate === "string");
+    certificate = coerceCertificatePem(certificate);
     const key = jsrsasign.KEYUTIL.getKey(certificate);
-    return jsrsasign.KEYUTIL.getPEM(key);
+    const publicKeyAsPem =  jsrsasign.KEYUTIL.getPEM(key);
+    assert(typeof publicKeyAsPem === "string");
+    return publicKeyAsPem;
 }
 
 
@@ -340,16 +390,11 @@ export function extractPublicKeyFromCertificateSync(certificate: Buffer | PEM) {
 // tool to analyse asn1 base64 blocks : http://lapo.it/asn1js
 /**
  * extract the publickey from a certificate
- * @method extractPublicKeyFromCertificate
  * @async
- * @param certificate
- * @param callback {Function}
- * @param callback.err
- * @param callback.publicKey as pem
  */
-export function extractPublicKeyFromCertificate(certificate: Buffer | PEM, callback: (err: Error | null, pem?: PEM) => void) {
+export function extractPublicKeyFromCertificate(certificate: CertificatePEM | Certificate, callback: (err: Error | null, publicKeyPEM?: PublicKeyPEM) => void) {
     let err1: any = null;
-    let keyPem: PEM;
+    let keyPem: PublicKeyPEM;
     try {
         keyPem = extractPublicKeyFromCertificateSync(certificate);
     }

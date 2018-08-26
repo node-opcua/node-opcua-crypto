@@ -2,8 +2,9 @@
  * @module node_opcua_crypto
  */
 
-import {  exploreCertificate } from "./crypto_explore_certificate";
-import { readPEM } from "./crypto_utils";
+import { exploreCertificate } from "./crypto_explore_certificate";
+import { convertPEMtoDER } from "./crypto_utils";
+import {Certificate, CertificatePEM} from "./common";
 
 const  assert = require("better-assert");
 
@@ -21,17 +22,22 @@ export interface CertificateInfo {
     notAfter: Date;
 }
 
+export function coerceCertificate(certificate: Certificate | CertificatePEM): Certificate {
+    if (typeof certificate === "string") {
+        certificate = convertPEMtoDER(certificate);
+    }
+    assert(certificate instanceof Buffer);
+    return certificate;
+}
+
 /**
  * @method exploreCertificateInfo
  * returns useful information about the certificate such as public key length, start date and end of validity date
  * @param certificate the certificate to explore
  */
-export function exploreCertificateInfo(certificate: Buffer | string): CertificateInfo {
+export function exploreCertificateInfo(certificate: Certificate | CertificatePEM): CertificateInfo {
 
-    if (typeof certificate === "string") {
-        certificate = readPEM(certificate);
-    }
-    assert(certificate instanceof Buffer);
+    certificate = coerceCertificate(certificate);
 
     const certInfo = exploreCertificate(certificate);
 

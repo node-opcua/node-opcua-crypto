@@ -6,6 +6,7 @@ import * as  _ from "underscore";
 import {createFastUninitializedBuffer} from "./buffer_utils";
 import {verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions} from "./crypto_utils";
 import {exploreCertificateInfo} from "./explore_certificate";
+import {Nonce} from "./common";
 
 const assert = require("better-assert");
 
@@ -56,7 +57,7 @@ const assert = require("better-assert");
 //
 // see also http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/ws-secureconversation-1.3-os.html
 //          http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
-export function makePseudoRandomBuffer(secret: Buffer, seed: Buffer, minLength: number, sha1or256: "SHA1" | "SHA256") {
+export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: number, sha1or256: "SHA1" | "SHA256") {
 
     assert(seed instanceof Buffer);
     assert(sha1or256 === "SHA1" || sha1or256 === "SHA256");
@@ -107,7 +108,7 @@ export interface DerivedKeys extends ComputeDerivedKeysOptions {
     initializationVector: Buffer;
 }
 
-export function computeDerivedKeys(secret: Buffer, seed: Buffer, options: ComputeDerivedKeysOptions): DerivedKeys {
+export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeDerivedKeysOptions): DerivedKeys {
     assert(_.isFinite(options.signatureLength));
     assert(_.isFinite(options.encryptingKeyLength));
     assert(_.isFinite(options.encryptingBlockSize));
@@ -131,7 +132,7 @@ export function computeDerivedKeys(secret: Buffer, seed: Buffer, options: Comput
         algorithm: options.algorithm,
         sha1or256: options.sha1or256,
 
-        signingKey:    buf.slice(0, offset1),
+        signingKey: buf.slice(0, offset1),
         encryptingKey: buf.slice(offset1, offset2),
         initializationVector: buf.slice(offset2, minLength),
     };
@@ -161,6 +162,7 @@ export function removePadding(buffer: Buffer): Buffer {
 
 
 export type VerifyChunkSignatureOptions = VerifyMessageChunkSignatureOptions;
+
 /**
  * @method verifyChunkSignature
  *
@@ -191,7 +193,6 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
     const signature = chunk.slice(chunk.length - signatureLength);
     return verifyMessageChunkSignature(block_to_verify, signature, options);
 }
-
 
 
 // /**

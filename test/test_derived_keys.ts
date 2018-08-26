@@ -1,14 +1,17 @@
-"use strict";
-const crypto_utils = require("..");
-const makePseudoRandomBuffer = crypto_utils.makePseudoRandomBuffer;
+import * as crypto_utils from "..";
+import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
+import * as should  from "should";
+import {ComputeDerivedKeysOptions} from "..";
 
-const should = require("should");
-const crypto = require("crypto");
+
+const makePseudoRandomBuffer = crypto_utils.makePseudoRandomBuffer;
 
 const loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
 loremIpsum.length.should.be.greaterThan(100);
 
-function make_lorem_ipsum_buffer() {
+function make_lorem_ipsum_buffer() : Buffer {
     return new Buffer(loremIpsum);
 }
 
@@ -17,7 +20,7 @@ describe("test derived key making", function () {
     const secret = new Buffer("my secret");
     const seed = new Buffer("my seed");
 
-    const options_AES_128_CBC = {
+    const options_AES_128_CBC: ComputeDerivedKeysOptions = {
         signingKeyLength:    128,
         encryptingKeyLength: 16,
         encryptingBlockSize: 16,
@@ -25,7 +28,7 @@ describe("test derived key making", function () {
         algorithm:           "aes-128-cbc",
         sha1or256:           "SHA1"
     };
-    const options_AES_256_CBC = {
+    const options_AES_256_CBC: ComputeDerivedKeysOptions = {
         signingKeyLength:    256,
         encryptingKeyLength: 32,
         encryptingBlockSize: 16,
@@ -33,7 +36,7 @@ describe("test derived key making", function () {
         algorithm:           "aes-256-cbc",
         sha1or256:           "SHA1"
     };
-    const options_AES_256_CBC_SHA256 = {
+    const options_AES_256_CBC_SHA256: ComputeDerivedKeysOptions = {
         signingKeyLength:    256,
         encryptingKeyLength: 32,
         encryptingBlockSize: 16,
@@ -61,7 +64,7 @@ describe("test derived key making", function () {
 
 
 
-    function perform_symmetric_encryption_test(options, done) {
+    function perform_symmetric_encryption_test(options: any, done: (err?: Error|null)=> void) {
 
         const derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
 
@@ -94,15 +97,15 @@ describe("test derived key making", function () {
 
     }
 
-    it("demonstrating how to use derived keys for symmetric encryption (aes-128-cbc)", function (done) {
+    it("demonstrating how to use derived keys for symmetric encryption (aes-128-cbc)",  (done) => {
         perform_symmetric_encryption_test(options_AES_128_CBC, done);
     });
 
-    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA1", function (done) {
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA1", (done)  =>  {
         perform_symmetric_encryption_test(options_AES_256_CBC, done);
     });
 
-    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA256", function (done) {
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA256", (done)  => {
         perform_symmetric_encryption_test(options_AES_256_CBC_SHA256, done);
     });
 
@@ -114,7 +117,7 @@ describe("test derived key making", function () {
 
     });
 
-    function test_verifyChunkSignatureWithDerivedKeys(options) {
+    function test_verifyChunkSignatureWithDerivedKeys(options: any) {
         const derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
 
         const clear_message = make_lorem_ipsum_buffer();
@@ -155,7 +158,7 @@ describe("test derived key making", function () {
 
     it("should create derived keys (computeDerivedKeys)", function () {
 
-        const options = options_AES_128_CBC;
+        const options: ComputeDerivedKeysOptions = options_AES_128_CBC;
         const derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
 
         derivedKeys.signingKey.length.should.eql(options.signingKeyLength);

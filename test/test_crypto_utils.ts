@@ -1,9 +1,8 @@
-//xx const hexy = require("hexy");
-const should = require("should");
-const path = require("path");
-const crypto_utils = require("..");
-const split_der = require("..").split_der;
-
+import * as should from "should";
+import  * as path from "path";
+import  * as fs from "fs";
+import * as crypto_utils from "..";
+import {split_der } from "..";
 
 const loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
 loremIpsum.length.should.be.greaterThan(100);
@@ -14,7 +13,7 @@ function make_lorem_ipsum_buffer() {
 
 describe("Crypto utils", function () {
 
-    it("should read a PEM file", function () {
+    it("should read a PEM file",  () => {
 
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
 
@@ -50,7 +49,7 @@ describe("Crypto utils", function () {
     });
 
 
-    it("should read a certificate chain",function() {
+    it("should read a certificate chain", () => {
 
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
@@ -60,9 +59,8 @@ describe("Crypto utils", function () {
 
     });
 
-    it("ZZ should read a certificate chain - write and read it again",function() {
+    it("ZZ should read a certificate chain - write and read it again", () => {
 
-        const fs = require("fs");
 
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
@@ -81,7 +79,7 @@ describe("Crypto utils", function () {
     });
 
 
-    it("makeSHA1Thumbprint should produce a 20-byte thumbprint ", function () {
+    it("makeSHA1Thumbprint should produce a 20-byte thumbprint ",  () => {
 
 
         const buf = make_lorem_ipsum_buffer();
@@ -96,9 +94,9 @@ describe("Crypto utils", function () {
 });
 
 
-describe("exploreCertificate", function () {
+describe("exploreCertificate",  () => {
 
-    it("should explore a 1024 bits RSA certificate", function () {
+    it("should explore a 1024 bits RSA certificate",  () => {
 
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
         const data = crypto_utils.exploreCertificateInfo(certificate);
@@ -107,7 +105,7 @@ describe("exploreCertificate", function () {
         data.notBefore.should.be.instanceOf(Date);
 
     });
-    it("should explore a 2048 bits RSA certificate", function () {
+    it("should explore a 2048 bits RSA certificate",  () => {
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
         const data = crypto_utils.exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(256);

@@ -1,10 +1,10 @@
+import * as  crypto_utils from "..";
+import * as fs from "fs";
+import * as path from "path";
+import * as should  from "should";
 
-const crypto_utils = require("..");
 
-const should = require("should");
-
-const makebuffer_from_trace = require("./helpers/makebuffer_from_trace").makebuffer_from_trace;
-const inlineText = require("./helpers/makebuffer_from_trace").inlineText;
+import {  makebuffer_from_trace, inlineText } from "./helpers/makebuffer_from_trace";
 
 const buffer = makebuffer_from_trace(
     function () {
@@ -84,12 +84,11 @@ const privateKey = inlineText(
          */
     });
 
-const _describe = crypto_utils.isFullySupported ? describe : xdescribe;
 
-_describe("testing message decryption", function () {
+describe("testing message decryption",  () => {
 
 
-    it("should decrypt an OPN packet and verify that the signature is correct", function () {
+    it("should decrypt an OPN packet and verify that the signature is correct", () => {
 
 
         // extract the client certificate from the unencrypted part
@@ -104,8 +103,9 @@ _describe("testing message decryption", function () {
 
         // recompose the buffer
         decrypted_part.copy(buffer, start);
-        buffer = buffer.slice(0, start + decrypted_part.length);
-        buffer.length.should.equal(start + 3 * (128 - 11));
+
+        const my_buffer = buffer.slice(0, start + decrypted_part.length);
+        my_buffer.length.should.equal(start + 3 * (128 - 11));
 
         // verify signature
         const publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
@@ -114,7 +114,7 @@ _describe("testing message decryption", function () {
             signatureLength: 256,
             publicKey: publicKey
         };
-        const boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
+        const boolSignatureIsOK = crypto_utils.verifyChunkSignature(my_buffer, options);
 
         boolSignatureIsOK.should.eql(true);
 
@@ -124,7 +124,7 @@ _describe("testing message decryption", function () {
             //xx signatureLength: 256,
             publicKey: publicKey
         };
-        const boolSignatureIsOK1 = crypto_utils.verifyChunkSignature(buffer, options1);
+        const boolSignatureIsOK1 = crypto_utils.verifyChunkSignature(my_buffer, options1);
 
         boolSignatureIsOK1.should.eql(true);
 

@@ -52,6 +52,7 @@
 //  openssl can be also used to discover the content of a DER file
 //  $ openssl asn1parse -in cert.pem
 import * as _ from "underscore";
+import {Certificate} from "./common";
 
 const assert = require("better-assert");
 // Converted from: https://www.cs.auckland.ac.nz/~pgut001/dumpasn1.cfg
@@ -971,7 +972,7 @@ export interface CertificateInternals
  * @param certificate
  * @returns a json object that exhibits the internal data of the certificate
  */
-export function exploreCertificate(certificate: Buffer): CertificateInternals {
+export function exploreCertificate(certificate: Certificate): CertificateInternals {
 
     assert(certificate instanceof Buffer);
     if (!(certificate as any)._exploreCertificate_cache) {
@@ -993,12 +994,12 @@ export function exploreCertificate(certificate: Buffer): CertificateInternals {
  * @param certificates a array with the individual DER certificates of the chain
  * @return a concatenated buffer containing the certificates
  */
-export function combine_der(certificates: Buffer[]) {
+export function combine_der(certificates: Certificate[]): Certificate {
 
     assert(_.isArray(certificates));
 
     // perform some sanity check
-    certificates.forEach(function (cert) {
+    for( const cert of certificates) {
 
         const b = split_der(cert);
         let sum = 0;
@@ -1010,7 +1011,7 @@ export function combine_der(certificates: Buffer[]) {
             sum += block.length;
         });
         assert(sum === cert.length);
-    });
+    }
     return Buffer.concat(certificates);
 }
 /**
@@ -1019,7 +1020,7 @@ export function combine_der(certificates: Buffer[]) {
  * @param certificateChain  the certificate chain in der (binary) format}
  * @returns an array of Der , each element of the array is one certificate of the chain
  */
-export function split_der(certificateChain: Buffer): Buffer[] {
+export function split_der(certificateChain: Certificate): Certificate[] {
 
     const certificate_chain: Buffer[]=[];
 
