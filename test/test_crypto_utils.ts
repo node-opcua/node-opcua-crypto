@@ -1,6 +1,7 @@
 import * as should from "should";
 import  * as path from "path";
 import  * as fs from "fs";
+import * as os from "os";
 import * as crypto_utils from "..";
 import {split_der } from "..";
 
@@ -66,7 +67,7 @@ describe("Crypto utils", function () {
 
         const t = crypto_utils.toPem(certificate,"CERTIFICATE");
 
-        const certificate_one_blob =path.join(__dirname,"../tmp/tmp.pem");
+        const certificate_one_blob =path.join(os.tmpdir(),"./tmp.pem");
         fs.writeFileSync(certificate_one_blob,t,"ascii");
         const certificate2 = crypto_utils.readCertificate(certificate_one_blob);
 
