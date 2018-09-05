@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "postinstall": "npm run build",
+    "prepublish": "npm run build",
     "test": "mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
     "makedoc": "typedoc -out doc"
   },
