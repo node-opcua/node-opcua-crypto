@@ -10,6 +10,7 @@
  * @internal
  * @private
  */
-export const createFastUninitializedBuffer = Buffer.allocUnsafe ? Buffer.allocUnsafe :  function createFastUninitializedBuffer (size: number) {
-    return new Buffer(size);
+export const createFastUninitializedBuffer = Buffer.allocUnsafe ? Buffer.allocUnsafe :
+    (size: number) => {
+        return new Buffer(size);
 };

@@ -2,9 +2,9 @@
  * @module node_opcua_crypto
  */
 
-import { exploreCertificate } from "./crypto_explore_certificate";
-import { convertPEMtoDER } from "./crypto_utils";
 import {Certificate, CertificatePEM} from "./common";
+import {exploreCertificate} from "./crypto_explore_certificate";
+import {convertPEMtoDER} from "./crypto_utils";
 
 const  assert = require("better-assert");
 
@@ -41,7 +41,7 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
 
     const certInfo = exploreCertificate(certificate);
 
-    const data : CertificateInfo= {
+    const data: CertificateInfo = {
         publicKeyLength: certInfo.tbsCertificate.subjectPublicKeyInfo.keyLength,
         notBefore:       certInfo.tbsCertificate.validity.notBefore,
         notAfter:        certInfo.tbsCertificate.validity.notAfter
@@ -51,4 +51,3 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
     }
     return data;
 }
-

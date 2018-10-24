@@ -1,28 +1,25 @@
-
+// tslint:disable-next-line:ban-types
 export function inlineText(f: Function): string {
-    var k = f.toString().
-        replace(/^[^\/]+\/\*!?/, '').
-        replace(/\*\/[^\/]+$/, '');
-    k = k.split("\n").map(function(t){  t = t.trim(); return t; }).join("\n");
+    let k = f.toString().replace(/^[^\/]+\/\*!?/, "").replace(/\*\/[^\/]+$/, "");
+    k = k.split("\n").map((t) => t.trim()).join("\n");
     return k;
 }
-
 
 /**
  * @method makeBuffer
  * turn a string make of hexadecimal bytes into a buffer
  *
  * @example
- *     var buffer = makeBuffer("BE EF");
+ *     const buffer = makeBuffer("BE EF");
  *
  * @param listOfBytes
- * @return {Buffer}
+ * @return
  */
 export function makeBuffer(listOfBytes: string): Buffer {
-    var l = listOfBytes.split(" ");
-    var b = new Buffer(l.length);
-    var i = 0;
-    l.forEach(function (value) {
+    const l = listOfBytes.split(" ");
+    const b = Buffer.allocUnsafe(l.length);
+    let i = 0;
+    l.forEach((value) => {
         b.writeUInt8(parseInt(value, 16), i);
         i += 1;
     });
@@ -30,8 +27,8 @@ export function makeBuffer(listOfBytes: string): Buffer {
 }
 
 export  function hexString(str: string): string {
-    var hexline = "";
-    var lines = str.split("\n");
+    let hexline = "";
+    const lines = str.split("\n");
     lines.forEach(function (line) {
 
         line = line.trim();
@@ -46,6 +43,7 @@ export  function hexString(str: string): string {
     return hexline;
 }
 
+// tslint:disable-next-line:ban-types
 export function makebuffer_from_trace(func: Function) {
     return makeBuffer(hexString(inlineText(func)));
 }

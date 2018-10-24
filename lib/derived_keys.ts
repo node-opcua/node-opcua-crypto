@@ -3,12 +3,21 @@
  */
 import * as crypto from "crypto";
 import * as  _ from "underscore";
+
 import {createFastUninitializedBuffer} from "./buffer_utils";
+import {Nonce} from "./common";
 import {verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions} from "./crypto_utils";
 import {exploreCertificateInfo} from "./explore_certificate";
-import {Nonce} from "./common";
 
 const assert = require("better-assert");
+
+function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
+    return crypto.createHmac(sha1or256, secret).update(message).digest();
+}
+
+function plus(buf1: Buffer, buf2: Buffer): Buffer {
+    return Buffer.concat([buf1, buf2]);
+}
 
 // OPC-UA Spec 1.02 part 6 - 6.7.5  Deriving Keys page 42
 // Once the  SecureChannel  is established the  Messages  are signed and encrypted with keys derived
@@ -62,27 +71,18 @@ export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: nu
     assert(seed instanceof Buffer);
     assert(sha1or256 === "SHA1" || sha1or256 === "SHA256");
 
-    function HMAC_HASH(secret: Buffer, message: Buffer) {
-        return crypto.createHmac(sha1or256, secret).update(message).digest();
-    }
-
-    function plus(buf1: Buffer, buf2: Buffer): Buffer {
-        return Buffer.concat([buf1, buf2]);
-    }
-
     const a = [];
     a[0] = seed;
     let index = 1;
     let p_hash = createFastUninitializedBuffer(0);
     while (p_hash.length <= minLength) {
         /* eslint  new-cap:0 */
-        a[index] = HMAC_HASH(secret, a[index - 1]);
-        p_hash = plus(p_hash, HMAC_HASH(secret, plus(a[index], seed)));
+        a[index] = HMAC_HASH(sha1or256, secret, a[index - 1]);
+        p_hash = plus(p_hash, HMAC_HASH(sha1or256, secret, plus(a[index], seed)));
         index += 1;
     }
     return p_hash.slice(0, minLength);
 }
-
 
 export interface ComputeDerivedKeysOptions {
     signatureLength: number;
@@ -108,7 +108,9 @@ export interface DerivedKeys extends ComputeDerivedKeysOptions {
     initializationVector: Buffer;
 }
 
-export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeDerivedKeysOptions): DerivedKeys {
+export function computeDerivedKeys(
+    secret: Nonce, seed: Nonce, options: ComputeDerivedKeysOptions
+): DerivedKeys {
     assert(_.isFinite(options.signatureLength));
     assert(_.isFinite(options.encryptingKeyLength));
     assert(_.isFinite(options.encryptingBlockSize));
@@ -138,28 +140,25 @@ export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeD
     };
 }
 
-
 /**
  * @method reduceLength
- * @param buffer {Buffer}
- * @param byteToRemove  {number}
- * @return {Buffer}
+ * @param buffer
+ * @param byteToRemove
+ * @return buffer
  */
 export function reduceLength(buffer: Buffer, byteToRemove: number): Buffer {
     return buffer.slice(0, buffer.length - byteToRemove);
 }
 
-
 /**
  * @method removePadding
- * @param buffer {Buffer}
- * @return {Buffer}
+ * @param buffer
+ * @return buffer with padding removed
  */
 export function removePadding(buffer: Buffer): Buffer {
     const nbPaddingBytes = buffer.readUInt8(buffer.length - 1) + 1;
     return reduceLength(buffer, nbPaddingBytes);
 }
-
 
 export type VerifyChunkSignatureOptions = VerifyMessageChunkSignatureOptions;
 
@@ -172,11 +171,11 @@ export type VerifyChunkSignatureOptions = VerifyMessageChunkSignatureOptions;
  *           public_key: "qsdqsdqsd"
  *     };
  *
- * @param chunk {Buffer} The message chunk to verify.
- * @param options {Object}
- * @param options.signatureLength {Number}
- * @param options.algorithm {String} the algorithm.
- * @param options.publicKey {Buffer}
+ * @param chunk  The message chunk to verify.
+ * @param options
+ * @param options.signatureLength
+ * @param options.algorithm  the algorithm.
+ * @param options.publicKey
  * @return {*}
  */
 export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatureOptions) {
@@ -193,7 +192,6 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
     const signature = chunk.slice(chunk.length - signatureLength);
     return verifyMessageChunkSignature(block_to_verify, signature, options);
 }
-
 
 // /**
 //  * extract the public key from a certificate - using the pem module
@@ -268,9 +266,9 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
 
 /**
  * @method makeMessageChunkSignatureWithDerivedKeys
- * @param message {Buffer}
+ * @param message
  * @param derivedKeys
- * @return {Buffer}
+ * @return
  */
 export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derivedKeys: DerivedKeys): Buffer {
     assert(message instanceof Buffer);
@@ -282,12 +280,11 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
     return signature;
 }
 
-
 /**
  * @method verifyChunkSignatureWithDerivedKeys
  * @param chunk
  * @param derivedKeys
- * @return {boolean}
+ * @return
  */
 export function verifyChunkSignatureWithDerivedKeys(chunk: Buffer, derivedKeys: DerivedKeys): boolean {
     const message = chunk.slice(0, chunk.length - derivedKeys.signatureLength);

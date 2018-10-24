@@ -1,10 +1,9 @@
+import * as should from "should";
 import * as  crypto_utils from "..";
-import * as fs from "fs";
-import * as path from "path";
-import * as should  from "should";
+import {inlineText, makebuffer_from_trace} from "./helpers/makebuffer_from_trace";
 
-
-import {  makebuffer_from_trace, inlineText } from "./helpers/makebuffer_from_trace";
+// tslint:disable-next-line:unused-constant
+const should_ = should;
 
 const buffer = makebuffer_from_trace(
     function () {
@@ -84,12 +83,9 @@ const privateKey = inlineText(
          */
     });
 
-
 describe("testing message decryption",  () => {
 
-
     it("should decrypt an OPN packet and verify that the signature is correct", () => {
-
 
         // extract the client certificate from the unencrypted part
         const senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
@@ -112,7 +108,7 @@ describe("testing message decryption",  () => {
         const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
-            publicKey: publicKey
+            publicKey
         };
         const boolSignatureIsOK = crypto_utils.verifyChunkSignature(my_buffer, options);
 
@@ -122,7 +118,7 @@ describe("testing message decryption",  () => {
         const options1 = {
             algorithm: "RSA-SHA1",
             //xx signatureLength: 256,
-            publicKey: publicKey
+            publicKey
         };
         const boolSignatureIsOK1 = crypto_utils.verifyChunkSignature(my_buffer, options1);
 
@@ -131,5 +127,3 @@ describe("testing message decryption",  () => {
     });
 
 });
-
-

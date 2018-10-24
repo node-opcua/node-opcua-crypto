@@ -12,9 +12,7 @@ const exploreCertificateInfo = require("..").exploreCertificateInfo;
 const combine_der = require("..").combine_der;
 const split_der = require("..").split_der;
 
-
 describe(" exploring Certificates", function () {
-
 
     this.timeout(200000);
     it("should extract the information out of a 1024-bits certificate", function () {
@@ -35,7 +33,6 @@ describe(" exploring Certificates", function () {
         certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
 
     });
-
 
     it("should extract the information out of a 2048-bits certificate ", function () {
 
@@ -61,10 +58,9 @@ describe(" exploring Certificates", function () {
         certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(512);
         //xx certificate_info.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
-         const data = exploreCertificate(certificate);
+        const data = exploreCertificate(certificate);
     });
-  
-                
+
     it("should read a V3 X509 certificate (with extensions)", function () {
 
         const filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
@@ -82,15 +78,16 @@ describe(" exploring Certificates", function () {
         certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.authorityCertIssuer.directoryName.countryName.should.eql("FR");
         certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.authorityCertIssuer.directoryName.localityName.should.eql("Paris");
 
-        certificate_info.tbsCertificate.extensions.subjectKeyIdentifier.should.eql('74:38:fd:90:b1:f1:90:51:0e:9c:65:d6:aa:ac:63:9e:bc:dc:58:2f');
+        certificate_info.tbsCertificate.extensions.subjectKeyIdentifier
+            .should.eql("74:38:fd:90:b1:f1:90:51:0e:9c:65:d6:aa:ac:63:9e:bc:dc:58:2f");
     });
 
-    it("should read a V1 X509 certificate",function() {
+    it("should read a V1 X509 certificate", function () {
 
         // note : http://stackoverflow.com/questions/26788244/how-to-create-a-legacy-v1-or-v2-x-509-cert-for-testing
 
         const filename = path.join(__dirname, "./fixtures/certs/demo_certificate_x509_V1.pem");
-        fs.existsSync(filename).should.equal(true,"certificate file must exist");
+        fs.existsSync(filename).should.equal(true, "certificate file must exist");
 
         const certificate = crypto_utils.readCertificate(filename);
         //xx console.log(certificate.toString("base64"));
@@ -103,7 +100,6 @@ describe(" exploring Certificates", function () {
 
     });
 });
-
 
 describe("exploring certificate chains", function () {
 
@@ -129,7 +125,7 @@ describe("exploring certificate chains", function () {
 
         chain.length.should.eql(2);
 
-        if(false) {
+        if (false) {
             console.log(chain[0].toString("hex"));
             console.log(cert1.toString("hex"));
             console.log("-------");
@@ -157,7 +153,7 @@ describe("exploring certificate chains", function () {
         const cert2 = crypto_utils.readCertificate(cert2_name);
         const cert3 = crypto_utils.readCertificate(cert3_name);
 
-        const combined = combine_der([cert1, cert2 , cert3]);
+        const combined = combine_der([cert1, cert2, cert3]);
         combined.toString("hex").should.equal(cert1.toString("hex") + cert2.toString("hex") + cert3.toString("hex"));
 
         combined.length.should.eql(cert1.length + cert2.length + cert3.length);
@@ -166,7 +162,7 @@ describe("exploring certificate chains", function () {
 
         chain.length.should.eql(3);
 
-        if(false) {
+        if (false) {
             console.log(chain[0].toString("hex"));
             console.log(cert1.toString("hex"));
             console.log("-------");

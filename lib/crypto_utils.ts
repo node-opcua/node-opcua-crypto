@@ -1,11 +1,11 @@
 /**
  * @module node_opcua_crypto
  */
-import * as  path from "path";
-import * as fs from "fs";
+import * as constants from "constants";
 import * as  crypto from "crypto";
+import * as fs from "fs";
+import * as  path from "path";
 import {createFastUninitializedBuffer} from "./buffer_utils";
-import {combine_der} from "./crypto_explore_certificate";
 import {
     Certificate,
     CertificatePEM,
@@ -17,14 +17,12 @@ import {
     PublicKeyPEM,
     Signature
 } from "./common";
-import {coerceCertificate} from "./explore_certificate";
-import * as constants from "constants";
+import {combine_der} from "./crypto_explore_certificate";
 
 const hexy = require("hexy");
 const assert = require("better-assert");
 const jsrsasign = require("jsrsasign");
 const sshKeyToPEM = require("ssh-key-to-pem");
-
 
 const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([\/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n)/mg;
 
@@ -47,9 +45,12 @@ export function identifyPemType(rawKey: Buffer | string): undefined | string {
 
 export function convertPEMtoDER(raw_key: PEM): DER {
 
-    let match, pemType, base64str;
+    let match: any;
+    let pemType;
+    let base64str;
 
     const parts: DER[] = [];
+    // tslint:disable-next-line:no-conditional-assignment
     while ((match = PEM_REGEX.exec(raw_key)) !== null) {
         pemType = match[2];
         // pemType shall be "RSA PRIVATE KEY" , "PUBLIC KEY", "CERTIFICATE"
@@ -62,8 +63,7 @@ export function convertPEMtoDER(raw_key: PEM): DER {
 
 function _readPemFile(filename: string): PEM {
     assert(typeof filename === "string");
-    const raw_key = fs.readFileSync(filename, "ascii");
-    return raw_key;
+    return fs.readFileSync(filename, "ascii");
 }
 
 function _readPemFileAsDER(filename: string): DER {
@@ -77,25 +77,26 @@ function _readPemFileAsDER(filename: string): DER {
 export function readCertificate(filename: string): Certificate {
     return _readPemFileAsDER(filename) as Certificate;
 }
+
 export function readPublicKey(filename: string): PublicKey {
     return _readPemFileAsDER(filename) as PublicKey;
 }
+
 export function readPrivateKey(filename: string): PrivateKey {
     return _readPemFileAsDER(filename) as PrivateKey;
 }
 
-
 export function readCertificatePEM(filename: string): CertificatePEM {
     return _readPemFile(filename);
 }
-export function readPublicKeyPEM(filename: string): PublicKeyPEM{
+
+export function readPublicKeyPEM(filename: string): PublicKeyPEM {
     return _readPemFile(filename);
 }
+
 export function readPrivateKeyPEM(filename: string): PrivateKeyPEM {
     return _readPemFile(filename);
 }
-
-
 
 /**
  * @method readKeyPem
@@ -110,9 +111,9 @@ export function readKeyPem(filename: string): string {
 
 /**
  * @method toPem
- * @param raw_key {string}
- * @param pem {String}
- * @return {*}
+ * @param raw_key
+ * @param pem
+ * @return
  */
 export function toPem(raw_key: Buffer | string, pem: string): string {
     assert(raw_key, "expecting a key");
@@ -143,9 +144,9 @@ export function hexDump(buffer: Buffer, width?: number) {
     width = width || 32;
     if (buffer.length > 1024) {
 
-        return hexy.hexy(buffer.slice(0, 1024), {width: width, format: "twos"}) + "\n .... ( " + buffer.length + ")";
+        return hexy.hexy(buffer.slice(0, 1024), {width, format: "twos"}) + "\n .... ( " + buffer.length + ")";
     } else {
-        return hexy.hexy(buffer, {width: width, format: "twos"});
+        return hexy.hexy(buffer, {width, format: "twos"});
     }
 }
 
@@ -158,11 +159,11 @@ interface MakeMessageChunkSignatureOptions {
 /**
  * @method makeMessageChunkSignature
  * @param chunk
- * @param options {Object}
- * @param options.signatureLength {Number}
- * @param options.algorithm {String}   for example "RSA-SHA256"
- * @param options.privateKey {string}
- * @return {Buffer} - the signature
+ * @param options
+ * @param options.signatureLength
+ * @param options.algorithm   for example "RSA-SHA256"
+ * @param options.privateKey
+ * @return - the signature
  */
 export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChunkSignatureOptions): Buffer {
 
@@ -191,13 +192,13 @@ export interface VerifyMessageChunkSignatureOptions {
  *           algorithm : "RSA-SHA256",
  *           publicKey: "qsdqsdqsd"
  *     };
- * @param blockToVerify {Buffer}
- * @param signature {Buffer}
- * @param options {Object}
- * @param options.signatureLength {Number}
- * @param options.algorithm {String}   for example "RSA-SHA256"
- * @param options.publicKey {Buffer}
- * @return {Boolean} - true if the signature is valid
+ * @param blockToVerify
+ * @param signature
+ * @param options
+ * @param options.signatureLength
+ * @param options.algorithm    for example "RSA-SHA256"
+ * @param options.publicKey
+ * @return true if the signature is valid
  */
 export function verifyMessageChunkSignature(blockToVerify: Buffer, signature: Signature, options: VerifyMessageChunkSignatureOptions) {
 
@@ -215,7 +216,6 @@ export function makeSHA1Thumbprint(buffer: Buffer): Signature {
     return crypto.createHash("sha1").update(buffer).digest();
 }
 
-
 let __certificate_store = path.join(__dirname, "../../certificates/");
 
 export function setCertificateStore(store: string) {
@@ -224,9 +224,8 @@ export function setCertificateStore(store: string) {
     return old_store;
 }
 
-
 export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
-    if (filename.substr(0, 1) !== '.') {
+    if (filename.substr(0, 1) !== ".") {
         filename = __certificate_store + filename;
     }
     let key: string = fs.readFileSync(filename, "ascii");
@@ -239,7 +238,7 @@ export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
  * @param filename
  */
 export function read_private_rsa_key(filename: string): PrivateKeyPEM {
-    if (filename.substr(0, 1) !== '.' && !fs.existsSync(filename)) {
+    if (filename.substr(0, 1) !== "." && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
     return fs.readFileSync(filename, "ascii") as string;
@@ -262,9 +261,10 @@ export const RSA_PKCS1_OAEP_PADDING: number = constants.RSA_PKCS1_OAEP_PADDING;
 export const RSA_PKCS1_PADDING: number = constants.RSA_PKCS1_PADDING;
 
 export enum PaddingAlgorithm {
-    RSA_PKCS1_OAEP_PADDING= 4,
-    RSA_PKCS1_PADDING= 1
+    RSA_PKCS1_OAEP_PADDING = 4,
+    RSA_PKCS1_PADDING = 1
 }
+
 assert(PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING === constants.RSA_PKCS1_OAEP_PADDING);
 assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 
@@ -296,17 +296,14 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM,
             key: privateKey,
             padding: algorithm
         }, buffer);
-    }
-    catch (err) {
+    } catch (err) {
         return Buffer.alloc(1);
     }
 }
 
-
-
 export function publicEncrypt_long(buffer: Buffer, publicKey: PublicKeyPEM, blockSize: number, padding: number, algorithm?: PaddingAlgorithm) {
     if (algorithm === undefined) {
-        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING ;
+        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
 
@@ -345,8 +342,6 @@ export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKeyPEM, b
 export const publicEncrypt = publicEncrypt_native;
 export const privateDecrypt = privateDecrypt_native;
 
-
-
 export function coerceCertificatePem(certificate: Certificate | CertificatePEM): CertificatePEM {
     if (certificate instanceof Buffer) {
         certificate = toPem(certificate, "CERTIFICATE");
@@ -354,6 +349,7 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
     assert(typeof certificate === "string");
     return certificate;
 }
+
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
     if (publicKey instanceof Buffer) {
         publicKey = toPem(publicKey, "PUBLIC KEY");
@@ -365,8 +361,8 @@ export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicK
 /***
  * @method rsa_length
  * A very expensive way to determine the rsa key length ( i.e 2048bits or 1024bits)
- * @param key {string} a PEM public key or a PEM rsa private key
- * @return {int} the key length in bytes.
+ * @param key  a PEM public key or a PEM rsa private key
+ * @return { the key length in bytes.
  */
 export function rsa_length(key: PublicKeyPEM | PublicKey): number {
 
@@ -380,11 +376,10 @@ export function extractPublicKeyFromCertificateSync(certificate: Certificate | C
 
     certificate = coerceCertificatePem(certificate);
     const key = jsrsasign.KEYUTIL.getKey(certificate);
-    const publicKeyAsPem =  jsrsasign.KEYUTIL.getPEM(key);
+    const publicKeyAsPem = jsrsasign.KEYUTIL.getPEM(key);
     assert(typeof publicKeyAsPem === "string");
     return publicKeyAsPem;
 }
-
 
 // https://github.com/kjur/jsrsasign/blob/master/x509-1.1.js
 // tool to analyse asn1 base64 blocks : http://lapo.it/asn1js
@@ -397,11 +392,10 @@ export function extractPublicKeyFromCertificate(certificate: CertificatePEM | Ce
     let keyPem: PublicKeyPEM;
     try {
         keyPem = extractPublicKeyFromCertificateSync(certificate);
-    }
-    catch (err) {
+    } catch (err) {
         err1 = err;
     }
-    setImmediate(function () {
+    setImmediate(() => {
         callback(err1, keyPem);
     });
 }
