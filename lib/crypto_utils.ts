@@ -297,7 +297,7 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM,
             padding: algorithm
         }, buffer);
     } catch (err) {
-        return Buffer.alloc(1);
+         return Buffer.alloc(1);
     }
 }
 

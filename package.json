@@ -5,11 +5,13 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "prepare": "npm run build",
-    "lint": "tslint lib/*.ts test/*.ts",
-    "test": "mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
-    "makedoc": "typedoc -out doc"
+    "lint": "npx tslint lib/*.ts test/*.ts",
+    "test": "npx mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
+    "makedoc": "npx typedoc -out doc",
+    "cost-of-modules": "npx cost-of-modules --no-install",
+    "release-it": "npx release-it"
   },
   "keywords": [
     "OPCUA",
@@ -24,20 +26,20 @@
   "devDependencies": {
     "@types/mocha": "^5.2.5",
     "@types/should": "^13.0.0",
+    "@types/node": "^10.12.0",
+    "@types/underscore": "^1.8.9",
     "lorem-ipsum": "^1.0.6",
     "mocha": "^5.2.0",
     "should": "^13.2.3",
+    "source-map-support": "^0.5.9",
     "ts-node": "^7.0.1",
     "typescript": "^3.1.3"
   },
   "dependencies": {
-    "@types/node": "^10.12.0",
-    "@types/underscore": "^1.8.9",
     "better-assert": "^1.0.2",
     "chalk": "^2.4.1",
     "hexy": "^0.2.11",
     "jsrsasign": "^8.0.12",
-    "source-map-support": "^0.5.9",
     "ssh-key-to-pem": "^0.11.1",
     "underscore": "^1.9.1"
   },
