@@ -123,7 +123,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
         return raw_key as string;
     } else {
         pemType = pem;
-        assert(["CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY"].indexOf(pemType) >= 0);
+        assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY"].indexOf(pemType) >= 0);
         let b = (raw_key as Buffer).toString("base64");
         let str = "-----BEGIN " + pemType + "-----\n";
         while (b.length) {
@@ -297,7 +297,7 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM,
             padding: algorithm
         }, buffer);
     } catch (err) {
-         return Buffer.alloc(1);
+        return Buffer.alloc(1);
     }
 }
 

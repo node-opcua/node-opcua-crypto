@@ -54,6 +54,7 @@
 //  $ openssl asn1parse -in cert.pem
 import * as _ from "underscore";
 import {Certificate} from "./common";
+import {PublicKeyLength} from "./explore_certificate";
 
 const assert = require("better-assert");
 // Converted from: https://www.cs.auckland.ac.nz/~pgut001/dumpasn1.cfg
@@ -384,7 +385,13 @@ function parseBitString(buffer: Buffer, start: number, end: number, maxLength: n
     return intro + s;
 }
 
-function read_BitString(buffer: Buffer, block: BlockInfo) {
+interface BitString {
+    lengthInBits: number;
+    lengthInBytes: number;
+    data: Buffer;
+    debug?: any;
+}
+function read_BitString(buffer: Buffer, block: BlockInfo): BitString {
 
     assert(block.tag === tagTypes.BIT_STRING);
     const data = get_block(buffer, block);
@@ -859,7 +866,7 @@ function read_ListOfInteger(buffer: Buffer) {
     });
 }
 
-function read_SubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo) {
+function read_SubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPublicKeyInfo {
     const inner_blocks = readStruct(buffer, block);
 
     // algorithm identifier
@@ -873,22 +880,41 @@ function read_SubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo) {
     // xx const value = read_ListOfInteger(data);
     return {
         algorithm: algorithm.identifier,
-        subjectPublicKey,
-        keyLength: values[0].length - 1
+        keyLength: (values[0].length - 1) as PublicKeyLength,
+        subjectPublicKey: subjectPublicKey.data
         //xx values: values,
         //xx values_length : values.map(function (a){ return a.length; })
     };
 }
 
+export interface SubjectPublicKeyInfo {
+    algorithm: string;
+    keyLength: PublicKeyLength;
+    subjectPublicKey: Buffer;
+}
+export interface DirectoryName {
+    stateOrProvinceName?: string;
+    localityName?: string;
+    organizationName?: string;
+    organizationUnitName?: string;
+    commonName?: string;
+}
+export interface CerticateExtension {
+    basicConstraints: any;
+    subjectKeyIdentitifer?: string;
+    authorityKeyIdentifier?: DirectoryName;
+    keyUsage?: any;
+    extKeyUsage?: any;
+}
 export interface TbsCertificate {
     version: number;
     serialNumber: string;
     issuer: any;
     signature: AlgorithmIdentifier;
     validity: Validity;
-    subject: any;
-    subjectPublicKeyInfo: any;
-    extensions: any | null;
+    subject: DirectoryName;
+    subjectPublicKeyInfo: SubjectPublicKeyInfo;
+    extensions: CerticateExtension | null;
 }
 
 function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {

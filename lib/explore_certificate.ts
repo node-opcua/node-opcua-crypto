@@ -3,7 +3,7 @@
  */
 
 import {Certificate, CertificatePEM} from "./common";
-import {exploreCertificate} from "./crypto_explore_certificate";
+import {exploreCertificate, DirectoryName, SubjectPublicKeyInfo} from "./crypto_explore_certificate";
 import {convertPEMtoDER} from "./crypto_utils";
 
 const  assert = require("better-assert");
@@ -20,6 +20,8 @@ export interface CertificateInfo {
     notBefore: Date;
     /** the date after which the certificate is not valid any more */
     notAfter: Date;
+    /** info about certificate owner */
+    subject: DirectoryName;
 }
 
 export function coerceCertificate(certificate: Certificate | CertificatePEM): Certificate {
@@ -32,7 +34,8 @@ export function coerceCertificate(certificate: Certificate | CertificatePEM): Ce
 
 /**
  * @method exploreCertificateInfo
- * returns useful information about the certificate such as public key length, start date and end of validity date
+ * returns useful information about the certificate such as public key length, start date and end of validity date,
+ * and CN
  * @param certificate the certificate to explore
  */
 export function exploreCertificateInfo(certificate: Certificate | CertificatePEM): CertificateInfo {
@@ -40,11 +43,12 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
     certificate = coerceCertificate(certificate);
 
     const certInfo = exploreCertificate(certificate);
-
     const data: CertificateInfo = {
         publicKeyLength: certInfo.tbsCertificate.subjectPublicKeyInfo.keyLength,
         notBefore:       certInfo.tbsCertificate.validity.notBefore,
-        notAfter:        certInfo.tbsCertificate.validity.notAfter
+        notAfter:        certInfo.tbsCertificate.validity.notAfter,
+        subject:         certInfo.tbsCertificate.subject
+
     };
     if (!(data.publicKeyLength  === 512 || data.publicKeyLength === 384 || data.publicKeyLength === 256 || data.publicKeyLength === 128)) {
         throw new Error("Invalid public key length (expecting 128,256,384 or 512)" + data.publicKeyLength);
