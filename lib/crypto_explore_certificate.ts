@@ -716,7 +716,7 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
 }
 
 // Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
-function read_Extensions(buffer: Buffer, block: BlockInfo) {
+function read_Extensions(buffer: Buffer, block: BlockInfo): CertificateExtension {
 
     assert(block.tag === 0xa3);
 
@@ -727,7 +727,7 @@ function read_Extensions(buffer: Buffer, block: BlockInfo) {
 
     const result: any = {};
     _.forEach(exts, (e) => result[e.identifier] = e.value);
-    return result;
+    return result as CertificateExtension;
 }
 
 function parseOID(buffer: Buffer, start: number, end: number) {
@@ -899,12 +899,13 @@ export interface DirectoryName {
     organizationUnitName?: string;
     commonName?: string;
 }
-export interface CerticateExtension {
+export interface CertificateExtension {
     basicConstraints: any;
     subjectKeyIdentitifer?: string;
     authorityKeyIdentifier?: DirectoryName;
     keyUsage?: any;
     extKeyUsage?: any;
+    subjectAltName?: any;
 }
 export interface TbsCertificate {
     version: number;
@@ -914,7 +915,7 @@ export interface TbsCertificate {
     validity: Validity;
     subject: DirectoryName;
     subjectPublicKeyInfo: SubjectPublicKeyInfo;
-    extensions: CerticateExtension | null;
+    extensions: CertificateExtension | null;
 }
 
 function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
