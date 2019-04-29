@@ -53,7 +53,7 @@
 //  openssl can be also used to discover the content of a DER file
 //  $ openssl asn1parse -in cert.pem
 import * as _ from "underscore";
-import {Certificate} from "./common";
+import {Certificate, PrivateKey} from "./common";
 import {PublicKeyLength} from "./explore_certificate";
 
 const assert = require("better-assert");
@@ -63,21 +63,21 @@ const assert = require("better-assert");
 // as long as you don't try to claim you wrote it.
 
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js
-const tagTypes = {
-    BOOLEAN: 0x01,
-    INTEGER: 0x02,
-    BIT_STRING: 0x03,
-    OCTET_STRING: 0x04,
-    NULL: 0x05,
-    OBJECT_IDENTIFIER: 0x06,
-    UTF8String: 0x0C,
-    NumericString: 0x12,
-    PrintableString: 0x13,
-    TeletexString: 0x14,
-    IA5String: 0x16,
-    UTCTime: 0x17,
-    GeneralizedTime: 0x18
-};
+enum TagType {
+    BOOLEAN = 0x01,
+    INTEGER = 0x02,
+    BIT_STRING = 0x03,
+    OCTET_STRING = 0x04,
+    NULL = 0x05,
+    OBJECT_IDENTIFIER = 0x06,
+    UTF8String = 0x0C,
+    NumericString = 0x12,
+    PrintableString = 0x13,
+    TeletexString = 0x14,
+    IA5String = 0x16,
+    UTCTime = 0x17,
+    GeneralizedTime = 0x18
+}
 
 // https://github.com/lapo-luchini/asn1js/blob/master/oids.js
 const oid_map: any = {
@@ -391,9 +391,10 @@ interface BitString {
     data: Buffer;
     debug?: any;
 }
+
 function read_BitString(buffer: Buffer, block: BlockInfo): BitString {
 
-    assert(block.tag === tagTypes.BIT_STRING);
+    assert(block.tag === TagType.BIT_STRING);
     const data = get_block(buffer, block);
 
     // number of skipped bits
@@ -409,9 +410,9 @@ function read_BitString(buffer: Buffer, block: BlockInfo): BitString {
 
 function read_OctetString(buffer: Buffer, block: BlockInfo): string {
 
-    assert(block.tag === tagTypes.OCTET_STRING);
+    assert(block.tag === TagType.OCTET_STRING);
     const tag = readTag(buffer, block.position);
-    assert(tag.tag === tagTypes.OCTET_STRING);
+    assert(tag.tag === TagType.OCTET_STRING);
 
     const nbBytes = tag.length;
     let pos = tag.position;
@@ -431,7 +432,7 @@ function read_SignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
 }
 
 function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): string {
-    assert(block.tag === tagTypes.INTEGER, "expecting a INTEGER tag");
+    assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     let pos = block.position;
     const nbBytes = block.length;
     const value = [];
@@ -443,7 +444,7 @@ function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): string {
 }
 
 function read_IntegerValue(buffer: Buffer, block: BlockInfo): number {
-    assert(block.tag === tagTypes.INTEGER, "expecting a INTEGER tag");
+    assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     let pos = block.position;
     const nbBytes = block.length;
     assert(nbBytes < 4);
@@ -535,15 +536,15 @@ function convertGeneralizedTime(str: string): Date {
 
 function read_Value(buffer: Buffer, block: BlockInfo): any {
     switch (block.tag) {
-        case tagTypes.PrintableString:
-        case tagTypes.TeletexString:
-        case tagTypes.UTF8String:
-        case tagTypes.NumericString:
-        case tagTypes.IA5String:
+        case TagType.PrintableString:
+        case TagType.TeletexString:
+        case TagType.UTF8String:
+        case TagType.NumericString:
+        case TagType.IA5String:
             return get_block(buffer, block).toString("ascii");
-        case tagTypes.UTCTime:
+        case TagType.UTCTime:
             return convertUTCTime(get_block(buffer, block).toString("ascii"));
-        case tagTypes.GeneralizedTime:
+        case TagType.GeneralizedTime:
             return convertGeneralizedTime(get_block(buffer, block).toString("ascii"));
         default:
             throw new Error("Invalid tag 0x" + block.tag.toString(16) + "");
@@ -686,7 +687,7 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
     const inner_blocks = readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
-        assert(inner_blocks[1].tag === tagTypes.BOOLEAN);
+        assert(inner_blocks[1].tag === TagType.BOOLEAN);
         inner_blocks[1] = inner_blocks[2];
     }
 
@@ -760,7 +761,7 @@ function parseOID(buffer: Buffer, start: number, end: number) {
 }
 
 function read_ObjectIdentifier(buffer: Buffer, block: BlockInfo) {
-    assert(block.tag === tagTypes.OBJECT_IDENTIFIER);
+    assert(block.tag === TagType.OBJECT_IDENTIFIER);
     const b = buffer.slice(block.position, block.position + block.length);
     const oid = parseOID(b, 0, block.length);
     return oid_map[oid] ? oid_map[oid].d : oid;
@@ -857,6 +858,7 @@ function read_subjectAltNames(buffer: Buffer) {
 function read_IntegerAsByteString(buffer: Buffer, block: BlockInfo) {
     return get_block(buffer, block);
 }
+
 function read_ListOfInteger(buffer: Buffer) {
     const block = readTag(buffer, 0);
     const inner_blocks = readStruct(buffer, block);
@@ -892,6 +894,7 @@ export interface SubjectPublicKeyInfo {
     keyLength: PublicKeyLength;
     subjectPublicKey: Buffer;
 }
+
 export interface DirectoryName {
     stateOrProvinceName?: string;
     localityName?: string;
@@ -899,6 +902,7 @@ export interface DirectoryName {
     organizationUnitName?: string;
     commonName?: string;
 }
+
 export interface CertificateExtension {
     basicConstraints: any;
     subjectKeyIdentitifer?: string;
@@ -907,6 +911,7 @@ export interface CertificateExtension {
     extKeyUsage?: any;
     subjectAltName?: any;
 }
+
 export interface TbsCertificate {
     version: number;
     serialNumber: string;
@@ -1007,6 +1012,36 @@ export function exploreCertificate(certificate: Certificate): CertificateInterna
         };
     }
     return (certificate as any)._exploreCertificate_cache;
+}
+
+export interface PrivateKeyInternals {
+    /**/
+}
+
+export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
+    assert(privateKey instanceof Buffer);
+    const block_info = readTag(privateKey, 0);
+    const blocks = readStruct(privateKey, block_info);
+    console.log(block_info);
+
+    console.log(blocks.map((b) => ({
+        tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+        l: b.length, p: b.position,
+        buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
+    })));
+
+    const b = blocks[2];
+    const bb = privateKey.slice(b.position, b.position + b.length);
+    const block_info1 = readTag(bb, 0);
+    const blocks1 = readStruct(bb, block_info1);
+    console.log(blocks1.map((b) => ({
+        tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+        l: b.length, p: b.position,
+        buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
+    })));
+
+    return {};
+
 }
 
 /**

@@ -3,7 +3,7 @@
  */
 
 import {Certificate, CertificatePEM} from "./common";
-import {exploreCertificate, DirectoryName, SubjectPublicKeyInfo} from "./crypto_explore_certificate";
+import {DirectoryName, exploreCertificate, SubjectPublicKeyInfo} from "./crypto_explore_certificate";
 import {convertPEMtoDER} from "./crypto_utils";
 
 const  assert = require("better-assert");
@@ -22,6 +22,8 @@ export interface CertificateInfo {
     notAfter: Date;
     /** info about certificate owner */
     subject: DirectoryName;
+    /** public key */
+    publicKey: Buffer;
 }
 
 export function coerceCertificate(certificate: Certificate | CertificatePEM): Certificate {
@@ -47,6 +49,7 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
         publicKeyLength: certInfo.tbsCertificate.subjectPublicKeyInfo.keyLength,
         notBefore:       certInfo.tbsCertificate.validity.notBefore,
         notAfter:        certInfo.tbsCertificate.validity.notAfter,
+        publicKey:       certInfo.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey,
         subject:         certInfo.tbsCertificate.subject
 
     };
