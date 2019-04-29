@@ -2,11 +2,18 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "target": "es6",
+    "moduleResolution": "node",
     "module": "commonjs",
     "declaration": true,
     "outDir": "./dist",
     "sourceMap": true,
-    "strict": true
+    "inlineSourceMap": false,
+    "strict": true,
+    "listFiles": false,
+    "traceResolution": false,
+    "types" : [
+      "node", "mocha"
+    ],
   },
   "files": [
     "lib/index.ts"

@@ -37,6 +37,7 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "@types/lorem-ipsum": "^1.0.2",
     "better-assert": "^1.0.2",
     "chalk": "^2.4.2",
     "hexy": "^0.3.0",

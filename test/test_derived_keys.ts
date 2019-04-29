@@ -2,12 +2,14 @@ import * as should from "should";
 import * as crypto_utils from "..";
 import {ComputeDerivedKeysOptions} from "..";
 
+import * as loremIpsum1 from "lorem-ipsum";
+const loremIpsum = (loremIpsum1 as any).loremIpsum({count: 100});
+
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 
 const makePseudoRandomBuffer = crypto_utils.makePseudoRandomBuffer;
 
-const loremIpsum = require("lorem-ipsum")({units: "words", count: 100});
 loremIpsum.length.should.be.greaterThan(100);
 
 function make_lorem_ipsum_buffer(): Buffer {

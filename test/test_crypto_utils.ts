@@ -2,18 +2,20 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
+import * as loremIpsum from "lorem-ipsum";
+
 import * as should from "should";
 import * as crypto_utils from "..";
 import {split_der} from "..";
-
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 
-const loremIpsum = require("lorem-ipsum")(  {units: "words" , count: 100});
-loremIpsum.length.should.be.greaterThan(100);
+// tslint:disable:no-var-requires
+const loremIpsumTxt = (loremIpsum as any).loremIpsum({units: "words" , count: 100});
+loremIpsumTxt.length.should.be.greaterThan(100);
 
 function make_lorem_ipsum_buffer() {
-    return Buffer.from(loremIpsum);
+    return Buffer.from(loremIpsumTxt);
 }
 
 describe("Crypto utils", function () {

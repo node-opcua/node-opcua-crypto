@@ -7,10 +7,12 @@ import * as should from "should";
 import * as crypto_utils from "..";
 import {DER, PublicKey, PublicKeyPEM} from "..";
 
+import * as loremIpsum1 from "lorem-ipsum";
+const loremIpsum = (loremIpsum1 as any).loremIpsum({count: 100});
+
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 
-const loremIpsum = require("lorem-ipsum")({count: 100});
 
 // see https://github.com/nodejs/node/issues/22815
 
@@ -43,9 +45,9 @@ const bob_certificate_out_of_date_filename = path.join(__dirname, "./fixtures/al
 const doDebug = false;
 
 //Xx doDebug = true;
-function debugLog(...args: any[]) {
+function debugLog(...args: [any?, ...any[]]) {
     if (doDebug) {
-        console.log.apply(console, arguments);
+        console.log.apply(console, args);
     }
 }
 
