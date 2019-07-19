@@ -24,17 +24,17 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "devDependencies": {
-    "@types/mocha": "^5.2.6",
-    "@types/node": "^11.13.8",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.6.8",
     "@types/should": "^13.0.0",
-    "@types/underscore": "^1.8.14",
-    "lorem-ipsum": "^2.0.1",
-    "mocha": "^6.1.4",
+    "@types/underscore": "^1.9.2",
+    "lorem-ipsum": "^2.0.3",
+    "mocha": "^6.2.0",
     "should": "^13.2.3",
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.12",
-    "ts-node": "^8.1.0",
-    "typescript": "^3.4.5"
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
   },
   "dependencies": {
     "@types/lorem-ipsum": "^1.0.2",
