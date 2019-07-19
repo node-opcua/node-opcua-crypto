@@ -62,6 +62,8 @@ const assert = require("better-assert");
 // You can use this code in whatever way you want,
 // as long as you don't try to claim you wrote it.
 
+const doDebug = false;
+
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js
 enum TagType {
     BOOLEAN = 0x01,
@@ -1014,6 +1016,7 @@ export function exploreCertificate(certificate: Certificate): CertificateInterna
     return (certificate as any)._exploreCertificate_cache;
 }
 
+// tslint:disable:no-empty-interface
 export interface PrivateKeyInternals {
     /**/
 }
@@ -1022,23 +1025,34 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
     assert(privateKey instanceof Buffer);
     const block_info = readTag(privateKey, 0);
     const blocks = readStruct(privateKey, block_info);
-    console.log(block_info);
 
-    console.log(blocks.map((b) => ({
-        tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
-        l: b.length, p: b.position,
-        buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
-    })));
+    /* istanbul ignore next */
+    if (doDebug) {
+        // tslint:disable:no-console
+        console.log(block_info);
+
+        // tslint:disable:no-console
+        console.log(blocks.map((b) => ({
+            tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+            l: b.length, p: b.position,
+            buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
+        })));
+    }
 
     const b = blocks[2];
     const bb = privateKey.slice(b.position, b.position + b.length);
     const block_info1 = readTag(bb, 0);
     const blocks1 = readStruct(bb, block_info1);
-    console.log(blocks1.map((b) => ({
-        tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
-        l: b.length, p: b.position,
-        buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
-    })));
+
+    /* istanbul ignore next */
+    if (doDebug) {
+        // tslint:disable:no-console
+        console.log(blocks1.map((b) => ({
+            tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+            l: b.length, p: b.position,
+            buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
+        })));
+    }
 
     return {};
 
