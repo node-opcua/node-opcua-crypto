@@ -22,7 +22,7 @@ import {combine_der} from "./crypto_explore_certificate";
 const hexy = require("hexy");
 const assert = require("better-assert");
 const jsrsasign = require("jsrsasign");
-const sshKeyToPEM = require("ssh-key-to-pem");
+const sshpk = require('sshpk');
 
 const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([\/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n)/mg;
 
@@ -228,9 +228,10 @@ export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
     if (filename.substr(0, 1) !== ".") {
         filename = __certificate_store + filename;
     }
-    let key: string = fs.readFileSync(filename, "ascii");
-    key = sshKeyToPEM(key);
-    return key as PEM;
+    const key: string = fs.readFileSync(filename, "ascii");
+    const sshKey = sshpk.parseKey(key, 'ssh');
+
+    return sshKey.toString('pkcs8') as PEM;
 }
 
 /**
