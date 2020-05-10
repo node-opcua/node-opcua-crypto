@@ -144,8 +144,8 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         const certParent = certificateChain[index];
 
         // parent child must have keyCertSign
-        const i = exploreCertificate(certParent);
-        const keyUsage = i.tbsCertificate.extensions!.keyUsage!;
+        const certParentInfo = exploreCertificate(certParent);
+        const keyUsage = certParentInfo.tbsCertificate.extensions!.keyUsage!;
         if (!keyUsage.keyCertSign) {
             return {
                 status: "BadCertificateIssuerUseNotAllowed",
@@ -159,7 +159,26 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
                 status: "BadCertificateInvalid",
                 reason: "One of the certificate in the chain is not signing the previous certificate"
             };
+        }
+        const certInfo = exploreCertificate(cert);
+        if (!certInfo.tbsCertificate.extensions) {
+            return {
+                status: "BadCertificateInvalid",
+                reason: "Cannot finx X409 Extension 3 in certificate"
+            };
+        }
+        if (!certParentInfo.tbsCertificate.extensions || !certInfo.tbsCertificate.extensions.authorityKeyIdentifier) {
+            return {
+                status: "BadCertificateInvalid",
+                reason: "Cannot finx X409 Extension 3 in certificate (parent)"
+            };
+        }
 
+        if (certParentInfo.tbsCertificate.extensions.subjectKeyIdentifier !== certInfo.tbsCertificate.extensions.authorityKeyIdentifier.keyIdentifier) {
+            return {
+                status: "BadCertificateInvalid",
+                reason: "subjectKeyIdentifier authorityKeyIdentifier in child certificate do not match subjectKeyIdentifier of parent certificate"
+            };
         }
     }
     return {
