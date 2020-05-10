@@ -67,7 +67,7 @@ describe("Verify Certifcate Signature", () => {
 
     it("WW investiagate how certificate signature is build", () => {
         const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
-        const caPrivateKey = readPrivateKey(path.join(__dirname, "./fixtures/certsChain/caKey.pem"));
+        const caPrivateKey = readPrivateKey(path.join(__dirname, "./fixtures/certsChain/cakey.pem"));
         investigateCertificateSignature(certificate1, caPrivateKey);
     });
 
