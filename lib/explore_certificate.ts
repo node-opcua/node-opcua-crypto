@@ -2,13 +2,13 @@
  * @module node_opcua_crypto
  */
 
-import {Certificate, CertificatePEM} from "./common";
-import {DirectoryName, exploreCertificate, SubjectPublicKeyInfo} from "./crypto_explore_certificate";
-import {convertPEMtoDER} from "./crypto_utils";
+import { Certificate, CertificatePEM } from "./common";
+import { DirectoryName, exploreCertificate, SubjectPublicKeyInfo } from "./crypto_explore_certificate";
+import { convertPEMtoDER } from "./crypto_utils";
 
-const  assert = require("better-assert");
+const assert = require("better-assert");
 
-export type PublicKeyLength = 128 | 256 | 384 | 512 ;
+export type PublicKeyLength = 128 | 256 | 384 | 512;
 
 /**
  * A structure exposing useful information about a certificate
@@ -47,13 +47,13 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
     const certInfo = exploreCertificate(certificate);
     const data: CertificateInfo = {
         publicKeyLength: certInfo.tbsCertificate.subjectPublicKeyInfo.keyLength,
-        notBefore:       certInfo.tbsCertificate.validity.notBefore,
-        notAfter:        certInfo.tbsCertificate.validity.notAfter,
-        publicKey:       certInfo.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey,
-        subject:         certInfo.tbsCertificate.subject
+        notBefore: certInfo.tbsCertificate.validity.notBefore,
+        notAfter: certInfo.tbsCertificate.validity.notAfter,
+        publicKey: certInfo.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey,
+        subject: certInfo.tbsCertificate.subject
 
     };
-    if (!(data.publicKeyLength  === 512 || data.publicKeyLength === 384 || data.publicKeyLength === 256 || data.publicKeyLength === 128)) {
+    if (!(data.publicKeyLength === 512 || data.publicKeyLength === 384 || data.publicKeyLength === 256 || data.publicKeyLength === 128)) {
         throw new Error("Invalid public key length (expecting 128,256,384 or 512)" + data.publicKeyLength);
     }
     return data;

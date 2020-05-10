@@ -5,8 +5,8 @@ import * as path from "path";
 import * as loremIpsum from "lorem-ipsum";
 
 import * as should from "should";
-import * as crypto_utils from "..";
-import { split_der } from "..";
+import * as crypto_utils from "../lib";
+import { split_der } from "../lib";
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 

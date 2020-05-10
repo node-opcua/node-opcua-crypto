@@ -51,7 +51,6 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         //  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -config toto.cnf -nodes -subj '/CN=localhost' -sha256
         const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_4096.pem"));
 
-        // console.log(hexDump(certificate))
         const certificate_info = exploreCertificate(certificate);
 
         certificate_info.tbsCertificate.version.should.eql(3);
@@ -60,7 +59,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         const data = exploreCertificate(certificate);
     });
 
-    it("should read a V3 X509 certificate (with extensions)", () => {
+    it("should read a V3 X509 self-certificate (with extensions)", () => {
 
         const filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
         fs.existsSync(filename).should.equal(true);
@@ -74,11 +73,48 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
         //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions!.authorityCertIssuer,{colors:true,depth:10}));
-        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer.directoryName.countryName.should.eql("FR");
-        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer.directoryName.localityName.should.eql("Paris");
+        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.countryName!.should.eql("FR");
+        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.localityName!.should.eql("Paris");
+
+        console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
         certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!
-            .should.eql("74:38:fd:90:b1:f1:90:51:0e:9c:65:d6:aa:ac:63:9e:bc:dc:58:2f");
+            .should.eql("74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F");
+
+
+        if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
+            // when serial and keyIdentifier are providef the certificate is not self-signed
+            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.serial);
+            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier);
+        }
+    });
+    it("should read a V3 X509 certificate  signed by ta CA (with extensions)", () => {
+
+        const filename = path.join(__dirname, "./fixtures/certsChain/1000.pem");
+        fs.existsSync(filename).should.equal(true);
+
+        const certificate = readCertificate(filename);
+        //xx console.log(certificate.toString("base64"));
+
+        const certificate_info = exploreCertificate(certificate);
+
+        certificate_info.tbsCertificate.version.should.eql(3);
+
+        // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
+        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions!.authorityCertIssuer,{colors:true,depth:10}));
+        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.countryName!.should.eql("FR");
+        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.localityName!.should.eql("Paris");
+
+        console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
+
+        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!
+            .should.eql("B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19");
+
+        if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
+            // when serial and keyIdentifier are providef the certificate is not self-signed
+            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.serial);
+            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier);
+        }
     });
 
     it("should read a V1 X509 certificate", () => {

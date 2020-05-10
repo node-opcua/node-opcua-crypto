@@ -30,3 +30,4 @@ node_modules
 tmp/
 dist/
 doc/
+tsconfig.tsbuildinfo

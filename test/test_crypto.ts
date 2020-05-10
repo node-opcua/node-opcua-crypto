@@ -4,11 +4,11 @@ import * as fs from "fs";
 import * as path from "path";
 
 import * as should from "should";
-import * as crypto_utils from "..";
-import {DER, PublicKey, PublicKeyPEM} from "..";
+import * as crypto_utils from "../lib";
+import { DER, PublicKey, PublicKeyPEM } from "../lib";
 
 import * as loremIpsum1 from "lorem-ipsum";
-const loremIpsum = (loremIpsum1 as any).loremIpsum({count: 100});
+const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });
 
 // tslint:disable-next-line:unused-constant
 const should_ = should;
@@ -295,7 +295,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         it("publicEncrypt  shall produce  different encrypted string if call many times with the same input", function () {
 
-//xx            const bob_public_key = crypto_utils.readCertificate('test/fixtures/certs/alice_cert_1024.pem'); // 2048bit long key
+            //xx            const bob_public_key = crypto_utils.readCertificate('test/fixtures/certs/alice_cert_1024.pem'); // 2048bit long key
             const bob_public_key = read_sshkey_as_pem("bob_id_rsa.pub"); // 2048bit long key
             const bob_private_key = read_private_rsa_key("bob_id_rsa");
 

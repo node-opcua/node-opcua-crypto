@@ -1,14 +1,23 @@
 import * as should from "should";
-import * as crypto_utils from "..";
-import {ComputeDerivedKeysOptions} from "..";
+import {
+    computeDerivedKeys,
+    ComputeDerivedKeysOptions,
+    makePseudoRandomBuffer,
+    computePaddingFooter,
+    encryptBufferWithDerivedKeys,
+    decryptBufferWithDerivedKeys,
+    removePadding,
+    reduceLength,
+    makeMessageChunkSignatureWithDerivedKeys,
+    verifyChunkSignatureWithDerivedKeys
+} from "../lib";
 
 import * as loremIpsum1 from "lorem-ipsum";
-const loremIpsum = (loremIpsum1 as any).loremIpsum({count: 100});
+const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });
 
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 
-const makePseudoRandomBuffer = crypto_utils.makePseudoRandomBuffer;
 
 loremIpsum.length.should.be.greaterThan(100);
 
@@ -64,7 +73,7 @@ describe("test derived key making", function () {
 
     function perform_symmetric_encryption_test(options: any, done: (err?: Error | null) => void) {
 
-        const derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
+        const derivedKeys = computeDerivedKeys(secret, seed, options);
 
         derivedKeys.should.have.ownProperty("sha1or256");
         derivedKeys.sha1or256.should.eql(options.sha1or256);
@@ -74,19 +83,19 @@ describe("test derived key making", function () {
         //xx clear_message = Buffer.concat([clear_message,clear_message,clear_message,clear_message,clear_message]);
 
         // append padding
-        const footer = crypto_utils.computePaddingFooter(clear_message, derivedKeys);
+        const footer = computePaddingFooter(clear_message, derivedKeys);
         const clear_message_with_padding = Buffer.concat([clear_message, footer]);
 
         const msg = "clear_message length " + clear_message_with_padding.length + " shall be a multiple of block size=" + options.encryptingBlockSize;
         (clear_message_with_padding.length % options.encryptingBlockSize).should.equal(0, msg);
 
-        const encrypted_message = crypto_utils.encryptBufferWithDerivedKeys(clear_message_with_padding, derivedKeys);
+        const encrypted_message = encryptBufferWithDerivedKeys(clear_message_with_padding, derivedKeys);
 
         clear_message_with_padding.length.should.equal(encrypted_message.length);
 
-        let reconstructed_message = crypto_utils.decryptBufferWithDerivedKeys(encrypted_message, derivedKeys);
+        let reconstructed_message = decryptBufferWithDerivedKeys(encrypted_message, derivedKeys);
 
-        reconstructed_message = crypto_utils.removePadding(reconstructed_message);
+        reconstructed_message = removePadding(reconstructed_message);
 
         reconstructed_message.toString("ascii").should.eql(clear_message.toString("ascii"));
 
@@ -109,30 +118,30 @@ describe("test derived key making", function () {
     it("should produce a smaller buffer (reduceLength)", function () {
 
         const buffer = Buffer.from("Hello World", "ascii");
-        const reduced = crypto_utils.reduceLength(buffer, 6);
+        const reduced = reduceLength(buffer, 6);
         reduced.toString("ascii").should.equal("Hello");
 
     });
 
     function test_verifyChunkSignatureWithDerivedKeys(options: any) {
-        const derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
+        const derivedKeys = computeDerivedKeys(secret, seed, options);
 
         const clear_message = make_lorem_ipsum_buffer();
         //xx console.log(clear_message.toString());
 
-        const signature = crypto_utils.makeMessageChunkSignatureWithDerivedKeys(clear_message, derivedKeys);
+        const signature = makeMessageChunkSignatureWithDerivedKeys(clear_message, derivedKeys);
 
         signature.length.should.eql(derivedKeys.signatureLength);
 
         const signed_message = Buffer.concat([clear_message, signature]);
 
-        crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(true);
+        verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(true);
 
         // let's corrupt the message ...
         signed_message.write("HELLO", 0x50);
 
         // ... and verify that signature verification returns a failure
-        crypto_utils.verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(false);
+        verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(false);
     }
 
     it("demonstrating how to use derived keys for signature - AES_128_CBC", function () {
@@ -149,7 +158,7 @@ describe("test derived key making", function () {
         // see https://github.com/leandrob/node-psha1/blob/master/test/lib.index.js#L4
         const secret1 = Buffer.from("GS5olVevYMI4vW1Df/7FUpHcJJopTszp6sodlK4/rP8=", "base64");
         const seed1 = Buffer.from("LmF9Mjf9lYMa9YkxZDjaRFe6iMAfReKjzhLHDx376jA=", "base64");
-        const key = crypto_utils.makePseudoRandomBuffer(secret1, seed1, 256 / 8, "SHA1");
+        const key = makePseudoRandomBuffer(secret1, seed1, 256 / 8, "SHA1");
         key.toString("base64").should.eql("ZMOP1NFa5VKTQ8I2awGXDjzKP+686eujiangAgf5N+Q=");
         done();
     });
@@ -157,7 +166,7 @@ describe("test derived key making", function () {
     it("should create derived keys (computeDerivedKeys)", function () {
 
         const options: ComputeDerivedKeysOptions = options_AES_128_CBC;
-        const derivedKeys = crypto_utils.computeDerivedKeys(secret, seed, options);
+        const derivedKeys = computeDerivedKeys(secret, seed, options);
 
         derivedKeys.signingKey.length.should.eql(options.signingKeyLength);
         derivedKeys.encryptingKey.length.should.eql(options.encryptingKeyLength);

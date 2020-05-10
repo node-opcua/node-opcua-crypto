@@ -6,13 +6,11 @@
 // (in this case SHA-384). In order to do that, we need to extract just the body of 
 // the signed certificate. Which, in our case, is everything but the signature. 
 // The start of the body is always the first digit of the second line of the following command:
-
-import { Certificate } from "./common";
 import * as crypto from "crypto";
-import { readTag, readStruct, read_AlgorithmIdentifier, read_SignatureValue, read_SignatureValueBin, TagType } from "./crypto_explore_certificate";
-import { split_der, exploreCertificate, toPem, PrivateKey, PaddingAlgorithm } from "../dist";
-import { extractPublicKeyFromCertificateSync, convertPEMtoDER } from ".";
-import { kMaxLength } from "buffer";
+
+import { Certificate, PrivateKey } from "./common";
+import { readTag, readStruct, read_AlgorithmIdentifier, read_SignatureValueBin, TagType, split_der, exploreCertificate } from "./crypto_explore_certificate";
+import { toPem } from "./crypto_utils";
 
 
 function getHash(algo: string): crypto.Hash {
@@ -134,3 +132,39 @@ export function verifyCertificateSignature(
     verify.end();
     return verify.verify(certPem, signatureValue);
 }
+
+export type _VerifyStatus = "BadCertificateIssuerUseNotAllowed" | "BadCertificateInvalid" | "Good";
+export async function verifyCertificateChain(certificateChain: Certificate[]): Promise<{ status: _VerifyStatus, reason: string }> {
+    // verify that all the certificate
+    // second certificate must be used for CertificateSign
+
+    for (let index = 1; index < certificateChain.length; index++) {
+
+        const cert = certificateChain[index - 1];
+        const certParent = certificateChain[index];
+
+        // parent child must have keyCertSign
+        const i = exploreCertificate(certParent);
+        const keyUsage = i.tbsCertificate.extensions!.keyUsage!;
+        if (!keyUsage.keyCertSign) {
+            return {
+                status: "BadCertificateIssuerUseNotAllowed",
+                reason: "One of the certificate in the chain has not keyUsage set for Certificate Signing"
+            };
+        }
+
+        const parentSignChild = verifyCertificateSignature(cert, certParent);
+        if (!parentSignChild) {
+            return {
+                status: "BadCertificateInvalid",
+                reason: "One of the certificate in the chain is not signing the previous certificate"
+            };
+
+        }
+    }
+    return {
+        status: "Good",
+        reason: `certificate chain is valid(length = ${certificateChain.length})`
+    };
+}
+

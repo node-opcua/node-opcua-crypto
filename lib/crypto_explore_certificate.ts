@@ -4,7 +4,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 // crypto_explore_certificate
 // ---------------------------------------------------------------------------------------------------------------------
-// Copyright (c) 2014-2019 - Etienne Rossignon
+// Copyright (c) 2014-2020 - Etienne Rossignon
 // ---------------------------------------------------------------------------------------------------------------------
 //
 // This  project is licensed under the terms of the MIT license.
@@ -109,6 +109,7 @@ const oid_map: any = {
     "1.2.840.113549.1.1.13": { d: "sha512WithRSAEncryption", c: "PKCS #1", w: false },
     "1.2.840.113549.1.1.14": { d: "sha224WithRSAEncryption", c: "PKCS #1", w: false },
 
+
     "1.2.840.113549.1.9.1": {
         d: "emailAddress",
         c: "PKCS #9. Deprecated, use an altName extension instead",
@@ -127,6 +128,20 @@ const oid_map: any = {
     "1.2.840.113549.1.9.12": { d: "publicKey", c: "PKCS #9 experimental", w: true },
     "1.2.840.113549.1.9.13": { d: "signingDescription", c: "PKCS #9", w: false },
     "1.2.840.113549.1.9.14": { d: "extensionRequest", c: "PKCS #9 via CRMF", w: false },
+
+    "1.3.6.1.5.5.7.3.1": { "d": "serverAuth", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.2": { "d": "clientAuth", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.3": { "d": "codeSigning", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.4": { "d": "emailProtection", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.5": { "d": "ipsecEndSystem", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.6": { "d": "ipsecTunnel", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.7": { "d": "ipsecUser", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.8": { "d": "timeStamping", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.9": { "d": "ocspSigning", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.10": { "d": "dvcs", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.11": { "d": "sbgpCertAAServerAuth", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.13": { "d": "eapOverPPP", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.14": { "d": "eapOverLAN", "c": "PKIX key purpose" },
 
     "2.5.4.0": { d: "objectClass", c: "X.520 DN component", w: false },
     "2.5.4.1": { d: "aliasedEntryName", c: "X.520 DN component", w: false },
@@ -437,21 +452,25 @@ function read_BitString(buffer: Buffer, block: BlockInfo): BitString {
     };
 }
 
-function read_OctetString(buffer: Buffer, block: BlockInfo): string {
+function formatBuffer2DigetHexWithColum(buffer: Buffer): string {
+    const value: string[] = [];
+    for (let i = 0; i < buffer.length; i++) {
+        value.push(("00" + buffer.readUInt8(i).toString(16)).substr(-2, 2));
+    }
+    // remove leading 00
+    return value.join(":").toUpperCase().replace(/^(00:)*/, "");
+}
+function read_OctetString(buffer: Buffer, block: BlockInfo): Buffer {
 
     assert(block.tag === TagType.OCTET_STRING);
     const tag = readTag(buffer, block.position);
     assert(tag.tag === TagType.OCTET_STRING);
 
     const nbBytes = tag.length;
-    let pos = tag.position;
+    const pos = tag.position;
+    const b = buffer.slice(pos, pos + nbBytes);
+    return b;
 
-    const value: string[] = [];
-    for (let i = 0; i < nbBytes; i++) {
-        value.push(("00" + buffer.readUInt8(pos).toString(16)).substr(-2, 2));
-        pos += 1;
-    }
-    return value.join(":");
 }
 
 export type SignatureValue = string;
@@ -464,16 +483,12 @@ export function read_SignatureValue(buffer: Buffer, block: BlockInfo): Signature
     return read_SignatureValueBin(buffer, block).toString("hex");
 }
 
-function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): string {
+function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
     assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
-    let pos = block.position;
+    const pos = block.position;
     const nbBytes = block.length;
-    const value = [];
-    for (let i = 0; i < nbBytes; i++) {
-        value.push(("00" + buffer.readUInt8(pos).toString(16)).substr(-2, 2));
-        pos += 1;
-    }
-    return value.join(":");
+    const buf = buffer.slice(pos, pos + nbBytes);
+    return buf;
 }
 
 function read_IntegerValue(buffer: Buffer, block: BlockInfo): number {
@@ -663,7 +678,18 @@ function read_Validity(buffer: Buffer, block: BlockInfo): Validity {
     };
 }
 
-function read_authorityKeyIdentifier(buffer: Buffer) {
+
+function read_authorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
+    /**
+     *  where a CA distributes its public key in the form of a "self-signed"
+     *  certificate, the authority key identifier MAY be omitted.  Th
+     *  signature on a self-signed certificate is generated with the private
+     * key associated with the certificate's subject public key.  (This
+     * proves that the issuer possesses both the public and private keys.)
+     * In this case, the subject and authority key identifiers would be
+     * identical, but only the subject key identifier is needed for
+     * certification path building.
+     */
     // see: https://www.ietf.org/rfc/rfc3280.txt page 25
     // AuthorityKeyIdentifier ::= SEQUENCE {
     //      keyIdentifier             [0] KeyIdentifier           OPTIONAL,
@@ -671,15 +697,13 @@ function read_authorityKeyIdentifier(buffer: Buffer) {
     //      authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
     // KeyIdentifier ::= OCTET STRING
 
-    const block = readTag(buffer, 0);
-    const inner_blocks = readStruct(buffer, block);
 
-    // noinspection JSUnusedLocalSymbols
-    const keyIdentifier_block = find_block_at_index(inner_blocks, 0);
-    const authorityCertIssuer_block = find_block_at_index(inner_blocks, 1);
-    // noinspection JSUnusedLocalSymbols
-    const authorityCertSerialNumber_block = find_block_at_index(inner_blocks, 2);
+    const block_info = readTag(buffer, 0);
+    const blocks = readStruct(buffer, block_info);
 
+    const keyIdentifier_block = find_block_at_index(blocks, 0);
+    const authorityCertIssuer_block = find_block_at_index(blocks, 1);
+    const authorityCertSerialNumber_block = find_block_at_index(blocks, 2);
     function readNames(buffer: Buffer, block: BlockInfo): DirectoryName {
         // AttributeTypeAndValue ::= SEQUENCE {
         //    type   ATTRIBUTE.&id({SupportedAttributes}),
@@ -708,23 +732,23 @@ function read_authorityKeyIdentifier(buffer: Buffer) {
         return names;
     }
 
-    function read_authorithyCertIssuer(block: BlockInfo) {
+    function read_authorithyCertIssuer(block: BlockInfo): DirectoryName {
         const inner_blocks = readStruct(buffer, block);
 
         const directoryName_block = find_block_at_index(inner_blocks, 4);
         if (directoryName_block) {
-            return {
-                directoryName: readNames(buffer, directoryName_block)
-            };
+            return readNames(buffer, directoryName_block)
         } else {
             throw new Error("Invalid read_authorithyCertIssuer");
         }
-        //  return read_GeneralNames(buffer, directoryName_block);
     }
 
     return {
-        authorityCertIssuer: authorityCertIssuer_block ? read_authorithyCertIssuer(authorityCertIssuer_block) : null
+        authorityCertIssuer: authorityCertIssuer_block ? read_authorithyCertIssuer(authorityCertIssuer_block) : null,
+        serial: authorityCertSerialNumber_block ? formatBuffer2DigetHexWithColum(get_block(buffer, authorityCertSerialNumber_block!)) : null, // can be null for self-signed certf
+        keyIdentifier: keyIdentifier_block ? formatBuffer2DigetHexWithColum(get_block(buffer, keyIdentifier_block!)) : null // can be null for self-signed certf
     };
+
 }
 
 
@@ -782,6 +806,14 @@ export interface KeyUsage {
     encipherOnly: boolean;
     decipherOnly: boolean;
 };
+export interface ExtKeyUsage {
+    clientAuth: boolean;
+    serverAuth: boolean;
+    codeSigning: boolean;
+    emailProtection: boolean;
+    timeStamping: boolean;
+    // etc ... to be completed
+}
 
 function readKeyUsage(oid: string, buffer: Buffer): KeyUsage {
     const block_info = readTag(buffer, 0);
@@ -837,7 +869,6 @@ function readExtKeyUsage(oid: string, buffer: Buffer): string {
  }
  */
 function read_Extension(buffer: Buffer, block: BlockInfo) {
-
     const inner_blocks = readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
@@ -847,11 +878,24 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
 
     const identifier = read_ObjectIdentifier(buffer, inner_blocks[0]);
     const buf = get_block(buffer, inner_blocks[1]);
-
     let value = null;
     switch (identifier.name) {
         case "subjectKeyIdentifier":
-            value = read_OctetString(buffer, inner_blocks[1]);
+            /* from https://tools.ietf.org/html/rfc3280#section-4.1 :
+               For CA certificates, subject key identifiers SHOULD be derived from
+               the public key or a method that generates unique values.  Two common
+               methods for generating key identifiers from the public key are:
+
+                  (1) The keyIdentifier is composed of the 160-bit SHA-1 hash of the
+                  value of the BIT STRING subjectPublicKey (excluding the tag,
+                  length, and number of unused bits).
+
+                  (2) The keyIdentifier is composed of a four bit type field with
+                  the value 0100 followed by the least significant 60 bits of the
+                  SHA-1 hash of the value of the BIT STRING subjectPublicKey
+                  (excluding the tag, length, and number of unused bit string bits).
+            */
+            value = formatBuffer2DigetHexWithColum(read_OctetString(buffer, inner_blocks[1]));
             break;
         case "subjectAltName":
             value = read_subjectAltNames(buf);
@@ -935,7 +979,7 @@ function read_ObjectIdentifier(buffer: Buffer, block: BlockInfo) {
     }
 }
 function find_block_at_index(blocks: BlockInfo[], index: number): BlockInfo | null {
-    const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index);
+    const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index || b.tag === 0x80 + index);
     if (tmp.length === 0) {
         return null;
     }
@@ -1068,19 +1112,27 @@ export interface DirectoryName {
     organizationName?: string;
     organizationUnitName?: string;
     commonName?: string;
-    authorityCertIssuer?: any;
+    countryName?: string;
 }
 export interface BasicConstraints {
     critical: boolean;
     cA: boolean;
     pathLengthConstraint?: number; // 0 Unlimited
 }
+
+
+export interface AuthorithyKeyIdentifier {
+    keyIdentifier: string | null;
+    authorityCertIssuer: DirectoryName | null;
+    serial: string | null;
+}
+
 export interface CertificateExtension {
     basicConstraints: BasicConstraints;
     subjectKeyIdentifier?: string;
-    authorityKeyIdentifier?: DirectoryName;
-    keyUsage?: any;
-    extKeyUsage?: any;
+    authorityKeyIdentifier?: AuthorithyKeyIdentifier;
+    keyUsage?: KeyUsage;
+    extKeyUsage?: KeyUsage;
     subjectAltName?: any;
 }
 
@@ -1105,7 +1157,7 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
         // X509 Version 1:
         version = 1;
 
-        serialNumber = read_LongIntegerValue(buffer, blocks[0]);
+        serialNumber = formatBuffer2DigetHexWithColum(read_LongIntegerValue(buffer, blocks[0]));
         signature = read_AlgorithmIdentifier(buffer, blocks[1]);
         issuer = read_Name(buffer, blocks[2]);
         validity = read_Validity(buffer, blocks[3]);
@@ -1121,7 +1173,7 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
             throw new Error("cannot find version block");
         }
         version = read_VersionValue(buffer, version_block) + 1;
-        serialNumber = read_LongIntegerValue(buffer, blocks[1]);
+        serialNumber = formatBuffer2DigetHexWithColum(read_LongIntegerValue(buffer, blocks[1]));
         signature = read_AlgorithmIdentifier(buffer, blocks[2]);
         issuer = read_Name(buffer, blocks[3]);
         validity = read_Validity(buffer, blocks[4]);
@@ -1142,7 +1194,6 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
         signature,
         issuer,
         validity,
-        // authorityCertIssuer,
         subject,
         subjectPublicKeyInfo,
         extensions

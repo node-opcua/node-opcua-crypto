@@ -1,6 +1,6 @@
 import * as should from "should";
-import * as  crypto_utils from "..";
-import {inlineText, makebuffer_from_trace} from "./helpers/makebuffer_from_trace";
+import * as  crypto_utils from "../lib";
+import { inlineText, makebuffer_from_trace } from "./helpers/makebuffer_from_trace";
 
 // tslint:disable-next-line:unused-constant
 const should_ = should;
@@ -83,7 +83,7 @@ const privateKey = inlineText(
          */
     });
 
-describe("testing message decryption",  () => {
+describe("testing message decryption", () => {
 
     it("should decrypt an OPN packet and verify that the signature is correct", () => {
 
@@ -91,7 +91,7 @@ describe("testing message decryption",  () => {
         const senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
 
         // where the encrypted  part starts
-        const start = buffer.length - ( 128 * 3 );
+        const start = buffer.length - (128 * 3);
         const encrypted_part = buffer.slice(start);
 
         // decrypt the encrypted part
