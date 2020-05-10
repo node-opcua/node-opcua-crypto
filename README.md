@@ -4,3 +4,5 @@
 [![Code Climate](https://codeclimate.com/github/node-opcua/node-opcua-crypto/badges/gpa.svg)](https://codeclimate.com/github/node-opcua/node-opcua-crypto)
 [![Test Coverage](https://codeclimate.com/github/node-opcua/node-opcua-crypto/badges/coverage.svg)](https://codeclimate.com/github/node-opcua/node-opcua-crypto/coverage)
 [![Coverage Status](https://coveralls.io/repos/github/node-opcua/node-opcua-crypto/badge.svg?branch=master)](https://coveralls.io/github/node-opcua/node-opcua-crypto?branch=master)
+
+// https://linuxctl.com/2017/02/x509-certificate-manual-signature-verification/

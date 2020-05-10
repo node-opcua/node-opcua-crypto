@@ -5,7 +5,7 @@ import * as constants from "constants";
 import * as  crypto from "crypto";
 import * as fs from "fs";
 import * as  path from "path";
-import {createFastUninitializedBuffer} from "./buffer_utils";
+import { createFastUninitializedBuffer } from "./buffer_utils";
 import {
     Certificate,
     CertificatePEM,
@@ -17,7 +17,7 @@ import {
     PublicKeyPEM,
     Signature
 } from "./common";
-import {combine_der} from "./crypto_explore_certificate";
+import { combine_der } from "./crypto_explore_certificate";
 
 const hexy = require("hexy");
 const assert = require("better-assert");
@@ -144,9 +144,9 @@ export function hexDump(buffer: Buffer, width?: number) {
     width = width || 32;
     if (buffer.length > 1024) {
 
-        return hexy.hexy(buffer.slice(0, 1024), {width, format: "twos"}) + "\n .... ( " + buffer.length + ")";
+        return hexy.hexy(buffer.slice(0, 1024), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
     } else {
-        return hexy.hexy(buffer, {width, format: "twos"});
+        return hexy.hexy(buffer, { width, format: "twos" });
     }
 }
 

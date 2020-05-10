@@ -66,7 +66,7 @@ const assert = require("better-assert");
 const doDebug = false;
 
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js
-enum TagType {
+export enum TagType {
     BOOLEAN = 0x01,
     INTEGER = 0x02,
     BIT_STRING = 0x03,
@@ -89,6 +89,10 @@ enum TagType {
 
 // https://github.com/lapo-luchini/asn1js/blob/master/oids.js
 const oid_map: any = {
+
+    "0.9.2342.19200300.100.1.1": { "d": "userID", "c": "Some oddball X.500 attribute collection" },
+    "0.9.2342.19200300.100.1.3": { "d": "rfc822Mailbox", "c": "Some oddball X.500 attribute collection" },
+    "0.9.2342.19200300.100.1.25": { "d": "domainComponent", "c": "Men are from Mars, this OID is from Pluto" },
 
     "1.2.840.113549.1.1": { d: "pkcs-1", c: "", w: false },
     "1.2.840.113549.1.1.1": { d: "rsaEncryption", c: "PKCS #1", w: false },
@@ -316,16 +320,33 @@ const oid_map: any = {
     "2.5.29.67": { d: "allowedAttAss", c: "X.509 extension", w: false },
     "2.5.29.68": { d: "attributeMappings", c: "X.509 extension", w: false },
     "2.5.29.69": { d: "holderNameConstraints", c: "X.509 extension", w: false },
+
+    // Netscape certificate type
+    // An X.509 v3 certificate extension used to identify whether
+    // the certificate subject is an SSL client, …
+    "2.16.840.1.113730.1": { "d": "certExtension", "c": "Netscape" },
+    "2.16.840.1.113730.1.1": { "d": "netscapeCertType", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.2": { "d": "netscapeBaseUrl", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.3": { "d": "netscapeRevocationUrl", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.4": { "d": "netscapeCaRevocationUrl", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.7": { "d": "netscapeCertRenewalUrl", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.8": { "d": "netscapeCaPolicyUrl", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.9": { "d": "HomePageUrl", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.10": { "d": "EntityLogo", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.11": { "d": "UserPicture", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.12": { "d": "netscapeSslServerName", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1.13": { "d": "netscapeComment", "c": "Netscape certificate extension" },
+
     "done": {}
 };
 
-interface BlockInfo {
-    tag: number;
+export interface BlockInfo {
+    tag: TagType;
     position: number;
     length: number;
 }
 
-function readTag(buf: Buffer, pos: number): BlockInfo {
+export function readTag(buf: Buffer, pos: number): BlockInfo {
 
     assert(buf instanceof Buffer);
     assert(_.isNumber(pos) && pos >= 0);
@@ -350,7 +371,7 @@ function readTag(buf: Buffer, pos: number): BlockInfo {
     return { tag, position: pos, length };
 }
 
-function readStruct(buf: Buffer, block_info: BlockInfo): BlockInfo[] {
+export function readStruct(buf: Buffer, block_info: BlockInfo): BlockInfo[] {
 
     const length = block_info.length;
     let cursor = block_info.position;
@@ -435,8 +456,12 @@ function read_OctetString(buffer: Buffer, block: BlockInfo): string {
 
 export type SignatureValue = string;
 
-function read_SignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
-    return get_block(buffer, block).toString("hex");
+export function read_SignatureValueBin(buffer: Buffer, block: BlockInfo): Buffer {
+    return read_BitString(buffer, block).data;
+}
+
+export function read_SignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
+    return read_SignatureValueBin(buffer, block).toString("hex");
 }
 
 function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): string {
@@ -462,7 +487,14 @@ function read_IntegerValue(buffer: Buffer, block: BlockInfo): number {
         pos += 1;
     }
     return value;
-
+}
+function read_BooleanValue(buffer: Buffer, block: BlockInfo): boolean {
+    assert(block.tag === TagType.BOOLEAN, "expecting a BOOLEAN tag. got " + TagType[block.tag]);
+    const pos = block.position;
+    const nbBytes = block.length;
+    assert(nbBytes < 4);
+    const value = buffer.readUInt8(pos) ? true : false;
+    return value as boolean;
 }
 
 function read_VersionValue(buffer: Buffer, block: BlockInfo): number {
@@ -472,7 +504,7 @@ function read_VersionValue(buffer: Buffer, block: BlockInfo): number {
 
 /*
  http://tools.ietf.org/html/rfc5280
-
+ 
  4.1.2.5. Validity
  [...]
  As conforming to this profile MUST always encode certificate
@@ -481,23 +513,23 @@ function read_VersionValue(buffer: Buffer, block: BlockInfo): number {
  Conforming applications MUST be able to process validity dates that
  are encoded in either UTCTime or GeneralizedTime.
  [...]
-
+ 
  4.1.2.5.1  UTCTime
-
+ 
  The universal time type, UTCTime, is a standard ASN.1 type intended
  for representation of dates and time.  UTCTime specifies the year
  through the two low order digits and time is specified to the
  precision of one minute or one second.  UTCTime includes either Z
  (for Zulu, or Greenwich Mean Time) or a time differential.
-
+ 
  For the purposes of this profile, UTCTime values MUST be expressed
  Greenwich Mean Time (Zulu) and MUST include seconds (i.e., times are
  YYMMDDHHMMSSZ), even where the number of seconds is zero.  Conforming
  systems MUST interpret the year field (YY) as follows:
-
+ 
  Where YY is greater than or equal to 50, the year SHALL be
  interpreted as 19YY; and
-
+ 
  Where YY is less than 50, the year SHALL be interpreted as 20YY.
  */
 function convertUTCTime(str: string): Date {
@@ -515,17 +547,17 @@ function convertUTCTime(str: string): Date {
 
 /*
  4.1.2.5.2  GeneralizedTime
-
+ 
  The generalized time type, GeneralizedTime, is a standard ASN.1 type
  for variable precision representation of time.  Optionally, the
  GeneralizedTime field can include a representation of the time
  differential between local and Greenwich Mean Time.
-
+ 
  For the purposes of this profile, GeneralizedTime values MUST be
  expressed Greenwich Mean Time (Zulu) and MUST include seconds (i.e.,
  times are YYYYMMDDHHMMSSZ), even where the number of seconds is zero.
  GeneralizedTime values MUST NOT include fractional seconds.
-
+ 
  */
 function convertGeneralizedTime(str: string): Date {
 
@@ -555,6 +587,8 @@ function read_BMPString(buffer: Buffer, block: BlockInfo): string {
 
 function read_Value(buffer: Buffer, block: BlockInfo): any {
     switch (block.tag) {
+        case TagType.BOOLEAN:
+            return read_BooleanValue(buffer, block);
         case TagType.BMPString:
             return read_BMPString(buffer, block);
         case TagType.PrintableString:
@@ -583,7 +617,7 @@ function read_AttributeTypeAndValue(buffer: Buffer, block: BlockInfo): Attribute
     inner_blocks = readStruct(buffer, inner_blocks[0]);
 
     const data = {
-        identifier: read_ObjectIdentifier(buffer, inner_blocks[0]),
+        identifier: read_ObjectIdentifier(buffer, inner_blocks[0]).name,
         value: read_Value(buffer, inner_blocks[1])
     };
 
@@ -646,12 +680,12 @@ function read_authorityKeyIdentifier(buffer: Buffer) {
     // noinspection JSUnusedLocalSymbols
     const authorityCertSerialNumber_block = find_block_at_index(inner_blocks, 2);
 
-    function readNames(buffer: Buffer, block: BlockInfo) {
+    function readNames(buffer: Buffer, block: BlockInfo): DirectoryName {
         // AttributeTypeAndValue ::= SEQUENCE {
         //    type   ATTRIBUTE.&id({SupportedAttributes}),
         //    value  ATTRIBUTE.&Type({SupportedAttributes}{@type}),
         const inner_blocks = readStruct(buffer, block);
-        const names: any = {};
+        const names: DirectoryName = {};
         inner_blocks.forEach((sequence_block) => {
 
             assert(sequence_block.tag === 0x30);
@@ -667,7 +701,7 @@ function read_authorityKeyIdentifier(buffer: Buffer) {
 
                 const type = read_ObjectIdentifier(buffer, _blocks[0]);
 
-                names[type] = read_Value(buffer, _blocks[1]);
+                (names as any)[type.name] = read_Value(buffer, _blocks[1]);
 
             });
         });
@@ -693,6 +727,105 @@ function read_authorityKeyIdentifier(buffer: Buffer) {
     };
 }
 
+
+/*
+ Extension  ::=  SEQUENCE  {
+        extnID      OBJECT IDENTIFIER,
+        critical    BOOLEAN DEFAULT FALSE,
+        extnValue   OCTET STRING
+                    -- contains the DER encoding of an ASN.1 value
+                    -- corresponding to the extension type identified
+                    -- by extnID
+        }
+
+      id-ce-keyUsage OBJECT IDENTIFIER ::=  { id-ce 15 }
+
+      KeyUsage ::= BIT STRING {
+           digitalSignature        (0),
+           nonRepudiation          (1), -- recent editions of X.509 have
+                                -- renamed this bit to contentCommitment
+           keyEncipherment         (2),
+           dataEncipherment        (3),
+           keyAgreement            (4),
+           keyCertSign             (5),
+           cRLSign                 (6),
+           encipherOnly            (7),
+           decipherOnly            (8) }
+
+extKeyUsage
+*/
+
+function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicConstraints {
+
+    const block_info = readTag(buffer, 0);
+    const inner_blocks = readStruct(buffer, block_info);
+    const cA = inner_blocks.length > 0 ? read_BooleanValue(buffer, inner_blocks[0]) : false;
+
+    //    console.log("buffer[block_info.position] = ", buffer[block_info.position]);
+    // const cA = buffer[block_info.position] ? true : false;
+
+    let pathLengthConstraint = 0;
+    if (inner_blocks.length > 1) {
+        pathLengthConstraint = read_IntegerValue(buffer, inner_blocks[1]);
+    }
+    return { critical: true, cA, pathLengthConstraint };
+}
+
+export interface KeyUsage {
+    digitalSignature: boolean;
+    nonRepudiation: boolean;
+    keyEncipherment: boolean;
+    dataEncipherment: boolean;
+    keyAgreement: boolean;
+    keyCertSign: boolean;
+    cRLSign: boolean;
+    encipherOnly: boolean;
+    decipherOnly: boolean;
+};
+
+function readKeyUsage(oid: string, buffer: Buffer): KeyUsage {
+    const block_info = readTag(buffer, 0);
+
+    // get value as BIT STRING
+    let b2 = 0x00;
+    let b3 = 0x00;
+    if (block_info.length > 1) {
+        // skip first byte, just indicates unused bits which
+        // will be padded with 0s anyway
+        // get bytes with flag bits
+        b2 = buffer[block_info.position + 1];
+        b3 = block_info.length > 2 ? buffer[block_info.position + 2] : 0;
+    }
+
+    // set flags
+    return {
+        digitalSignature: (b2 & 0x80) === 0x80,
+        nonRepudiation: (b2 & 0x40) === 0x40,
+        keyEncipherment: (b2 & 0x20) === 0x20,
+        dataEncipherment: (b2 & 0x10) === 0x10,
+        keyAgreement: (b2 & 0x08) === 0x08,
+        keyCertSign: (b2 & 0x04) === 0x04,
+        cRLSign: (b2 & 0x02) === 0x02,
+        encipherOnly: (b2 & 0x01) === 0x01,
+        decipherOnly: (b3 & 0x80) === 0x80
+    };
+}
+
+function readExtKeyUsage(oid: string, buffer: Buffer): string {
+    return "readExtKeyUsage " + oid + "  " + buffer.toString("hex");
+    /*    // handle extKeyUsage
+        // value is a SEQUENCE of OIDs
+        var ev = asn1.fromDer(e.value);
+        for (var vi = 0; vi < ev.value.length; ++vi) {
+            var oid = asn1.derToOid(ev.value[vi].value);
+            if (oid in oids) {
+                e[oids[oid]] = true;
+            } else {
+                e[oid] = true;
+            }
+        }
+        */
+}
 /*
  Extension  ::=  SEQUENCE  {
  extnID      OBJECT IDENTIFIER,
@@ -716,7 +849,7 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
     const buf = get_block(buffer, inner_blocks[1]);
 
     let value = null;
-    switch (identifier) {
+    switch (identifier.name) {
         case "subjectKeyIdentifier":
             value = read_OctetString(buffer, inner_blocks[1]);
             break;
@@ -727,9 +860,20 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
             value = read_authorityKeyIdentifier(buf);
             break;
         case "basicConstraints":
+            value = readBasicConstraint2_5_29_19(buf, inner_blocks[1]); //  "2.5.29.19":
+            // "basicConstraints ( not implemented yet) " + buf.toString("hex");
+            break;
+        case "certExtension": // Netscape
+            value = "basicConstraints ( not implemented yet) " + buf.toString("hex");
+            break;
+        case "extKeyUsage":
+            value = readExtKeyUsage(identifier.oid, buf);
+            break;
+        case "keyUsage":
+            value = readKeyUsage(identifier.oid, buf);
             break;
         default:
-            value = "Unknown " + buf.toString("hex");
+            value = "Unknown " + identifier.name + buf.toString("hex");
     }
     return {
         identifier,
@@ -748,7 +892,7 @@ function read_Extensions(buffer: Buffer, block: BlockInfo): CertificateExtension
     const exts = inner_blocks.map((block) => read_Extension(buffer, block));
 
     const result: any = {};
-    _.forEach(exts, (e) => result[e.identifier] = e.value);
+    _.forEach(exts, (e) => result[e.identifier.name] = e.value);
     return result as CertificateExtension;
 }
 
@@ -785,9 +929,11 @@ function read_ObjectIdentifier(buffer: Buffer, block: BlockInfo) {
     assert(block.tag === TagType.OBJECT_IDENTIFIER);
     const b = buffer.slice(block.position, block.position + block.length);
     const oid = parseOID(b, 0, block.length);
-    return oid_map[oid] ? oid_map[oid].d : oid;
+    return {
+        oid,
+        name: oid_map[oid] ? oid_map[oid].d : oid
+    }
 }
-
 function find_block_at_index(blocks: BlockInfo[], index: number): BlockInfo | null {
     const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index);
     if (tmp.length === 0) {
@@ -810,7 +956,7 @@ function find_block_at_index(blocks: BlockInfo[], index: number): BlockInfo | nu
 //        registeredID              [8]  OBJECT IDENTIFIER }
 function read_GeneralNames(buffer: Buffer, block: BlockInfo) {
 
-    const _data: any = {
+    const _data: { [key: number]: { name: string, type: string } } = {
         1: { name: "rfc822Name", type: "IA5String" },
         2: { name: "dNSName", type: "IA5String" },
         3: { name: "x400Address", type: "ORAddress" },
@@ -831,11 +977,11 @@ function read_GeneralNames(buffer: Buffer, block: BlockInfo) {
         }
     }
 
-    const n: any = {};
+    const n: { [key: string]: string[] } = {};
     for (const block of blocks) {
         assert((block.tag & 0x80) === 0x80);
         const t = (block.tag & 0x7F);
-        const type = _data[t];
+        const type = _data[t] as { name: string, type: string } | undefined;
 
         // istanbul ignore next
         if (!type) {
@@ -922,11 +1068,16 @@ export interface DirectoryName {
     organizationName?: string;
     organizationUnitName?: string;
     commonName?: string;
+    authorityCertIssuer?: any;
 }
-
+export interface BasicConstraints {
+    critical: boolean;
+    cA: boolean;
+    pathLengthConstraint?: number; // 0 Unlimited
+}
 export interface CertificateExtension {
-    basicConstraints: any;
-    subjectKeyIdentitifer?: string;
+    basicConstraints: BasicConstraints;
+    subjectKeyIdentifier?: string;
     authorityKeyIdentifier?: DirectoryName;
     keyUsage?: any;
     extKeyUsage?: any;
@@ -991,21 +1142,21 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
         signature,
         issuer,
         validity,
+        // authorityCertIssuer,
         subject,
         subjectPublicKeyInfo,
         extensions
     };
-
 }
 
 export interface AlgorithmIdentifier {
-    identifier: any;
+    identifier: string;
 }
 
-function read_AlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
+export function read_AlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
     const inner_blocks = readStruct(buffer, block);
     return {
-        identifier: read_ObjectIdentifier(buffer, inner_blocks[0])
+        identifier: read_ObjectIdentifier(buffer, inner_blocks[0]).name
     };
 }
 

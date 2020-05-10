@@ -6,12 +6,12 @@ import * as loremIpsum from "lorem-ipsum";
 
 import * as should from "should";
 import * as crypto_utils from "..";
-import {split_der} from "..";
+import { split_der } from "..";
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 
 // tslint:disable:no-var-requires
-const loremIpsumTxt = (loremIpsum as any).loremIpsum({units: "words" , count: 100});
+const loremIpsumTxt = (loremIpsum as any).loremIpsum({ units: "words", count: 100 });
 loremIpsumTxt.length.should.be.greaterThan(100);
 
 function make_lorem_ipsum_buffer() {
@@ -20,7 +20,7 @@ function make_lorem_ipsum_buffer() {
 
 describe("Crypto utils", function () {
 
-    it("should read a PEM file",  () => {
+    it("should read a PEM file", () => {
 
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
 
@@ -52,7 +52,7 @@ describe("Crypto utils", function () {
             "FYHX/e3jaMAQAdkyq9aIQYaHyVQxOBy98B5usZclZ7ry6xf/Rb9bOOP8c61tBQ9k" +
             "SXDGOBbNHWyWf+DqquMvwN0+Ud/n6hhDexyiShstLhKK1gMNpO6ftMZO80HdI/sm" +
             "ynbBVHaSnuA9"
-       );
+        );
     });
 
     it("should read a certificate chain", () => {
@@ -79,7 +79,7 @@ describe("Crypto utils", function () {
 
     });
 
-    it("makeSHA1Thumbprint should produce a 20-byte thumbprint ",  () => {
+    it("makeSHA1Thumbprint should produce a 20-byte thumbprint ", () => {
 
         const buf = make_lorem_ipsum_buffer();
 
@@ -92,9 +92,9 @@ describe("Crypto utils", function () {
     });
 });
 
-describe("exploreCertificate",  () => {
+describe("exploreCertificate", () => {
 
-    it("should explore a 1024 bits RSA certificate",  () => {
+    it("should explore a 1024 bits RSA certificate", () => {
 
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
         const data = crypto_utils.exploreCertificateInfo(certificate);
@@ -103,7 +103,7 @@ describe("exploreCertificate",  () => {
         data.notBefore.should.be.instanceOf(Date);
 
     });
-    it("should explore a 2048 bits RSA certificate",  () => {
+    it("should explore a 2048 bits RSA certificate", () => {
         const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
         const data = crypto_utils.exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(256);
