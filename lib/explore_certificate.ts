@@ -5,8 +5,7 @@
 import { Certificate, CertificatePEM } from "./common";
 import { DirectoryName, exploreCertificate, SubjectPublicKeyInfo } from "./crypto_explore_certificate";
 import { convertPEMtoDER } from "./crypto_utils";
-
-const assert = require("better-assert");
+import * as assert from "assert";
 
 export type PublicKeyLength = 128 | 256 | 384 | 512;
 
@@ -41,7 +40,6 @@ export function coerceCertificate(certificate: Certificate | CertificatePEM): Ce
  * @param certificate the certificate to explore
  */
 export function exploreCertificateInfo(certificate: Certificate | CertificatePEM): CertificateInfo {
-
     certificate = coerceCertificate(certificate);
 
     const certInfo = exploreCertificate(certificate);
@@ -50,10 +48,16 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
         notBefore: certInfo.tbsCertificate.validity.notBefore,
         notAfter: certInfo.tbsCertificate.validity.notAfter,
         publicKey: certInfo.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey,
-        subject: certInfo.tbsCertificate.subject
-
+        subject: certInfo.tbsCertificate.subject,
     };
-    if (!(data.publicKeyLength === 512 || data.publicKeyLength === 384 || data.publicKeyLength === 256 || data.publicKeyLength === 128)) {
+    if (
+        !(
+            data.publicKeyLength === 512 ||
+            data.publicKeyLength === 384 ||
+            data.publicKeyLength === 256 ||
+            data.publicKeyLength === 128
+        )
+    ) {
         throw new Error("Invalid public key length (expecting 128,256,384 or 512)" + data.publicKeyLength);
     }
     return data;

@@ -1,17 +1,23 @@
 // tslint:disable: no-console
 
-
 // Now that we got a hash of the orginal certificate,
-// we need to verify if we can obtain the same hash by using the same hashing function 
-// (in this case SHA-384). In order to do that, we need to extract just the body of 
-// the signed certificate. Which, in our case, is everything but the signature. 
+// we need to verify if we can obtain the same hash by using the same hashing function
+// (in this case SHA-384). In order to do that, we need to extract just the body of
+// the signed certificate. Which, in our case, is everything but the signature.
 // The start of the body is always the first digit of the second line of the following command:
 import * as crypto from "crypto";
 
 import { Certificate, PrivateKey } from "./common";
-import { readTag, readStruct, read_AlgorithmIdentifier, read_SignatureValueBin, TagType, split_der, exploreCertificate } from "./crypto_explore_certificate";
+import {
+    readTag,
+    _readStruct,
+    _readAlgorithmIdentifier,
+    _readSignatureValueBin,
+    TagType,
+    split_der,
+    exploreCertificate,
+} from "./crypto_explore_certificate";
 import { toPem } from "./crypto_utils";
-
 
 function getHash(algo: string): crypto.Hash {
     return crypto.createHash(algo);
@@ -34,7 +40,6 @@ function getHash(algo: string): crypto.Hash {
             return crypto.createHash("sh224");
     }
     throw new Error("Unsupport algo " + algo);
-
 }
 function convertToDEROctetString(buffer: Buffer): Buffer {
     /**
@@ -63,7 +68,7 @@ function convertToDEROctetString(buffer: Buffer): Buffer {
         c = 3;
     } else if (l < 65535) {
         b[1] = 0x82;
-        b[2] = (l - l % 256) / 256;
+        b[2] = (l - (l % 256)) / 256;
         b[3] = l % 256;
         c = 4;
     } else {
@@ -89,7 +94,7 @@ function convertToDERBitString(buffer: Buffer): Buffer {
         c = 3;
     } else if (l < 65535) {
         b[1] = 0x82;
-        b[2] = (l - l % 256) / 256;
+        b[2] = (l - (l % 256)) / 256;
         b[3] = l % 256;
         c = 4;
     } else {
@@ -102,31 +107,28 @@ function convertToDERBitString(buffer: Buffer): Buffer {
     }
 
     return b.slice(0, c);
-
 }
-
 
 export function verifyCertificateSignature(
     certificate: Certificate,
     parentCerticate: Certificate,
     caPrivateKey?: PrivateKey
 ): boolean {
-
     // console.log(certificate.toString("hex"));
 
     const block_info = readTag(certificate, 0);
-    const blocks = readStruct(certificate, block_info);
+    const blocks = _readStruct(certificate, block_info);
 
     //  console.log(block_info, blocks[0], blocks[1], blocks[2]);
     const bufferTbsCertificate = certificate.slice(block_info.position, block_info.position + 4 + blocks[0].length);
 
     //xx console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
-    const signatureAlgorithm = read_AlgorithmIdentifier(certificate, blocks[1]);
-    const signatureValue = read_SignatureValueBin(certificate, blocks[2]);
+    const signatureAlgorithm = _readAlgorithmIdentifier(certificate, blocks[1]);
+    const signatureValue = _readSignatureValueBin(certificate, blocks[2]);
 
     const p = split_der(parentCerticate)[0];
     //xx    const publicKey = extractPublicKeyFromCertificateSync(p);
-    const certPem = toPem(p, "CERTIFICATE")
+    const certPem = toPem(p, "CERTIFICATE");
     const verify = crypto.createVerify(signatureAlgorithm.identifier);
     verify.update(bufferTbsCertificate);
     verify.end();
@@ -134,12 +136,11 @@ export function verifyCertificateSignature(
 }
 
 export type _VerifyStatus = "BadCertificateIssuerUseNotAllowed" | "BadCertificateInvalid" | "Good";
-export async function verifyCertificateChain(certificateChain: Certificate[]): Promise<{ status: _VerifyStatus, reason: string }> {
+export async function verifyCertificateChain(certificateChain: Certificate[]): Promise<{ status: _VerifyStatus; reason: string }> {
     // verify that all the certificate
     // second certificate must be used for CertificateSign
 
     for (let index = 1; index < certificateChain.length; index++) {
-
         const cert = certificateChain[index - 1];
         const certParent = certificateChain[index];
 
@@ -149,7 +150,7 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         if (!keyUsage.keyCertSign) {
             return {
                 status: "BadCertificateIssuerUseNotAllowed",
-                reason: "One of the certificate in the chain has not keyUsage set for Certificate Signing"
+                reason: "One of the certificate in the chain has not keyUsage set for Certificate Signing",
             };
         }
 
@@ -157,33 +158,36 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         if (!parentSignChild) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "One of the certificate in the chain is not signing the previous certificate"
+                reason: "One of the certificate in the chain is not signing the previous certificate",
             };
         }
         const certInfo = exploreCertificate(cert);
         if (!certInfo.tbsCertificate.extensions) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "Cannot finx X409 Extension 3 in certificate"
+                reason: "Cannot finx X409 Extension 3 in certificate",
             };
         }
         if (!certParentInfo.tbsCertificate.extensions || !certInfo.tbsCertificate.extensions.authorityKeyIdentifier) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "Cannot finx X409 Extension 3 in certificate (parent)"
+                reason: "Cannot finx X409 Extension 3 in certificate (parent)",
             };
         }
 
-        if (certParentInfo.tbsCertificate.extensions.subjectKeyIdentifier !== certInfo.tbsCertificate.extensions.authorityKeyIdentifier.keyIdentifier) {
+        if (
+            certParentInfo.tbsCertificate.extensions.subjectKeyIdentifier !==
+            certInfo.tbsCertificate.extensions.authorityKeyIdentifier.keyIdentifier
+        ) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "subjectKeyIdentifier authorityKeyIdentifier in child certificate do not match subjectKeyIdentifier of parent certificate"
+                reason:
+                    "subjectKeyIdentifier authorityKeyIdentifier in child certificate do not match subjectKeyIdentifier of parent certificate",
             };
         }
     }
     return {
         status: "Good",
-        reason: `certificate chain is valid(length = ${certificateChain.length})`
+        reason: `certificate chain is valid(length = ${certificateChain.length})`,
     };
 }
-

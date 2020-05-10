@@ -1,21 +1,13 @@
-import * as  should from "should";
+import * as should from "should";
 import * as path from "path";
 import * as fs from "fs";
 import * as util from "util";
 
-import {
-    readCertificate,
-    exploreCertificate,
-    exploreCertificateInfo,
-    combine_der,
-    split_der
-} from "../lib";
+import { readCertificate, exploreCertificate, exploreCertificateInfo, combine_der, split_der } from "../lib";
 
 describe(" exploring Certificates", function (this: Mocha.Suite) {
-
     this.timeout(200000);
     it("should extract the information out of a 1024-bits certificate", () => {
-
         const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
 
         //xx console.log(hexDump(certificate));
@@ -24,17 +16,18 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         //xx console.log(certificate_info.tbsCertificate);
         console.log(" Version                   : ", certificate_info.tbsCertificate.version);
         console.log(" issuer.commonName         : ", certificate_info.tbsCertificate.issuer.commonName);
-        console.log(" uniformResourceIdentifier : ", certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier);
+        console.log(
+            " uniformResourceIdentifier : ",
+            certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier
+        );
         console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions!.subjectAltName.dNSName);
 
         certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(128);
         certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
-
     });
 
     it("should extract the information out of a 2048-bits certificate ", () => {
-
         const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
 
         // console.log(hexDump(certificate))
@@ -43,11 +36,9 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         certificate_info.tbsCertificate.version.should.eql(3);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(256);
         certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
-
     });
 
     it("should extract the information out of a 4096-bits certificate - 1", () => {
-
         //  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -config toto.cnf -nodes -subj '/CN=localhost' -sha256
         const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_4096.pem"));
 
@@ -60,7 +51,6 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
     });
 
     it("should read a V3 X509 self-certificate (with extensions)", () => {
-
         const filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
         fs.existsSync(filename).should.equal(true);
 
@@ -78,9 +68,9 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
-        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!
-            .should.eql("74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F");
-
+        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!.should.eql(
+            "74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F"
+        );
 
         if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
             // when serial and keyIdentifier are providef the certificate is not self-signed
@@ -89,7 +79,6 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         }
     });
     it("should read a V3 X509 certificate  signed by ta CA (with extensions)", () => {
-
         const filename = path.join(__dirname, "./fixtures/certsChain/1000.pem");
         fs.existsSync(filename).should.equal(true);
 
@@ -107,8 +96,9 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
-        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!
-            .should.eql("B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19");
+        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!.should.eql(
+            "B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19"
+        );
 
         if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
             // when serial and keyIdentifier are providef the certificate is not self-signed
@@ -118,7 +108,6 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
     });
 
     it("should read a V1 X509 certificate", () => {
-
         // note : http://stackoverflow.com/questions/26788244/how-to-create-a-legacy-v1-or-v2-x-509-cert-for-testing
 
         const filename = path.join(__dirname, "./fixtures/certs/demo_certificate_x509_V1.pem");
@@ -132,14 +121,11 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         should(certificate_info.tbsCertificate.extensions).eql(null);
 
         // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
-
     });
 });
 
 describe("exploring certificate chains", () => {
-
     it("should combine 2 certificates in a single block", () => {
-
         const cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
         const cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
 
@@ -175,7 +161,6 @@ describe("exploring certificate chains", () => {
     });
 
     it("should combine 3 certificates in a single block", () => {
-
         const cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
         const cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
         const cert3_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");

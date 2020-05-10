@@ -55,9 +55,7 @@
 import * as _ from "underscore";
 import { Certificate, PrivateKey } from "./common";
 import { PublicKeyLength } from "./explore_certificate";
-import { strict } from "assert";
-
-const assert = require("better-assert");
+import * as assert from "assert";
 // Converted from: https://www.cs.auckland.ac.nz/~pgut001/dumpasn1.cfg
 // which is made by Peter Gutmann and whose license states:
 // You can use this code in whatever way you want,
@@ -73,7 +71,7 @@ export enum TagType {
     OCTET_STRING = 0x04,
     NULL = 0x05,
     OBJECT_IDENTIFIER = 0x06,
-    UTF8String = 0x0C,
+    UTF8String = 0x0c,
     NumericString = 0x12,
     PrintableString = 0x13,
     TeletexString = 0x14,
@@ -81,18 +79,17 @@ export enum TagType {
     UTCTime = 0x17,
     GeneralizedTime = 0x18,
     GraphicString = 0x19,
-    VisibleString = 0x1A,
-    GeneralString = 0x1B,
-    UniversalString = 0x1C,
-    BMPString = 0x1E
+    VisibleString = 0x1a,
+    GeneralString = 0x1b,
+    UniversalString = 0x1c,
+    BMPString = 0x1e,
 }
 
 // https://github.com/lapo-luchini/asn1js/blob/master/oids.js
 const oid_map: any = {
-
-    "0.9.2342.19200300.100.1.1": { "d": "userID", "c": "Some oddball X.500 attribute collection" },
-    "0.9.2342.19200300.100.1.3": { "d": "rfc822Mailbox", "c": "Some oddball X.500 attribute collection" },
-    "0.9.2342.19200300.100.1.25": { "d": "domainComponent", "c": "Men are from Mars, this OID is from Pluto" },
+    "0.9.2342.19200300.100.1.1": { d: "userID", c: "Some oddball X.500 attribute collection" },
+    "0.9.2342.19200300.100.1.3": { d: "rfc822Mailbox", c: "Some oddball X.500 attribute collection" },
+    "0.9.2342.19200300.100.1.25": { d: "domainComponent", c: "Men are from Mars, this OID is from Pluto" },
 
     "1.2.840.113549.1.1": { d: "pkcs-1", c: "", w: false },
     "1.2.840.113549.1.1.1": { d: "rsaEncryption", c: "PKCS #1", w: false },
@@ -109,11 +106,10 @@ const oid_map: any = {
     "1.2.840.113549.1.1.13": { d: "sha512WithRSAEncryption", c: "PKCS #1", w: false },
     "1.2.840.113549.1.1.14": { d: "sha224WithRSAEncryption", c: "PKCS #1", w: false },
 
-
     "1.2.840.113549.1.9.1": {
         d: "emailAddress",
         c: "PKCS #9. Deprecated, use an altName extension instead",
-        w: false
+        w: false,
     },
     "1.2.840.113549.1.9.2": { d: "unstructuredName", c: "PKCS #9", w: false },
     "1.2.840.113549.1.9.3": { d: "contentType", c: "PKCS #9", w: false },
@@ -129,19 +125,19 @@ const oid_map: any = {
     "1.2.840.113549.1.9.13": { d: "signingDescription", c: "PKCS #9", w: false },
     "1.2.840.113549.1.9.14": { d: "extensionRequest", c: "PKCS #9 via CRMF", w: false },
 
-    "1.3.6.1.5.5.7.3.1": { "d": "serverAuth", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.2": { "d": "clientAuth", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.3": { "d": "codeSigning", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.4": { "d": "emailProtection", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.5": { "d": "ipsecEndSystem", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.6": { "d": "ipsecTunnel", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.7": { "d": "ipsecUser", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.8": { "d": "timeStamping", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.9": { "d": "ocspSigning", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.10": { "d": "dvcs", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.11": { "d": "sbgpCertAAServerAuth", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.13": { "d": "eapOverPPP", "c": "PKIX key purpose" },
-    "1.3.6.1.5.5.7.3.14": { "d": "eapOverLAN", "c": "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.1": { d: "serverAuth", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.2": { d: "clientAuth", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.3": { d: "codeSigning", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.4": { d: "emailProtection", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.5": { d: "ipsecEndSystem", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.6": { d: "ipsecTunnel", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.7": { d: "ipsecUser", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.8": { d: "timeStamping", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.9": { d: "ocspSigning", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.10": { d: "dvcs", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.11": { d: "sbgpCertAAServerAuth", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.13": { d: "eapOverPPP", c: "PKIX key purpose" },
+    "1.3.6.1.5.5.7.3.14": { d: "eapOverLAN", c: "PKIX key purpose" },
 
     "2.5.4.0": { d: "objectClass", c: "X.520 DN component", w: false },
     "2.5.4.1": { d: "aliasedEntryName", c: "X.520 DN component", w: false },
@@ -262,7 +258,7 @@ const oid_map: any = {
     "2.5.29.4": {
         d: "keyUsageRestriction",
         c: "X.509 extension. Obsolete, use keyUsage/extKeyUsage instead",
-        w: true
+        w: true,
     },
     "2.5.29.5": { d: "policyMapping", c: "X.509 extension. Deprecated, use 2 5 29 33 instead", w: true },
     "2.5.29.6": { d: "subtreesConstraint", c: "X.509 extension. Obsolete, use nameConstraints instead", w: true },
@@ -288,7 +284,7 @@ const oid_map: any = {
     "2.5.29.26": {
         d: "issuingDistributionPoint",
         c: "X.509 extension. Deprecated, use 2 5 29 28 instead",
-        w: true
+        w: true,
     },
     "2.5.29.27": { d: "deltaCRLIndicator", c: "X.509 extension", w: false },
     "2.5.29.28": { d: "issuingDistributionPoint", c: "X.509 extension", w: false },
@@ -339,20 +335,20 @@ const oid_map: any = {
     // Netscape certificate type
     // An X.509 v3 certificate extension used to identify whether
     // the certificate subject is an SSL client, …
-    "2.16.840.1.113730.1": { "d": "certExtension", "c": "Netscape" },
-    "2.16.840.1.113730.1.1": { "d": "netscapeCertType", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.2": { "d": "netscapeBaseUrl", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.3": { "d": "netscapeRevocationUrl", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.4": { "d": "netscapeCaRevocationUrl", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.7": { "d": "netscapeCertRenewalUrl", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.8": { "d": "netscapeCaPolicyUrl", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.9": { "d": "HomePageUrl", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.10": { "d": "EntityLogo", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.11": { "d": "UserPicture", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.12": { "d": "netscapeSslServerName", "c": "Netscape certificate extension" },
-    "2.16.840.1.113730.1.13": { "d": "netscapeComment", "c": "Netscape certificate extension" },
+    "2.16.840.1.113730.1": { d: "certExtension", c: "Netscape" },
+    "2.16.840.1.113730.1.1": { d: "netscapeCertType", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.2": { d: "netscapeBaseUrl", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.3": { d: "netscapeRevocationUrl", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.4": { d: "netscapeCaRevocationUrl", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.7": { d: "netscapeCertRenewalUrl", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.8": { d: "netscapeCaPolicyUrl", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.9": { d: "HomePageUrl", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.10": { d: "EntityLogo", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.11": { d: "UserPicture", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.12": { d: "netscapeSslServerName", c: "Netscape certificate extension" },
+    "2.16.840.1.113730.1.13": { d: "netscapeComment", c: "Netscape certificate extension" },
 
-    "done": {}
+    done: {},
 };
 
 export interface BlockInfo {
@@ -362,7 +358,6 @@ export interface BlockInfo {
 }
 
 export function readTag(buf: Buffer, pos: number): BlockInfo {
-
     assert(buf instanceof Buffer);
     assert(_.isNumber(pos) && pos >= 0);
     if (buf.length <= pos) {
@@ -376,7 +371,7 @@ export function readTag(buf: Buffer, pos: number): BlockInfo {
 
     // tslint:disable:no-bitwise
     if (length > 127) {
-        const nbBytes = (length & 0x7F);
+        const nbBytes = length & 0x7f;
         length = 0;
         for (let i = 0; i < nbBytes; i++) {
             length = length * 256 + buf.readUInt8(pos);
@@ -386,8 +381,7 @@ export function readTag(buf: Buffer, pos: number): BlockInfo {
     return { tag, position: pos, length };
 }
 
-export function readStruct(buf: Buffer, block_info: BlockInfo): BlockInfo[] {
-
+export function _readStruct(buf: Buffer, block_info: BlockInfo): BlockInfo[] {
     const length = block_info.length;
     let cursor = block_info.position;
     const end = block_info.position + length;
@@ -400,14 +394,13 @@ export function readStruct(buf: Buffer, block_info: BlockInfo): BlockInfo[] {
     return blocks;
 }
 
-function get_block(buffer: Buffer, block: BlockInfo): Buffer {
+function _getBlock(buffer: Buffer, block: BlockInfo): Buffer {
     const start = block.position;
     const end = block.position + block.length;
     return buffer.slice(start, end);
 }
 
 function parseBitString(buffer: Buffer, start: number, end: number, maxLength: number): string {
-
     const unusedBit = buffer.readUInt8(start),
         lenBit = ((end - start - 1) << 3) - unusedBit,
         intro = "(" + lenBit + " bit)\n";
@@ -416,12 +409,11 @@ function parseBitString(buffer: Buffer, start: number, end: number, maxLength: n
         skip = unusedBit;
 
     for (let i = end - 1; i > start; --i) {
-
         const b = buffer.readUInt8(i);
 
         for (let j = skip; j < 8; ++j) {
             // noinspection JSBitwiseOperatorUsage
-            s += ((b >> j) & 1) ? "1" : "0";
+            s += (b >> j) & 1 ? "1" : "0";
         }
         skip = 0;
         assert(s.length <= maxLength);
@@ -436,10 +428,9 @@ interface BitString {
     debug?: any;
 }
 
-function read_BitString(buffer: Buffer, block: BlockInfo): BitString {
-
+function _readBitString(buffer: Buffer, block: BlockInfo): BitString {
     assert(block.tag === TagType.BIT_STRING);
-    const data = get_block(buffer, block);
+    const data = _getBlock(buffer, block);
 
     // number of skipped bits
     const ignore_bits = data.readUInt8(0);
@@ -448,7 +439,7 @@ function read_BitString(buffer: Buffer, block: BlockInfo): BitString {
         lengthInBits: data.length * 8 - ignore_bits,
         lengthInBytes: data.length - 1,
         data: data.slice(1),
-        debug: parseBitString(buffer, block.position, block.length + block.position, 5000)
+        debug: parseBitString(buffer, block.position, block.length + block.position, 5000),
     };
 }
 
@@ -458,10 +449,12 @@ function formatBuffer2DigetHexWithColum(buffer: Buffer): string {
         value.push(("00" + buffer.readUInt8(i).toString(16)).substr(-2, 2));
     }
     // remove leading 00
-    return value.join(":").toUpperCase().replace(/^(00:)*/, "");
+    return value
+        .join(":")
+        .toUpperCase()
+        .replace(/^(00:)*/, "");
 }
-function read_OctetString(buffer: Buffer, block: BlockInfo): Buffer {
-
+function _readOctetString(buffer: Buffer, block: BlockInfo): Buffer {
     assert(block.tag === TagType.OCTET_STRING);
     const tag = readTag(buffer, block.position);
     assert(tag.tag === TagType.OCTET_STRING);
@@ -470,20 +463,19 @@ function read_OctetString(buffer: Buffer, block: BlockInfo): Buffer {
     const pos = tag.position;
     const b = buffer.slice(pos, pos + nbBytes);
     return b;
-
 }
 
 export type SignatureValue = string;
 
-export function read_SignatureValueBin(buffer: Buffer, block: BlockInfo): Buffer {
-    return read_BitString(buffer, block).data;
+export function _readSignatureValueBin(buffer: Buffer, block: BlockInfo): Buffer {
+    return _readBitString(buffer, block).data;
 }
 
-export function read_SignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
-    return read_SignatureValueBin(buffer, block).toString("hex");
+export function _readSignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
+    return _readSignatureValueBin(buffer, block).toString("hex");
 }
 
-function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
+function _readLongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
     assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     const pos = block.position;
     const nbBytes = block.length;
@@ -491,7 +483,7 @@ function read_LongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
     return buf;
 }
 
-function read_IntegerValue(buffer: Buffer, block: BlockInfo): number {
+function _readIntegerValue(buffer: Buffer, block: BlockInfo): number {
     assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     let pos = block.position;
     const nbBytes = block.length;
@@ -503,7 +495,7 @@ function read_IntegerValue(buffer: Buffer, block: BlockInfo): number {
     }
     return value;
 }
-function read_BooleanValue(buffer: Buffer, block: BlockInfo): boolean {
+function _readBooleanValue(buffer: Buffer, block: BlockInfo): boolean {
     assert(block.tag === TagType.BOOLEAN, "expecting a BOOLEAN tag. got " + TagType[block.tag]);
     const pos = block.position;
     const nbBytes = block.length;
@@ -512,14 +504,14 @@ function read_BooleanValue(buffer: Buffer, block: BlockInfo): boolean {
     return value as boolean;
 }
 
-function read_VersionValue(buffer: Buffer, block: BlockInfo): number {
+function _readVersionValue(buffer: Buffer, block: BlockInfo): number {
     block = readTag(buffer, block.position);
-    return read_IntegerValue(buffer, block);
+    return _readIntegerValue(buffer, block);
 }
 
 /*
  http://tools.ietf.org/html/rfc5280
- 
+
  4.1.2.5. Validity
  [...]
  As conforming to this profile MUST always encode certificate
@@ -528,27 +520,26 @@ function read_VersionValue(buffer: Buffer, block: BlockInfo): number {
  Conforming applications MUST be able to process validity dates that
  are encoded in either UTCTime or GeneralizedTime.
  [...]
- 
+
  4.1.2.5.1  UTCTime
- 
+
  The universal time type, UTCTime, is a standard ASN.1 type intended
  for representation of dates and time.  UTCTime specifies the year
  through the two low order digits and time is specified to the
  precision of one minute or one second.  UTCTime includes either Z
  (for Zulu, or Greenwich Mean Time) or a time differential.
- 
+
  For the purposes of this profile, UTCTime values MUST be expressed
  Greenwich Mean Time (Zulu) and MUST include seconds (i.e., times are
  YYMMDDHHMMSSZ), even where the number of seconds is zero.  Conforming
  systems MUST interpret the year field (YY) as follows:
- 
+
  Where YY is greater than or equal to 50, the year SHALL be
  interpreted as 19YY; and
- 
+
  Where YY is less than 50, the year SHALL be interpreted as 20YY.
  */
 function convertUTCTime(str: string): Date {
-
     let year = parseInt(str.substr(0, 2), 10);
     const month = parseInt(str.substr(2, 2), 10) - 1;
     const day = parseInt(str.substr(4, 2), 10);
@@ -562,36 +553,31 @@ function convertUTCTime(str: string): Date {
 
 /*
  4.1.2.5.2  GeneralizedTime
- 
+
  The generalized time type, GeneralizedTime, is a standard ASN.1 type
  for variable precision representation of time.  Optionally, the
  GeneralizedTime field can include a representation of the time
  differential between local and Greenwich Mean Time.
- 
+
  For the purposes of this profile, GeneralizedTime values MUST be
  expressed Greenwich Mean Time (Zulu) and MUST include seconds (i.e.,
  times are YYYYMMDDHHMMSSZ), even where the number of seconds is zero.
  GeneralizedTime values MUST NOT include fractional seconds.
- 
+
  */
 function convertGeneralizedTime(str: string): Date {
-
-    let year, month, day, hours, mins, secs;
-
-    year = parseInt(str.substr(0, 4), 10);
-    month = parseInt(str.substr(4, 2), 10) - 1;
-    day = parseInt(str.substr(6, 2), 10);
-    hours = parseInt(str.substr(8, 2), 10);
-    mins = parseInt(str.substr(10, 2), 10);
-    secs = parseInt(str.substr(12, 2), 10);
+    const year = parseInt(str.substr(0, 4), 10);
+    const month = parseInt(str.substr(4, 2), 10) - 1;
+    const day = parseInt(str.substr(6, 2), 10);
+    const hours = parseInt(str.substr(8, 2), 10);
+    const mins = parseInt(str.substr(10, 2), 10);
+    const secs = parseInt(str.substr(12, 2), 10);
 
     return new Date(Date.UTC(year, month, day, hours, mins, secs));
-
 }
 
-function read_BMPString(buffer: Buffer, block: BlockInfo): string {
-
-    const strBuff = get_block(buffer, block);
+function _readBMPString(buffer: Buffer, block: BlockInfo): string {
+    const strBuff = _getBlock(buffer, block);
     let str = "";
     for (let i = 0; i < strBuff.length; i += 2) {
         const word = strBuff.readUInt16BE(i);
@@ -600,22 +586,22 @@ function read_BMPString(buffer: Buffer, block: BlockInfo): string {
     return str;
 }
 
-function read_Value(buffer: Buffer, block: BlockInfo): any {
+function _readValue(buffer: Buffer, block: BlockInfo): any {
     switch (block.tag) {
         case TagType.BOOLEAN:
-            return read_BooleanValue(buffer, block);
+            return _readBooleanValue(buffer, block);
         case TagType.BMPString:
-            return read_BMPString(buffer, block);
+            return _readBMPString(buffer, block);
         case TagType.PrintableString:
         case TagType.TeletexString:
         case TagType.UTF8String:
         case TagType.NumericString:
         case TagType.IA5String:
-            return get_block(buffer, block).toString("ascii");
+            return _getBlock(buffer, block).toString("ascii");
         case TagType.UTCTime:
-            return convertUTCTime(get_block(buffer, block).toString("ascii"));
+            return convertUTCTime(_getBlock(buffer, block).toString("ascii"));
         case TagType.GeneralizedTime:
-            return convertGeneralizedTime(get_block(buffer, block).toString("ascii"));
+            return convertGeneralizedTime(_getBlock(buffer, block).toString("ascii"));
         default:
             throw new Error("Invalid tag 0x" + block.tag.toString(16) + "");
         //xx return " ??? <" + block.tag + ">";
@@ -626,14 +612,52 @@ export interface AttributeTypeAndValue {
     [key: string]: any;
 }
 
-function read_AttributeTypeAndValue(buffer: Buffer, block: BlockInfo): AttributeTypeAndValue {
+function parseOID(buffer: Buffer, start: number, end: number) {
+    // ASN.1 JavaScript decoder
+    // Copyright (c) 2008-2014 Lapo Luchini <lapo@lapo.it>
+    let s = "",
+        n = 0,
+        bits = 0;
+    for (let i = start; i < end; ++i) {
+        const v = buffer.readUInt8(i);
 
-    let inner_blocks = readStruct(buffer, block);
-    inner_blocks = readStruct(buffer, inner_blocks[0]);
+        n = n * 128 + (v & 0x7f);
+        bits += 7;
+
+        // noinspection JSBitwiseOperatorUsage
+        if (!(v & 0x80)) {
+            // finished
+            if (s === "") {
+                const m = n < 80 ? (n < 40 ? 0 : 1) : 2;
+                s = m + "." + (n - m * 40);
+            } else {
+                s += "." + n.toString();
+            }
+            n = 0;
+            bits = 0;
+        }
+    }
+    assert(bits === 0); // if (bits > 0) { s += ".incomplete"; }
+    return s;
+}
+
+function _readObjectIdentifier(buffer: Buffer, block: BlockInfo) {
+    assert(block.tag === TagType.OBJECT_IDENTIFIER);
+    const b = buffer.slice(block.position, block.position + block.length);
+    const oid = parseOID(b, 0, block.length);
+    return {
+        oid,
+        name: oid_map[oid] ? oid_map[oid].d : oid,
+    };
+}
+
+function _readAttributeTypeAndValue(buffer: Buffer, block: BlockInfo): AttributeTypeAndValue {
+    let inner_blocks = _readStruct(buffer, block);
+    inner_blocks = _readStruct(buffer, inner_blocks[0]);
 
     const data = {
-        identifier: read_ObjectIdentifier(buffer, inner_blocks[0]).name,
-        value: read_Value(buffer, inner_blocks[1])
+        identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
+        value: _readValue(buffer, inner_blocks[1]),
     };
 
     const result: AttributeTypeAndValue = {};
@@ -647,9 +671,9 @@ interface RelativeDistinguishedName {
     [prop: string]: any;
 }
 
-function read_RelativeDistinguishedName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
-    const inner_blocks = readStruct(buffer, block);
-    const data = inner_blocks.map((block) => read_AttributeTypeAndValue(buffer, block));
+function _readRelativeDistinguishedName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
+    const inner_blocks = _readStruct(buffer, block);
+    const data = inner_blocks.map((block) => _readAttributeTypeAndValue(buffer, block));
     const result: any = {};
     _.forEach(data, (e) => {
         result[e.identifier] = e.value;
@@ -657,12 +681,12 @@ function read_RelativeDistinguishedName(buffer: Buffer, block: BlockInfo): Relat
     return result;
 }
 
-function read_Name(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
-    return read_RelativeDistinguishedName(buffer, block);
+function _readName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
+    return _readRelativeDistinguishedName(buffer, block);
 }
 
-function read_time(buffer: Buffer, block: BlockInfo) {
-    return read_Value(buffer, block);
+function _readTime(buffer: Buffer, block: BlockInfo) {
+    return _readValue(buffer, block);
 }
 
 export interface Validity {
@@ -670,16 +694,23 @@ export interface Validity {
     notAfter: Date;
 }
 
-function read_Validity(buffer: Buffer, block: BlockInfo): Validity {
-    const inner_blocks = readStruct(buffer, block);
+function _readValidity(buffer: Buffer, block: BlockInfo): Validity {
+    const inner_blocks = _readStruct(buffer, block);
     return {
-        notBefore: read_time(buffer, inner_blocks[0]),
-        notAfter: read_time(buffer, inner_blocks[1])
+        notBefore: _readTime(buffer, inner_blocks[0]),
+        notAfter: _readTime(buffer, inner_blocks[1]),
     };
 }
 
+function _findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo | null {
+    const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index || b.tag === 0x80 + index);
+    if (tmp.length === 0) {
+        return null;
+    }
+    return tmp[0];
+}
 
-function read_authorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
+function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
     /**
      *  where a CA distributes its public key in the form of a "self-signed"
      *  certificate, the authority key identifier MAY be omitted.  Th
@@ -697,60 +728,57 @@ function read_authorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
     //      authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
     // KeyIdentifier ::= OCTET STRING
 
-
     const block_info = readTag(buffer, 0);
-    const blocks = readStruct(buffer, block_info);
+    const blocks = _readStruct(buffer, block_info);
 
-    const keyIdentifier_block = find_block_at_index(blocks, 0);
-    const authorityCertIssuer_block = find_block_at_index(blocks, 1);
-    const authorityCertSerialNumber_block = find_block_at_index(blocks, 2);
+    const keyIdentifier_block = _findBlockAtIndex(blocks, 0);
+    const authorityCertIssuer_block = _findBlockAtIndex(blocks, 1);
+    const authorityCertSerialNumber_block = _findBlockAtIndex(blocks, 2);
     function readNames(buffer: Buffer, block: BlockInfo): DirectoryName {
         // AttributeTypeAndValue ::= SEQUENCE {
         //    type   ATTRIBUTE.&id({SupportedAttributes}),
         //    value  ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-        const inner_blocks = readStruct(buffer, block);
+        const inner_blocks = _readStruct(buffer, block);
         const names: DirectoryName = {};
         inner_blocks.forEach((sequence_block) => {
-
             assert(sequence_block.tag === 0x30);
-            const set_blocks = readStruct(buffer, sequence_block);
+            const set_blocks = _readStruct(buffer, sequence_block);
             set_blocks.forEach((set_block) => {
                 assert(set_block.tag === 0x31);
-                const blocks = readStruct(buffer, set_block);
+                const blocks = _readStruct(buffer, set_block);
                 assert(blocks.length === 1);
                 assert(blocks[0].tag === 0x30);
 
-                const _blocks = readStruct(buffer, blocks[0]);
+                const _blocks = _readStruct(buffer, blocks[0]);
                 assert(_blocks.length === 2);
 
-                const type = read_ObjectIdentifier(buffer, _blocks[0]);
+                const type = _readObjectIdentifier(buffer, _blocks[0]);
 
-                (names as any)[type.name] = read_Value(buffer, _blocks[1]);
-
+                (names as any)[type.name] = _readValue(buffer, _blocks[1]);
             });
         });
         return names;
     }
 
-    function read_authorithyCertIssuer(block: BlockInfo): DirectoryName {
-        const inner_blocks = readStruct(buffer, block);
+    function _readAuthorithyCertIssuer(block: BlockInfo): DirectoryName {
+        const inner_blocks = _readStruct(buffer, block);
 
-        const directoryName_block = find_block_at_index(inner_blocks, 4);
+        const directoryName_block = _findBlockAtIndex(inner_blocks, 4);
         if (directoryName_block) {
-            return readNames(buffer, directoryName_block)
+            return readNames(buffer, directoryName_block);
         } else {
-            throw new Error("Invalid read_authorithyCertIssuer");
+            throw new Error("Invalid _readAuthorithyCertIssuer");
         }
     }
 
     return {
-        authorityCertIssuer: authorityCertIssuer_block ? read_authorithyCertIssuer(authorityCertIssuer_block) : null,
-        serial: authorityCertSerialNumber_block ? formatBuffer2DigetHexWithColum(get_block(buffer, authorityCertSerialNumber_block!)) : null, // can be null for self-signed certf
-        keyIdentifier: keyIdentifier_block ? formatBuffer2DigetHexWithColum(get_block(buffer, keyIdentifier_block!)) : null // can be null for self-signed certf
+        authorityCertIssuer: authorityCertIssuer_block ? _readAuthorithyCertIssuer(authorityCertIssuer_block) : null,
+        serial: authorityCertSerialNumber_block
+            ? formatBuffer2DigetHexWithColum(_getBlock(buffer, authorityCertSerialNumber_block!))
+            : null, // can be null for self-signed certf
+        keyIdentifier: keyIdentifier_block ? formatBuffer2DigetHexWithColum(_getBlock(buffer, keyIdentifier_block!)) : null, // can be null for self-signed certf
     };
-
 }
-
 
 /*
  Extension  ::=  SEQUENCE  {
@@ -780,19 +808,72 @@ extKeyUsage
 */
 
 function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicConstraints {
-
     const block_info = readTag(buffer, 0);
-    const inner_blocks = readStruct(buffer, block_info);
-    const cA = inner_blocks.length > 0 ? read_BooleanValue(buffer, inner_blocks[0]) : false;
+    const inner_blocks = _readStruct(buffer, block_info);
+    const cA = inner_blocks.length > 0 ? _readBooleanValue(buffer, inner_blocks[0]) : false;
 
     //    console.log("buffer[block_info.position] = ", buffer[block_info.position]);
     // const cA = buffer[block_info.position] ? true : false;
 
     let pathLengthConstraint = 0;
     if (inner_blocks.length > 1) {
-        pathLengthConstraint = read_IntegerValue(buffer, inner_blocks[1]);
+        pathLengthConstraint = _readIntegerValue(buffer, inner_blocks[1]);
     }
     return { critical: true, cA, pathLengthConstraint };
+}
+
+// GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+// GeneralName ::= CHOICE {
+//        otherName                 [0]  AnotherName,
+//        rfc822Name                [1]  IA5String,
+//        dNSName                   [2]  IA5String,
+//        x400Address               [3]  ORAddress,
+//        directoryName             [4]  Name,
+//        ediPartyName              [5]  EDIPartyName,
+//        uniformResourceIdentifier [6]  IA5String,
+//        iPAddress                 [7]  OCTET STRING,
+//        registeredID              [8]  OBJECT IDENTIFIER }
+function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
+    const _data: { [key: number]: { name: string; type: string } } = {
+        1: { name: "rfc822Name", type: "IA5String" },
+        2: { name: "dNSName", type: "IA5String" },
+        3: { name: "x400Address", type: "ORAddress" },
+        4: { name: "directoryName", type: "Name" },
+        5: { name: "ediPartyName", type: "EDIPartyName" },
+        6: { name: "uniformResourceIdentifier", type: "IA5String" },
+        7: { name: "iPAddress", type: "OCTET_STRING" },
+        8: { name: "registeredID", type: "OBJECT_IDENTIFIER" },
+    };
+    const blocks = _readStruct(buffer, block);
+
+    function _readFromType(buffer: Buffer, block: BlockInfo, type: string) {
+        switch (type) {
+            case "IA5String":
+                return buffer.slice(block.position, block.position + block.length).toString("ascii");
+            default:
+                return buffer.slice(block.position, block.position + block.length).toString("hex");
+        }
+    }
+
+    const n: { [key: string]: string[] } = {};
+    for (const block of blocks) {
+        assert((block.tag & 0x80) === 0x80);
+        const t = block.tag & 0x7f;
+        const type = _data[t] as { name: string; type: string } | undefined;
+
+        // istanbul ignore next
+        if (!type) {
+            throw new Error(" INVALID TYPE => " + t + "0x" + t.toString(16));
+        }
+        n[type.name] = n[type.name] || [];
+        n[type.name].push(_readFromType(buffer, block, type.type));
+    }
+    return n;
+}
+
+function _readSubjectAltNames(buffer: Buffer) {
+    const block_info = readTag(buffer, 0);
+    return _readGeneralNames(buffer, block_info);
 }
 
 export interface KeyUsage {
@@ -805,7 +886,7 @@ export interface KeyUsage {
     cRLSign: boolean;
     encipherOnly: boolean;
     decipherOnly: boolean;
-};
+}
 export interface ExtKeyUsage {
     clientAuth: boolean;
     serverAuth: boolean;
@@ -839,7 +920,7 @@ function readKeyUsage(oid: string, buffer: Buffer): KeyUsage {
         keyCertSign: (b2 & 0x04) === 0x04,
         cRLSign: (b2 & 0x02) === 0x02,
         encipherOnly: (b2 & 0x01) === 0x01,
-        decipherOnly: (b3 & 0x80) === 0x80
+        decipherOnly: (b3 & 0x80) === 0x80,
     };
 }
 
@@ -868,16 +949,16 @@ function readExtKeyUsage(oid: string, buffer: Buffer): string {
  -- by extnID
  }
  */
-function read_Extension(buffer: Buffer, block: BlockInfo) {
-    const inner_blocks = readStruct(buffer, block);
+function _readExtension(buffer: Buffer, block: BlockInfo) {
+    const inner_blocks = _readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
         assert(inner_blocks[1].tag === TagType.BOOLEAN);
         inner_blocks[1] = inner_blocks[2];
     }
 
-    const identifier = read_ObjectIdentifier(buffer, inner_blocks[0]);
-    const buf = get_block(buffer, inner_blocks[1]);
+    const identifier = _readObjectIdentifier(buffer, inner_blocks[0]);
+    const buf = _getBlock(buffer, inner_blocks[1]);
     let value = null;
     switch (identifier.name) {
         case "subjectKeyIdentifier":
@@ -895,13 +976,13 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
                   SHA-1 hash of the value of the BIT STRING subjectPublicKey
                   (excluding the tag, length, and number of unused bit string bits).
             */
-            value = formatBuffer2DigetHexWithColum(read_OctetString(buffer, inner_blocks[1]));
+            value = formatBuffer2DigetHexWithColum(_readOctetString(buffer, inner_blocks[1]));
             break;
         case "subjectAltName":
-            value = read_subjectAltNames(buf);
+            value = _readSubjectAltNames(buf);
             break;
         case "authorityKeyIdentifier":
-            value = read_authorityKeyIdentifier(buf);
+            value = _readAuthorityKeyIdentifier(buf);
             break;
         case "basicConstraints":
             value = readBasicConstraint2_5_29_19(buf, inner_blocks[1]); //  "2.5.29.19":
@@ -921,125 +1002,22 @@ function read_Extension(buffer: Buffer, block: BlockInfo) {
     }
     return {
         identifier,
-        value
+        value,
     };
 }
 
 // Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
-function read_Extensions(buffer: Buffer, block: BlockInfo): CertificateExtension {
-
+function _readExtensions(buffer: Buffer, block: BlockInfo): CertificateExtension {
     assert(block.tag === 0xa3);
 
-    let inner_blocks = readStruct(buffer, block);
-    inner_blocks = readStruct(buffer, inner_blocks[0]);
+    let inner_blocks = _readStruct(buffer, block);
+    inner_blocks = _readStruct(buffer, inner_blocks[0]);
 
-    const exts = inner_blocks.map((block) => read_Extension(buffer, block));
+    const exts = inner_blocks.map((block) => _readExtension(buffer, block));
 
     const result: any = {};
-    _.forEach(exts, (e) => result[e.identifier.name] = e.value);
+    _.forEach(exts, (e) => (result[e.identifier.name] = e.value));
     return result as CertificateExtension;
-}
-
-function parseOID(buffer: Buffer, start: number, end: number) {
-    // ASN.1 JavaScript decoder
-    // Copyright (c) 2008-2014 Lapo Luchini <lapo@lapo.it>
-    let s = "",
-        n = 0,
-        bits = 0;
-    for (let i = start; i < end; ++i) {
-
-        const v = buffer.readUInt8(i);
-
-        n = n * 128 + (v & 0x7F);
-        bits += 7;
-
-        // noinspection JSBitwiseOperatorUsage
-        if (!(v & 0x80)) { // finished
-            if (s === "") {
-                const m = n < 80 ? n < 40 ? 0 : 1 : 2;
-                s = m + "." + (n - m * 40);
-            } else {
-                s += "." + n.toString();
-            }
-            n = 0;
-            bits = 0;
-        }
-    }
-    assert(bits === 0); // if (bits > 0) { s += ".incomplete"; }
-    return s;
-}
-
-function read_ObjectIdentifier(buffer: Buffer, block: BlockInfo) {
-    assert(block.tag === TagType.OBJECT_IDENTIFIER);
-    const b = buffer.slice(block.position, block.position + block.length);
-    const oid = parseOID(b, 0, block.length);
-    return {
-        oid,
-        name: oid_map[oid] ? oid_map[oid].d : oid
-    }
-}
-function find_block_at_index(blocks: BlockInfo[], index: number): BlockInfo | null {
-    const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index || b.tag === 0x80 + index);
-    if (tmp.length === 0) {
-        return null;
-    }
-    return tmp[0];
-}
-
-// function read_GeneralNames
-// GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
-// GeneralName ::= CHOICE {
-//        otherName                 [0]  AnotherName,
-//        rfc822Name                [1]  IA5String,
-//        dNSName                   [2]  IA5String,
-//        x400Address               [3]  ORAddress,
-//        directoryName             [4]  Name,
-//        ediPartyName              [5]  EDIPartyName,
-//        uniformResourceIdentifier [6]  IA5String,
-//        iPAddress                 [7]  OCTET STRING,
-//        registeredID              [8]  OBJECT IDENTIFIER }
-function read_GeneralNames(buffer: Buffer, block: BlockInfo) {
-
-    const _data: { [key: number]: { name: string, type: string } } = {
-        1: { name: "rfc822Name", type: "IA5String" },
-        2: { name: "dNSName", type: "IA5String" },
-        3: { name: "x400Address", type: "ORAddress" },
-        4: { name: "directoryName", type: "Name" },
-        5: { name: "ediPartyName", type: "EDIPartyName" },
-        6: { name: "uniformResourceIdentifier", type: "IA5String" },
-        7: { name: "iPAddress", type: "OCTET_STRING" },
-        8: { name: "registeredID", type: "OBJECT_IDENTIFIER" },
-    };
-    const blocks = readStruct(buffer, block);
-
-    function read_from_type(buffer: Buffer, block: BlockInfo, type: string) {
-        switch (type) {
-            case "IA5String":
-                return buffer.slice(block.position, block.position + block.length).toString("ascii");
-            default:
-                return buffer.slice(block.position, block.position + block.length).toString("hex");
-        }
-    }
-
-    const n: { [key: string]: string[] } = {};
-    for (const block of blocks) {
-        assert((block.tag & 0x80) === 0x80);
-        const t = (block.tag & 0x7F);
-        const type = _data[t] as { name: string, type: string } | undefined;
-
-        // istanbul ignore next
-        if (!type) {
-            throw new Error(" INVALID TYPE => " + t + "0x" + t.toString(16));
-        }
-        n[type.name] = n[type.name] || [];
-        n[type.name].push(read_from_type(buffer, block, type.type));
-    }
-    return n;
-}
-
-function read_subjectAltNames(buffer: Buffer) {
-    const block_info = readTag(buffer, 0);
-    return read_GeneralNames(buffer, block_info);
 }
 
 /*
@@ -1066,35 +1044,46 @@ function read_subjectAltNames(buffer: Buffer) {
  :         }
  :       }
  */
-function read_IntegerAsByteString(buffer: Buffer, block: BlockInfo) {
-    return get_block(buffer, block);
+function _readIntegerAsByteString(buffer: Buffer, block: BlockInfo) {
+    return _getBlock(buffer, block);
 }
 
-function read_ListOfInteger(buffer: Buffer) {
+function _readListOfInteger(buffer: Buffer) {
     const block = readTag(buffer, 0);
-    const inner_blocks = readStruct(buffer, block);
+    const inner_blocks = _readStruct(buffer, block);
 
     return inner_blocks.map((block) => {
-        return read_IntegerAsByteString(buffer, block);
+        return _readIntegerAsByteString(buffer, block);
     });
 }
 
-function read_SubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPublicKeyInfo {
-    const inner_blocks = readStruct(buffer, block);
+export interface AlgorithmIdentifier {
+    identifier: string;
+}
+
+export function _readAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
+    const inner_blocks = _readStruct(buffer, block);
+    return {
+        identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
+    };
+}
+
+function _readSubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPublicKeyInfo {
+    const inner_blocks = _readStruct(buffer, block);
 
     // algorithm identifier
-    const algorithm = read_AlgorithmIdentifier(buffer, inner_blocks[0]);
-    //const parameters         = read_BitString(buffer,inner_blocks[1]);
-    const subjectPublicKey = read_BitString(buffer, inner_blocks[1]);
+    const algorithm = _readAlgorithmIdentifier(buffer, inner_blocks[0]);
+    //const parameters         = _readBitString(buffer,inner_blocks[1]);
+    const subjectPublicKey = _readBitString(buffer, inner_blocks[1]);
 
     // read the 2 big integers of the key
     const data = subjectPublicKey.data;
-    const values = read_ListOfInteger(data);
-    // xx const value = read_ListOfInteger(data);
+    const values = _readListOfInteger(data);
+    // xx const value = _readListOfInteger(data);
     return {
         algorithm: algorithm.identifier,
         keyLength: (values[0].length - 1) as PublicKeyLength,
-        subjectPublicKey: subjectPublicKey.data
+        subjectPublicKey: subjectPublicKey.data,
         //xx values: values,
         //xx values_length : values.map(function (a){ return a.length; })
     };
@@ -1119,7 +1108,6 @@ export interface BasicConstraints {
     cA: boolean;
     pathLengthConstraint?: number; // 0 Unlimited
 }
-
 
 export interface AuthorithyKeyIdentifier {
     keyIdentifier: string | null;
@@ -1147,9 +1135,8 @@ export interface TbsCertificate {
     extensions: CertificateExtension | null;
 }
 
-function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
-
-    const blocks = readStruct(buffer, block);
+function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
+    const blocks = _readStruct(buffer, block);
 
     let version, serialNumber, signature, issuer, validity, subject, subjectPublicKeyInfo, extensions;
 
@@ -1157,35 +1144,34 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
         // X509 Version 1:
         version = 1;
 
-        serialNumber = formatBuffer2DigetHexWithColum(read_LongIntegerValue(buffer, blocks[0]));
-        signature = read_AlgorithmIdentifier(buffer, blocks[1]);
-        issuer = read_Name(buffer, blocks[2]);
-        validity = read_Validity(buffer, blocks[3]);
-        subject = read_Name(buffer, blocks[4]);
-        subjectPublicKeyInfo = read_SubjectPublicKeyInfo(buffer, blocks[5]);
+        serialNumber = formatBuffer2DigetHexWithColum(_readLongIntegerValue(buffer, blocks[0]));
+        signature = _readAlgorithmIdentifier(buffer, blocks[1]);
+        issuer = _readName(buffer, blocks[2]);
+        validity = _readValidity(buffer, blocks[3]);
+        subject = _readName(buffer, blocks[4]);
+        subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[5]);
 
         extensions = null;
     } else {
         // X509 Version 3:
 
-        const version_block = find_block_at_index(blocks, 0);
+        const version_block = _findBlockAtIndex(blocks, 0);
         if (!version_block) {
             throw new Error("cannot find version block");
         }
-        version = read_VersionValue(buffer, version_block) + 1;
-        serialNumber = formatBuffer2DigetHexWithColum(read_LongIntegerValue(buffer, blocks[1]));
-        signature = read_AlgorithmIdentifier(buffer, blocks[2]);
-        issuer = read_Name(buffer, blocks[3]);
-        validity = read_Validity(buffer, blocks[4]);
-        subject = read_Name(buffer, blocks[5]);
-        subjectPublicKeyInfo = read_SubjectPublicKeyInfo(buffer, blocks[6]);
+        version = _readVersionValue(buffer, version_block) + 1;
+        serialNumber = formatBuffer2DigetHexWithColum(_readLongIntegerValue(buffer, blocks[1]));
+        signature = _readAlgorithmIdentifier(buffer, blocks[2]);
+        issuer = _readName(buffer, blocks[3]);
+        validity = _readValidity(buffer, blocks[4]);
+        subject = _readName(buffer, blocks[5]);
+        subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[6]);
 
-        const extensionBlock = find_block_at_index(blocks, 3);
+        const extensionBlock = _findBlockAtIndex(blocks, 3);
         if (!extensionBlock) {
             throw new Error("cannot find extention block");
         }
-        extensions = read_Extensions(buffer, extensionBlock);
-
+        extensions = _readExtensions(buffer, extensionBlock);
     }
 
     return {
@@ -1196,21 +1182,9 @@ function read_tbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
         validity,
         subject,
         subjectPublicKeyInfo,
-        extensions
+        extensions,
     };
 }
-
-export interface AlgorithmIdentifier {
-    identifier: string;
-}
-
-export function read_AlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
-    const inner_blocks = readStruct(buffer, block);
-    return {
-        identifier: read_ObjectIdentifier(buffer, inner_blocks[0]).name
-    };
-}
-
 export interface CertificateInternals {
     tbsCertificate: TbsCertificate;
     signatureAlgorithm: AlgorithmIdentifier;
@@ -1223,15 +1197,14 @@ export interface CertificateInternals {
  * @returns a json object that exhibits the internal data of the certificate
  */
 export function exploreCertificate(certificate: Certificate): CertificateInternals {
-
     assert(certificate instanceof Buffer);
     if (!(certificate as any)._exploreCertificate_cache) {
         const block_info = readTag(certificate, 0);
-        const blocks = readStruct(certificate, block_info);
+        const blocks = _readStruct(certificate, block_info);
         (certificate as any)._exploreCertificate_cache = {
-            tbsCertificate: read_tbsCertificate(certificate, blocks[0]),
-            signatureAlgorithm: read_AlgorithmIdentifier(certificate, blocks[1]),
-            signatureValue: read_SignatureValue(certificate, blocks[2])
+            tbsCertificate: readTbsCertificate(certificate, blocks[0]),
+            signatureAlgorithm: _readAlgorithmIdentifier(certificate, blocks[1]),
+            signatureValue: _readSignatureValue(certificate, blocks[2]),
         };
     }
     return (certificate as any)._exploreCertificate_cache;
@@ -1245,7 +1218,7 @@ export interface PrivateKeyInternals {
 export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
     assert(privateKey instanceof Buffer);
     const block_info = readTag(privateKey, 0);
-    const blocks = readStruct(privateKey, block_info);
+    const blocks = _readStruct(privateKey, block_info);
 
     /* istanbul ignore next */
     if (doDebug) {
@@ -1253,30 +1226,54 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
         console.log(block_info);
 
         // tslint:disable:no-console
-        console.log(blocks.map((b) => ({
-            tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
-            l: b.length, p: b.position,
-            buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
-        })));
+        console.log(
+            blocks.map((b) => ({
+                tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+                l: b.length,
+                p: b.position,
+                buff: privateKey.slice(b.position, b.position + b.length).toString("hex"),
+            }))
+        );
     }
 
     const b = blocks[2];
     const bb = privateKey.slice(b.position, b.position + b.length);
     const block_info1 = readTag(bb, 0);
-    const blocks1 = readStruct(bb, block_info1);
+    const blocks1 = _readStruct(bb, block_info1);
 
     /* istanbul ignore next */
     if (doDebug) {
         // tslint:disable:no-console
-        console.log(blocks1.map((b) => ({
-            tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
-            l: b.length, p: b.position,
-            buff: privateKey.slice(b.position, b.position + b.length).toString("hex")
-        })));
+        console.log(
+            blocks1.map((b) => ({
+                tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+                l: b.length,
+                p: b.position,
+                buff: privateKey.slice(b.position, b.position + b.length).toString("hex"),
+            }))
+        );
     }
 
     return {};
+}
 
+/**
+ * @method split_der
+ * split a multi chain certificates
+ * @param certificateChain  the certificate chain in der (binary) format}
+ * @returns an array of Der , each element of the array is one certificate of the chain
+ */
+export function split_der(certificateChain: Certificate): Certificate[] {
+    const certificate_chain: Buffer[] = [];
+
+    do {
+        const block_info = readTag(certificateChain, 0);
+        const length = block_info.position + block_info.length;
+        const der_certificate = certificateChain.slice(0, length);
+        certificate_chain.push(der_certificate);
+        certificateChain = certificateChain.slice(length);
+    } while (certificateChain.length > 0);
+    return certificate_chain;
 }
 
 /**
@@ -1286,12 +1283,10 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
  * @return a concatenated buffer containing the certificates
  */
 export function combine_der(certificates: Certificate[]): Certificate {
-
     assert(_.isArray(certificates));
 
     // perform some sanity check
     for (const cert of certificates) {
-
         const b = split_der(cert);
         let sum = 0;
         b.forEach((block) => {
@@ -1304,24 +1299,4 @@ export function combine_der(certificates: Certificate[]): Certificate {
         assert(sum === cert.length);
     }
     return Buffer.concat(certificates);
-}
-
-/**
- * @method split_der
- * split a multi chain certificates
- * @param certificateChain  the certificate chain in der (binary) format}
- * @returns an array of Der , each element of the array is one certificate of the chain
- */
-export function split_der(certificateChain: Certificate): Certificate[] {
-
-    const certificate_chain: Buffer[] = [];
-
-    do {
-        const block_info = readTag(certificateChain, 0);
-        const length = block_info.position + block_info.length;
-        const der_certificate = certificateChain.slice(0, length);
-        certificate_chain.push(der_certificate);
-        certificateChain = certificateChain.slice(length);
-    } while (certificateChain.length > 0);
-    return certificate_chain;
 }

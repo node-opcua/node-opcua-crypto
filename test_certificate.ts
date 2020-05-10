@@ -2,7 +2,7 @@
 import * as fs from "fs";
 import { exploreCertificate, readCertificate } from ".";
 
-async function test_certificate(filename: string): Promise<void> {
+async function testCertificate(filename: string): Promise<void> {
     const cert1 = await readCertificate(filename);
     try {
         const info = exploreCertificate(cert1);
@@ -11,10 +11,10 @@ async function test_certificate(filename: string): Promise<void> {
         console.log(filename, "err = ", err.message);
     }
 }
-async function test_certificate1(filename: string): Promise<void> {
+async function testCertificate1(filename: string): Promise<void> {
     const cert1 = fs.readFileSync(filename);
     try {
-        const info = exploreCertificate(cert1 as any as Buffer);
+        const info = exploreCertificate(cert1);
         //        console.log(info);
     } catch (err) {
         console.log(filename, "err = ", err.message);
@@ -24,11 +24,10 @@ async function test_certificate1(filename: string): Promise<void> {
 }
 
 (async () => {
-
     try {
-        test_certificate1("./read.cer");
-        test_certificate1("./unsol.cer");
-        test_certificate1("./write.cer");
+        testCertificate1("./read.cer");
+        testCertificate1("./unsol.cer");
+        testCertificate1("./write.cer");
     } catch (err) {
         console.log("???? ERR !!!! ", err.message);
     }

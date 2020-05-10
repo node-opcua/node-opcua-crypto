@@ -1,29 +1,32 @@
 import * as path from "path";
 import * as crypto from "crypto";
 import {
-    readPrivateKey, verifyCertificateSignature,
-    readCertificate, Certificate, PrivateKey, readTag, readStruct,
-    read_AlgorithmIdentifier, read_SignatureValueBin, toPem
+    readPrivateKey,
+    verifyCertificateSignature,
+    readCertificate,
+    Certificate,
+    PrivateKey,
+    readTag,
+    _readStruct,
+    _readAlgorithmIdentifier,
+    _readSignatureValueBin,
+    toPem,
 } from "../lib";
 
 function ellipsys(str: string): string {
     return str.substr(0, 16) + "[...]" + str.substr(-16);
 }
-export function investigateCertificateSignature(
-    certificate: Certificate,
-    caPrivateKey?: PrivateKey
-) {
-
+export function investigateCertificateSignature(certificate: Certificate, caPrivateKey?: PrivateKey): void {
     const block_info = readTag(certificate, 0);
-    const blocks = readStruct(certificate, block_info);
+    const blocks = _readStruct(certificate, block_info);
 
     //  console.log(block_info, blocks[0], blocks[1], blocks[2]);
     const bufferTbsCertificate = certificate.slice(block_info.position, block_info.position + 4 + blocks[0].length);
 
     console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
-    const signatureAlgorithm = read_AlgorithmIdentifier(certificate, blocks[1]);
+    const signatureAlgorithm = _readAlgorithmIdentifier(certificate, blocks[1]);
 
-    const signatureValue = read_SignatureValueBin(certificate, blocks[2]);
+    const signatureValue = _readSignatureValueBin(certificate, blocks[2]);
     console.log("SIGV", ellipsys(signatureValue.toString("hex")), signatureValue.length);
 
     function testPadding(padding: number, saltLength?: number): boolean {
@@ -34,7 +37,7 @@ export function investigateCertificateSignature(
 
         const signOption: crypto.SignPrivateKeyInput = {
             key: toPem(caPrivateKey!, "RSA PRIVATE KEY"),
-            padding
+            padding,
         };
         // the following circonvolution is needed to make it work with node< 12
         if (saltLength) {
@@ -50,7 +53,6 @@ export function investigateCertificateSignature(
     }
     testPadding(crypto.constants.RSA_PKCS1_PADDING).should.eql(true);
     if (false) {
-
         testPadding(crypto.constants.RSA_PKCS1_PADDING, crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN);
         testPadding(crypto.constants.RSA_PKCS1_PSS_PADDING, crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN);
         testPadding(crypto.constants.RSA_X931_PADDING, crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN);
@@ -63,12 +65,10 @@ export function investigateCertificateSignature(
         testPadding(crypto.constants.RSA_PKCS1_PSS_PADDING, crypto.constants.RSA_PSS_SALTLEN_AUTO);
         testPadding(crypto.constants.RSA_X931_PADDING, crypto.constants.RSA_PSS_SALTLEN_AUTO);
         // testPadding(crypto.constants.RSA_NO_PADDING);
-
     }
 }
 
 describe("Verify Certifcate Signature", () => {
-
     it("WW investiagate how certificate signature is build", () => {
         const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
         const caPrivateKey = readPrivateKey(path.join(__dirname, "./fixtures/certsChain/cakey.pem"));
@@ -89,5 +89,4 @@ describe("Verify Certifcate Signature", () => {
         const certificate2 = readCertificate(path.join(__dirname, "./fixtures/certsChain/wrongcacert.pem"));
         verifyCertificateSignature(certificate1, certificate2).should.eql(false);
     });
-
 });

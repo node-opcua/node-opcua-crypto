@@ -1,4 +1,3 @@
-
 export type Nonce = Buffer;
 
 export type PEM = string;

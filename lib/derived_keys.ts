@@ -2,14 +2,13 @@
  * @module node_opcua_crypto
  */
 import * as crypto from "crypto";
-import * as  _ from "underscore";
+import * as _ from "underscore";
 
-import {createFastUninitializedBuffer} from "./buffer_utils";
-import {Nonce} from "./common";
-import {verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions} from "./crypto_utils";
-import {exploreCertificateInfo} from "./explore_certificate";
-
-const assert = require("better-assert");
+import { createFastUninitializedBuffer } from "./buffer_utils";
+import { Nonce } from "./common";
+import { verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions } from "./crypto_utils";
+import { exploreCertificateInfo } from "./explore_certificate";
+import * as assert from "assert";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
     return crypto.createHmac(sha1or256, secret).update(message).digest();
@@ -67,7 +66,6 @@ function plus(buf1: Buffer, buf2: Buffer): Buffer {
 // see also http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/ws-secureconversation-1.3-os.html
 //          http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
 export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: number, sha1or256: "SHA1" | "SHA256") {
-
     assert(seed instanceof Buffer);
     assert(sha1or256 === "SHA1" || sha1or256 === "SHA256");
 
@@ -108,9 +106,7 @@ export interface DerivedKeys extends ComputeDerivedKeysOptions {
     initializationVector: Buffer;
 }
 
-export function computeDerivedKeys(
-    secret: Nonce, seed: Nonce, options: ComputeDerivedKeysOptions
-): DerivedKeys {
+export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeDerivedKeysOptions): DerivedKeys {
     assert(_.isFinite(options.signatureLength));
     assert(_.isFinite(options.encryptingKeyLength));
     assert(_.isFinite(options.encryptingBlockSize));
@@ -125,7 +121,6 @@ export function computeDerivedKeys(
     const buf = makePseudoRandomBuffer(secret, seed, minLength, options.sha1or256);
 
     return {
-
         signatureLength: options.signatureLength,
         signingKeyLength: options.signingKeyLength,
         encryptingKeyLength: options.encryptingKeyLength,
@@ -179,7 +174,6 @@ export type VerifyChunkSignatureOptions = VerifyMessageChunkSignatureOptions;
  * @return {*}
  */
 export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatureOptions) {
-
     assert(chunk instanceof Buffer);
     let signatureLength = options.signatureLength || 0;
     if (signatureLength === 0) {
@@ -219,9 +213,8 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
 //
 
 export function computePaddingFooter(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
-
     assert(derivedKeys.hasOwnProperty("encryptingBlockSize"));
-    const paddingSize = derivedKeys.encryptingBlockSize - (buffer.length + 1) % derivedKeys.encryptingBlockSize;
+    const paddingSize = derivedKeys.encryptingBlockSize - ((buffer.length + 1) % derivedKeys.encryptingBlockSize);
     const padding = createFastUninitializedBuffer(paddingSize + 1);
     padding.fill(paddingSize);
     return padding;
@@ -235,7 +228,6 @@ function derivedKeys_algorithm(derivedKeys: DerivedKeys) {
 }
 
 export function encryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
-
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
@@ -249,7 +241,6 @@ export function encryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
 }
 
 export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
-
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
