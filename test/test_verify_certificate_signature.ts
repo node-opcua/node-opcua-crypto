@@ -31,13 +31,16 @@ export function investigateCertificateSignature(
         sign.update(bufferTbsCertificate);
         // verify.update(bufferSignatureAlgo);
         sign.end();
-        const sign1 = sign.sign({
+
+        const signOption: crypto.SignPrivateKeyInput = {
             key: toPem(caPrivateKey!, "RSA PRIVATE KEY"),
-            padding,
-            //            saltLength: crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN
-            // saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST
-            saltLength
-        });
+            padding
+        };
+        // the following circonvolution is needed to make it work with node< 12
+        if (saltLength) {
+            signOption.saltLength = saltLength;
+        }
+        const sign1 = sign.sign(signOption);
         console.log("RRR=", padding, saltLength, ellipsys(sign1.toString("hex")), sign1.length);
         if (sign1.toString("hex") === signatureValue.toString("hex")) {
             console.log("Found !!!!! => see below");
