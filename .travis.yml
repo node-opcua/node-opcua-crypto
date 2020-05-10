@@ -3,9 +3,9 @@ language: node_js
 
 node_js:
   - "8"
-  - "9"
   - "10"
-  - "11"
+  - "12"
+  - "14"
 os:
   - linux
   - osx
@@ -30,6 +30,6 @@ addons:
 notifications:
   webhooks:
     urls: https://webhooks.gitter.im/e/4d51130aaea652dbc8f1
-    on_success: always  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: true     # default: false
+    on_success: always # options: [always|never|change] default: always
+    on_failure: always # options: [always|never|change] default: always
+    on_start: always # default: false
