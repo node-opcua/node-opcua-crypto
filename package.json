@@ -41,7 +41,7 @@
     "chalk": "^4.0.0",
     "hexy": "^0.3.0",
     "jsrsasign": "^8.0.15",
-    "ssh-key-to-pem": "^0.11.1",
+    "sshpk": "^1.16.1",
     "underscore": "^1.10.2"
   },
   "repository": {
