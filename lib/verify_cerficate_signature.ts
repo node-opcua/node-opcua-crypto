@@ -75,6 +75,7 @@ function convertToDEROctetString(buffer: Buffer): Buffer {
         throw new Error("Not supported yet");
     }
     // count the number of octect
+    // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < buffer.length; i++) {
         b[c++] = buffer[i];
     }
@@ -102,6 +103,7 @@ function convertToDERBitString(buffer: Buffer): Buffer {
     }
     b[c++] = 0; // unused bits
     // count the number of octect
+    // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < buffer.length; i++) {
         b[c++] = buffer[i];
     }
