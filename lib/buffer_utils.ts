@@ -13,5 +13,6 @@
 export const createFastUninitializedBuffer = Buffer.allocUnsafe
     ? Buffer.allocUnsafe
     : (size: number): Buffer => {
-          return new Buffer(size);
-      };
+        // istanbul ignore next
+        return new Buffer(size);
+    };

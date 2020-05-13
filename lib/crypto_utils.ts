@@ -57,24 +57,33 @@ function _readPemFile(filename: string): PEM {
     return fs.readFileSync(filename, "ascii");
 }
 
-function _readPemFileAsDER(filename: string): DER {
+function _readPemOrDerFileAsDER(filename: string): DER {
     if (filename.match(/.*\.der/)) {
         return fs.readFileSync(filename) as Buffer;
     }
-    const raw_key = _readPemFile(filename);
+    const raw_key: string = _readPemFile(filename);
     return convertPEMtoDER(raw_key);
 }
 
+/**
+ * read a DER or PEM certificate from file
+ */
 export function readCertificate(filename: string): Certificate {
-    return _readPemFileAsDER(filename) as Certificate;
+    return _readPemOrDerFileAsDER(filename) as Certificate;
 }
 
+/**
+ * read a DER or PEM certificate from file
+ */
 export function readPublicKey(filename: string): PublicKey {
-    return _readPemFileAsDER(filename) as PublicKey;
+    return _readPemOrDerFileAsDER(filename) as PublicKey;
 }
 
+/**
+ * read a DER or PEM certificate from file
+ */
 export function readPrivateKey(filename: string): PrivateKey {
-    return _readPemFileAsDER(filename) as PrivateKey;
+    return _readPemOrDerFileAsDER(filename) as PrivateKey;
 }
 
 export function readCertificatePEM(filename: string): CertificatePEM {

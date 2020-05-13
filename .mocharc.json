@@ -1,5 +1,6 @@
 {
     "require": [
+        "./node_modules/should",
         "./node_modules/ts-node/register"
     ],
     "extension": "ts"

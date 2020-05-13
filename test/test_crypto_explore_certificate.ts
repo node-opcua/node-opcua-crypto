@@ -66,7 +66,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.countryName!.should.eql("FR");
         certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.localityName!.should.eql("Paris");
 
-        console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
+        // console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
         certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!.should.eql(
             "74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F"
@@ -94,7 +94,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.countryName!.should.eql("FR");
         certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.localityName!.should.eql("Paris");
 
-        console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
+        //xx console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
         certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!.should.eql(
             "B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19"

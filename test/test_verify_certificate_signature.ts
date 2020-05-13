@@ -6,12 +6,14 @@ import {
     readCertificate,
     Certificate,
     PrivateKey,
+    toPem,
+} from "../lib";
+import {
     readTag,
     _readStruct,
     _readAlgorithmIdentifier,
     _readSignatureValueBin,
-    toPem,
-} from "../lib";
+} from "../lib/asn1";
 
 function ellipsys(str: string): string {
     return str.substr(0, 16) + "[...]" + str.substr(-16);
@@ -23,11 +25,11 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
     //  console.log(block_info, blocks[0], blocks[1], blocks[2]);
     const bufferTbsCertificate = certificate.slice(block_info.position, block_info.position + 4 + blocks[0].length);
 
-    console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
+    // console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
     const signatureAlgorithm = _readAlgorithmIdentifier(certificate, blocks[1]);
 
     const signatureValue = _readSignatureValueBin(certificate, blocks[2]);
-    console.log("SIGV", ellipsys(signatureValue.toString("hex")), signatureValue.length);
+    // console.log("SIGV", ellipsys(signatureValue.toString("hex")), signatureValue.length);
 
     function testPadding(padding: number, saltLength?: number): boolean {
         const sign = crypto.createSign(signatureAlgorithm.identifier);
@@ -44,9 +46,9 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
             signOption.saltLength = saltLength;
         }
         const sign1 = sign.sign(signOption);
-        console.log("RRR=", padding, saltLength, ellipsys(sign1.toString("hex")), sign1.length);
+        // console.log("RRR=", padding, saltLength, ellipsys(sign1.toString("hex")), sign1.length);
         if (sign1.toString("hex") === signatureValue.toString("hex")) {
-            console.log("Found !!!!! => see below");
+            //  console.log("Found !!!!! => see below");
             return true;
         }
         return false;

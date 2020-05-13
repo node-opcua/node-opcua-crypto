@@ -3,7 +3,8 @@
  */
 
 import { Certificate, CertificatePEM } from "./common";
-import { DirectoryName, exploreCertificate, SubjectPublicKeyInfo } from "./crypto_explore_certificate";
+import { exploreCertificate, SubjectPublicKeyInfo } from "./crypto_explore_certificate";
+import { DirectoryName, } from "./asn1";
 import { convertPEMtoDER } from "./crypto_utils";
 import * as assert from "assert";
 
@@ -50,6 +51,7 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
         publicKey: certInfo.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey,
         subject: certInfo.tbsCertificate.subject,
     };
+    // istanbul ignore next
     if (
         !(
             data.publicKeyLength === 512 ||

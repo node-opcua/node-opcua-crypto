@@ -11,7 +11,7 @@
         "listFiles": false,
         "traceResolution": false,
         "incremental": true,
-        "types": ["node", "mocha"],
+        "types": ["node", "mocha", "should"],
         "rootDir": "lib"
     },
     "files": ["lib/index.ts"]
