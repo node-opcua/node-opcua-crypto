@@ -6,6 +6,7 @@ import {
     exploreCertificateRevocationList,
     verifyCertificateSignature,
     exploreCertificate,
+    toPem,
 } from "../lib";
 
 describe("Explore Certificate Revocation List", () => {
@@ -72,5 +73,12 @@ describe("Explore Certificate Revocation List", () => {
         verifyCertificateSignature(certificateOfIssuer, certificateOfIssuer);
 
         verifyCertificateRevocationListSignature(crl, certificateOfIssuer).should.eql(true);
+    });
+    it("should convert a DER CRL to PEM", async () => {
+        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
+        const crl = await readCertificateRevocationList(crlFilename);
+
+        const crlPem = toPem(crl, "X509 CRL");
+        crlPem.should.match(/BEGIN X509 CRL/);
     });
 });

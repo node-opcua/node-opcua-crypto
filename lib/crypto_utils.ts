@@ -123,7 +123,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
         return raw_key as string;
     } else {
         pemType = pem;
-        assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY"].indexOf(pemType) >= 0);
+        assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
         let b = (raw_key as Buffer).toString("base64");
         let str = "-----BEGIN " + pemType + "-----\n";
         while (b.length) {
