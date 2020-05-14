@@ -1,21 +1,28 @@
 import * as path from "path";
-import * as util from "util";
 import {
     readCertificateRevocationList,
     verifyCertificateRevocationListSignature,
     readCertificate,
     exploreCertificateRevocationList,
     verifyCertificateSignature,
-    exploreCertificate
+    exploreCertificate,
 } from "../lib";
 
-
 describe("Explore Certificate Revocation List", () => {
+    it("should read and explore a PEM revocation list", async () => {
+        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list3.pem");
+        const crl = await readCertificateRevocationList(crlFilename);
 
+        // xx console.log(crl.toString("hex"));
+        const crlInfo = exploreCertificateRevocationList(crl);
+        crlInfo.tbsCertList.issuerFingerprint.should.eql("67:EB:EB:D2:54:93:17:8B:5F:D7:63:7A:6D:A7:CD:DD:B9:D2:C6:CD");
+        crlInfo.tbsCertList.revokedCertificates.length.should.eql(0);
+    });
     it("should explore crl1 ", async () => {
-
         const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
         const crl = await readCertificateRevocationList(crlFilename);
+        // xx console.log(crl.toString("hex"));
+
         const crlInfo = exploreCertificateRevocationList(crl);
         // console.log(util.inspect(crlInfo, { colors: true, depth: 100 }));
 
@@ -36,7 +43,6 @@ describe("Explore Certificate Revocation List", () => {
 
         crlInfo.signatureAlgorithm.identifier.should.eql("sha256WithRSAEncryption");
         crlInfo.tbsCertList.signature.identifier.should.eql("sha256WithRSAEncryption");
-
     });
     it("should verify a CRL signature", async () => {
         const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
@@ -56,13 +62,15 @@ describe("Explore Certificate Revocation List", () => {
         //  console.log(certificateOfIssuerInfo.tbsCertificate.extensions!.authorityKeyIdentifier?.authorityCertIssuer);
         // console.log(crlInfo.tbsCertList.issuer);
         crlInfo.tbsCertList.issuerFingerprint.should.eql("AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD");
-        certificateOfIssuerInfo.tbsCertificate.extensions!.authorityKeyIdentifier?.authorityCertIssuerFingerPrint.should.eql("AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD");
-        certificateOfIssuerInfo.tbsCertificate.subjectFingerPrint.should.eql("AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD");
+        certificateOfIssuerInfo.tbsCertificate.extensions!.authorityKeyIdentifier?.authorityCertIssuerFingerPrint.should.eql(
+            "AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD"
+        );
+        certificateOfIssuerInfo.tbsCertificate.subjectFingerPrint.should.eql(
+            "AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD"
+        );
 
         verifyCertificateSignature(certificateOfIssuer, certificateOfIssuer);
 
         verifyCertificateRevocationListSignature(crl, certificateOfIssuer).should.eql(true);
-
     });
-
 });
