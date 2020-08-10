@@ -74,6 +74,13 @@ describe("Explore Certificate Revocation List", () => {
 
         verifyCertificateRevocationListSignature(crl, certificateOfIssuer).should.eql(true);
     });
+    it("should load a crl PEM", async () => {
+        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list4.pem");
+        const crl = await readCertificateRevocationList(crlFilename);
+        const crlInfo = await exploreCertificateRevocationList(crl);
+        console.log(crlInfo);
+    });
+
     it("should convert a DER CRL to PEM", async () => {
         const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
         const crl = await readCertificateRevocationList(crlFilename);

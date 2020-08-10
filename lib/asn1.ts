@@ -24,7 +24,6 @@ export enum TagType {
     BMPString = 0x1e,
 }
 
-
 export interface BlockInfo {
     tag: TagType;
     position: number;

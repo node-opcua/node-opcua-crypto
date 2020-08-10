@@ -41,10 +41,12 @@ export function convertPEMtoDER(raw_key: PEM): DER {
     let base64str;
 
     const parts: DER[] = [];
+
+    PEM_REGEX.lastIndex = 0;
     // tslint:disable-next-line:no-conditional-assignment
     while ((match = PEM_REGEX.exec(raw_key)) !== null) {
         pemType = match[2];
-        // pemType shall be "RSA PRIVATE KEY" , "PUBLIC KEY", "CERTIFICATE"
+        // pemType shall be "RSA PRIVATE KEY" , "PUBLIC KEY", "CERTIFICATE", "X509 CRL"
         base64str = match[3];
         base64str = base64str.replace(/\r?\n/g, "");
         parts.push(Buffer.from(base64str, "base64"));
