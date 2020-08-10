@@ -8,7 +8,7 @@
     "build": "npx tsc",
     "prepare": "npm run build",
     "lint": "eslint . --ext .ts",
-    "test": "npx mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
+    "test": "mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
     "makedoc": "npx typedoc -out doc",
     "cost-of-modules": "npx cost-of-modules --no-install",
     "release-it": "npx release-it"

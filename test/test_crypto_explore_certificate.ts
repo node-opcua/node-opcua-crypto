@@ -123,10 +123,9 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
     });
 
-    it("investigate certificate with block problem", ()=>{
+    it("investigate certificate with block problem 1", ()=>{
 
         // this certificate is Version 3 but has no Extension.
-        
         const filename = path.join(__dirname, "./fixtures/certs/certificate_with_block_issue.pem");
         fs.existsSync(filename).should.equal(true, "certificate file must exist");
 
@@ -137,6 +136,23 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         certificate_info.tbsCertificate.version.should.eql(3);
         should(certificate_info.tbsCertificate.extensions).eql(null);
 
+    });
+    it("investigate certificate with block problem 2", ()=>{
+
+        // this certificate is Version 3 but has no Extension.
+        const filename = path.join(__dirname, "./fixtures/certs/certificate_with_block_issue2.pem");
+        fs.existsSync(filename).should.equal(true, "certificate file must exist");
+
+        const certificate = readCertificate(filename);
+        //xx console.log(certificate.toString("base64"));
+        const certificate_info = exploreCertificate(certificate);
+
+        certificate_info.tbsCertificate.version.should.eql(3);
+        should(certificate_info.tbsCertificate.extensions).not.eql(null);
+
+        (certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey as any) = certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.toString("base64");
+
+        console.log(JSON.stringify(certificate_info, null, " "));
     });
 });
 
