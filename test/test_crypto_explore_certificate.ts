@@ -152,7 +152,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         (certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey as any) = certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.toString("base64");
 
-        console.log(JSON.stringify(certificate_info, null, " "));
+        // console.log(JSON.stringify(certificate_info, null, " "));
     });
 });
 
