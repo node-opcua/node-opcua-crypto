@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - "8"
+  # - "8"  dropped support for nodejs 8
   - "10"
   - "12"
   - "14"
@@ -10,7 +10,7 @@ os:
   - osx
 
 before_install:
-  - npm install -g istanbul coveralls
+  - npm install -g nyc coveralls
   - npm install -g mocha typescript
 
 before_script:
