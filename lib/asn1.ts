@@ -1,4 +1,3 @@
-import * as _ from "underscore";
 import * as assert from "assert";
 import { oid_map } from "./oid_map";
 
@@ -32,7 +31,7 @@ export interface BlockInfo {
 
 export function readTag(buf: Buffer, pos: number): BlockInfo {
     assert(buf instanceof Buffer);
-    assert(_.isNumber(pos) && pos >= 0);
+    assert(Number.isFinite(pos) && pos >= 0);
     // istanbul ignore next
     if (buf.length <= pos) {
         throw new Error("Invalid position : buf.length=" + buf.length + " pos =" + pos);

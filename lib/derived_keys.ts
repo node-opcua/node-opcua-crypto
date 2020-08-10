@@ -2,7 +2,6 @@
  * @module node_opcua_crypto
  */
 import * as crypto from "crypto";
-import * as _ from "underscore";
 
 import { createFastUninitializedBuffer } from "./buffer_utils";
 import { Nonce } from "./common";
@@ -107,9 +106,9 @@ export interface DerivedKeys extends ComputeDerivedKeysOptions {
 }
 
 export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeDerivedKeysOptions): DerivedKeys {
-    assert(_.isFinite(options.signatureLength));
-    assert(_.isFinite(options.encryptingKeyLength));
-    assert(_.isFinite(options.encryptingBlockSize));
+    assert(Number.isFinite(options.signatureLength));
+    assert(Number.isFinite(options.encryptingKeyLength));
+    assert(Number.isFinite(options.encryptingBlockSize));
     assert(typeof options.algorithm === "string");
     options.sha1or256 = options.sha1or256 || "SHA1";
     assert(typeof options.sha1or256 === "string");

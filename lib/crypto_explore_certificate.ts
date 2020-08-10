@@ -52,7 +52,6 @@
 //  - http://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art030
 //  openssl can be also used to discover the content of a DER file
 //  $ openssl asn1parse -in cert.pem
-import * as _ from "underscore";
 import * as assert from "assert";
 
 import {
@@ -108,9 +107,11 @@ function _readAttributeTypeAndValue(buffer: Buffer, block: BlockInfo): Attribute
     };
 
     const result: AttributeTypeAndValue = {};
-    _.forEach(data, (value, key) => {
+
+    for(const [key, value] of Object.entries(data)) {
         result[key] = value;
-    });
+
+    }
     return result;
 }
 
@@ -448,10 +449,12 @@ function _readExtensions(buffer: Buffer, block: BlockInfo): CertificateExtension
     let inner_blocks = _readStruct(buffer, block);
     inner_blocks = _readStruct(buffer, inner_blocks[0]);
 
-    const exts = inner_blocks.map((block) => _readExtension(buffer, block));
+    const extensions = inner_blocks.map((block) => _readExtension(buffer, block));
 
     const result: any = {};
-    _.forEach(exts, (e) => (result[e.identifier.name] = e.value));
+    for (const e of extensions) {
+        result[e.identifier.name] = e.value;
+    }
     return result as CertificateExtension;
 }
 
@@ -702,7 +705,6 @@ export function split_der(certificateChain: Certificate): Certificate[] {
  * @return a concatenated buffer containing the certificates
  */
 export function combine_der(certificates: Certificate[]): Certificate {
-    assert(_.isArray(certificates));
 
     // perform some sanity check
     for (const cert of certificates) {
