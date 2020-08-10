@@ -111,7 +111,7 @@ export function _readBitString(buffer: Buffer, block: BlockInfo): BitString {
     };
 }
 
-export function formatBuffer2DigetHexWithColum(buffer: Buffer): string {
+export function formatBuffer2DigitHexWithColum(buffer: Buffer): string {
     const value: string[] = [];
     for (let i = 0; i < buffer.length; i++) {
         value.push(("00" + buffer.readUInt8(i).toString(16)).substr(-2, 2));

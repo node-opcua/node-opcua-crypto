@@ -62,7 +62,7 @@ import {
     readTag,
     _getBlock,
     _readStruct,
-    formatBuffer2DigetHexWithColum,
+    formatBuffer2DigitHexWithColum,
     _readOctetString,
     AlgorithmIdentifier,
     _readListOfInteger,
@@ -172,35 +172,35 @@ function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
     const authorityCertIssuer_block = _findBlockAtIndex(blocks, 1);
     const authorityCertSerialNumber_block = _findBlockAtIndex(blocks, 2);
 
-    function _readAuthorithyCertIssuer(block: BlockInfo): DirectoryName {
+    function _readAuthorityCertIssuer(block: BlockInfo): DirectoryName {
         const inner_blocks = _readStruct(buffer, block);
         const directoryName_block = _findBlockAtIndex(inner_blocks, 4);
         if (directoryName_block) {
             const a = _readStruct(buffer, directoryName_block);
             return _readDirectoryName(buffer, a[0]);
         } else {
-            throw new Error("Invalid _readAuthorithyCertIssuer");
+            throw new Error("Invalid _readAuthorityCertIssuer");
         }
     }
-    function _readAuthorithyCertIssuerFingerPrint(block: BlockInfo): string {
+    function _readAuthorityCertIssuerFingerPrint(block: BlockInfo): string {
         const inner_blocks = _readStruct(buffer, block);
         const directoryName_block = _findBlockAtIndex(inner_blocks, 4)!;
         if (!directoryName_block) { return "" };
         const a = _readStruct(buffer, directoryName_block);
         if (a.length < 1) { return ""; }
-        return directoryName_block ? formatBuffer2DigetHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, a[0]))) : "";
+        return directoryName_block ? formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, a[0]))) : "";
     }
 
-    const authorityCertIssuer = authorityCertIssuer_block ? _readAuthorithyCertIssuer(authorityCertIssuer_block) : null;
-    const authorityCertIssuerFingerPrint = authorityCertIssuer_block ? _readAuthorithyCertIssuerFingerPrint(authorityCertIssuer_block) : "";
+    const authorityCertIssuer = authorityCertIssuer_block ? _readAuthorityCertIssuer(authorityCertIssuer_block) : null;
+    const authorityCertIssuerFingerPrint = authorityCertIssuer_block ? _readAuthorityCertIssuerFingerPrint(authorityCertIssuer_block) : "";
 
     return {
         authorityCertIssuer,
         authorityCertIssuerFingerPrint,
         serial: authorityCertSerialNumber_block
-            ? formatBuffer2DigetHexWithColum(_getBlock(buffer, authorityCertSerialNumber_block!))
+            ? formatBuffer2DigitHexWithColum(_getBlock(buffer, authorityCertSerialNumber_block!))
             : null, // can be null for self-signed certf
-        keyIdentifier: keyIdentifier_block ? formatBuffer2DigetHexWithColum(_getBlock(buffer, keyIdentifier_block!)) : null, // can be null for self-signed certf
+        keyIdentifier: keyIdentifier_block ? formatBuffer2DigitHexWithColum(_getBlock(buffer, keyIdentifier_block!)) : null, // can be null for self-signed certf
     };
 }
 
@@ -411,7 +411,7 @@ function _readExtension(buffer: Buffer, block: BlockInfo) {
                   SHA-1 hash of the value of the BIT STRING subjectPublicKey
                   (excluding the tag, length, and number of unused bit string bits).
             */
-            value = formatBuffer2DigetHexWithColum(_readOctetString(buffer, inner_blocks[1]));
+            value = formatBuffer2DigitHexWithColum(_readOctetString(buffer, inner_blocks[1]));
             break;
         case "subjectAltName":
             value = _readSubjectAltNames(buf);
@@ -557,12 +557,12 @@ function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
         // X509 Version 1:
         version = 1;
 
-        serialNumber = formatBuffer2DigetHexWithColum(_readLongIntegerValue(buffer, blocks[0]));
+        serialNumber = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, blocks[0]));
         signature = _readAlgorithmIdentifier(buffer, blocks[1]);
         issuer = _readName(buffer, blocks[2]);
         validity = _readValidity(buffer, blocks[3]);
         subject = _readName(buffer, blocks[4]);
-        subjectFingerPrint = formatBuffer2DigetHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[4])));
+        subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[4])));
         subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[5]);
 
         extensions = null;
@@ -574,19 +574,22 @@ function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
             throw new Error("cannot find version block");
         }
         version = _readVersionValue(buffer, version_block) + 1;
-        serialNumber = formatBuffer2DigetHexWithColum(_readLongIntegerValue(buffer, blocks[1]));
+        serialNumber = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, blocks[1]));
         signature = _readAlgorithmIdentifier(buffer, blocks[2]);
         issuer = _readName(buffer, blocks[3]);
         validity = _readValidity(buffer, blocks[4]);
         subject = _readName(buffer, blocks[5]);
-        subjectFingerPrint = formatBuffer2DigetHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[5])));
+        subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[5])));
         subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[6]);
 
         const extensionBlock = _findBlockAtIndex(blocks, 3);
         if (!extensionBlock) {
-            throw new Error("cannot find extention block");
+            // tslint:disable-next-line: no-console
+            console.log("X509 certificate is invalid : cannot find extension block version =" + version_block);
+            extensions = null;
+        } else {
+            extensions = _readExtensions(buffer, extensionBlock);
         }
-        extensions = _readExtensions(buffer, extensionBlock);
     }
 
     return {

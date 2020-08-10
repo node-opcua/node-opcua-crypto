@@ -16,7 +16,7 @@ import {
     _readValue,
     _readTime,
     _readLongIntegerValue,
-    formatBuffer2DigetHexWithColum,
+    formatBuffer2DigitHexWithColum,
     _getBlock,
     _readDirectoryName,
     _findBlockAtIndex,
@@ -60,7 +60,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
     const version = _readIntegerValue(buffer, blocks[0]);
     const signature = _readAlgorithmIdentifier(buffer, blocks[1]);
     const issuer = readNameForCrl(buffer, blocks[2]);
-    const issuerFingerprint = formatBuffer2DigetHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[2])));
+    const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[2])));
 
     const thisUpdate = _readTime(buffer, blocks[3]);
     const nextUpdate = _readTime(buffer, blocks[4]);
@@ -72,7 +72,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
         for (const r of list) {
             // sometime blocks[5] doesn't exits .. in this case
             const rr = _readStruct(buffer, r);
-            const userCertificate = formatBuffer2DigetHexWithColum(_readLongIntegerValue(buffer, rr[0]));
+            const userCertificate = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, rr[0]));
             const revocationDate = _readTime(buffer, rr[1]);
             revokedCertificates.push({
                 revocationDate,
