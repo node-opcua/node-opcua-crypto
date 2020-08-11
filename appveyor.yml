@@ -23,7 +23,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules
-  - npm install -g mocha typescript
+  - npm install -g mocha@7 typescript
   - npm install
 
 # Post-install test scripts.
@@ -31,7 +31,6 @@ test_script:
   # Output useful info for debugging.
   - node --version
   - npm --version
-  - npm install mocha colors typescript -g
   - npm install
   # run tests
   - npm test
