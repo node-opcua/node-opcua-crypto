@@ -1,20 +1,20 @@
 # Test against this version of Node.js
 environment:
   matrix:
+    - nodejs_version: "14"
     # - nodejs_version: "8" // drop support for 8.0 , as end of life has been reached
     - nodejs_version: "10"
     - nodejs_version: "12"
-    - nodejs_version: "14"
 
 platform:
-  - x64
   - x86
+  - x64
 
 matrix:
   allow_failures:
     - nodejs_version: "0.10"
 
-# fix lineendings in Windows
+# fix line-endings in Windows
 init:
   - git config --global core.autocrlf input
 
@@ -22,18 +22,22 @@ init:
 install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
+  # Output useful info for debugging.
+  - node --version
+  - npm --version
   # install modules
   - npm install -g mocha@7 typescript
   - npm install
 
 # Post-install test scripts.
 test_script:
-  # Output useful info for debugging.
-  - node --version
-  - npm --version
-  - npm install
   # run tests
   - npm test
 
 # Don't actually build.
 build: off
+
+cache:
+  # - node_modules
+  # - '%APPDATA%/npm'
+  #- packages
