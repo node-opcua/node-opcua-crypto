@@ -7,3 +7,9 @@ Makefile
 .idea
 *.tgz
 doc/
+node.exe
+.nyc_output/
+.vscode/
+
+
+
