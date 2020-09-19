@@ -28,7 +28,7 @@ import { Certificate } from "crypto";
 export type Version = string;
 export type Name = string;
 export type CertificateSerialNumber = string;
-export interface Extensions { }
+export type Extensions = Record<string, unknown>;
 export interface RevokedCertificate {
     userCertificate: CertificateSerialNumber;
     revocationDate: Date;

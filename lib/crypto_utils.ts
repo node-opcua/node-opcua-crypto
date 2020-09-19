@@ -139,7 +139,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
 }
 
 // istanbul ignore next
-export function hexDump(buffer: Buffer, width?: number) {
+export function hexDump(buffer: Buffer, width?: number): string {
     if (!buffer) {
         return "<>";
     }
@@ -204,7 +204,7 @@ export function verifyMessageChunkSignature(
     blockToVerify: Buffer,
     signature: Signature,
     options: VerifyMessageChunkSignatureOptions
-) {
+): boolean {
     assert(blockToVerify instanceof Buffer);
     assert(signature instanceof Buffer);
     assert(typeof options.publicKey === "string");
@@ -221,7 +221,7 @@ export function makeSHA1Thumbprint(buffer: Buffer): Signature {
 
 let __certificate_store = path.join(__dirname, "../../certificates/");
 
-export function setCertificateStore(store: string) {
+export function setCertificateStore(store: string): string {
     const old_store = __certificate_store;
     __certificate_store = store;
     return old_store;
@@ -274,7 +274,7 @@ assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 
 // publicEncrypt and  privateDecrypt only work with
 // small buffer that depends of the key size.
-export function publicEncrypt_native(buffer: Buffer, publicKey: PublicKeyPEM, algorithm?: PaddingAlgorithm) {
+export function publicEncrypt_native(buffer: Buffer, publicKey: PublicKeyPEM, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
@@ -289,7 +289,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: PublicKeyPEM, al
     );
 }
 
-export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM, algorithm?: PaddingAlgorithm) {
+export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
@@ -318,7 +318,7 @@ export function publicEncrypt_long(
     blockSize: number,
     padding: number,
     algorithm?: PaddingAlgorithm
-) {
+): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
@@ -337,7 +337,7 @@ export function publicEncrypt_long(
     return outputBuffer;
 }
 
-export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKeyPEM, blockSize: number, algorithm?: number) {
+export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKeyPEM, blockSize: number, algorithm?: number): Buffer {
     algorithm = algorithm || RSA_PKCS1_PADDING;
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
 
@@ -401,7 +401,7 @@ export function extractPublicKeyFromCertificateSync(certificate: Certificate | C
 export function extractPublicKeyFromCertificate(
     certificate: CertificatePEM | Certificate,
     callback: (err: Error | null, publicKeyPEM?: PublicKeyPEM) => void
-) {
+): void {
     let err1: any = null;
     let keyPem: PublicKeyPEM;
     try {

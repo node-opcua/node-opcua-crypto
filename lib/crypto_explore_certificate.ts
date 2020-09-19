@@ -77,12 +77,11 @@ import {
     _readValue,
     _readTime,
     _findBlockAtIndex,
-    _readDirectoryName
+    _readDirectoryName,
 } from "./asn1";
 import { Certificate, PrivateKey } from "./common";
 import { PublicKeyLength } from "./explore_certificate";
 import { makeSHA1Thumbprint } from "./crypto_utils";
-
 
 // Converted from: https://www.cs.auckland.ac.nz/~pgut001/dumpasn1.cfg
 // which is made by Peter Gutmann and whose license states:
@@ -91,11 +90,9 @@ import { makeSHA1Thumbprint } from "./crypto_utils";
 
 const doDebug = false;
 
-
 export interface AttributeTypeAndValue {
     [key: string]: any;
 }
-
 
 function _readAttributeTypeAndValue(buffer: Buffer, block: BlockInfo): AttributeTypeAndValue {
     let inner_blocks = _readStruct(buffer, block);
@@ -108,9 +105,8 @@ function _readAttributeTypeAndValue(buffer: Buffer, block: BlockInfo): Attribute
 
     const result: AttributeTypeAndValue = {};
 
-    for(const [key, value] of Object.entries(data)) {
+    for (const [key, value] of Object.entries(data)) {
         result[key] = value;
-
     }
     return result;
 }
@@ -133,7 +129,6 @@ function _readName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName 
     return _readRelativeDistinguishedName(buffer, block);
 }
 
-
 export interface Validity {
     notBefore: Date;
     notAfter: Date;
@@ -146,7 +141,6 @@ function _readValidity(buffer: Buffer, block: BlockInfo): Validity {
         notAfter: _readTime(buffer, inner_blocks[1]),
     };
 }
-
 
 function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
     /**
@@ -186,14 +180,20 @@ function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
     function _readAuthorityCertIssuerFingerPrint(block: BlockInfo): string {
         const inner_blocks = _readStruct(buffer, block);
         const directoryName_block = _findBlockAtIndex(inner_blocks, 4)!;
-        if (!directoryName_block) { return "" };
+        if (!directoryName_block) {
+            return "";
+        }
         const a = _readStruct(buffer, directoryName_block);
-        if (a.length < 1) { return ""; }
+        if (a.length < 1) {
+            return "";
+        }
         return directoryName_block ? formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, a[0]))) : "";
     }
 
     const authorityCertIssuer = authorityCertIssuer_block ? _readAuthorityCertIssuer(authorityCertIssuer_block) : null;
-    const authorityCertIssuerFingerPrint = authorityCertIssuer_block ? _readAuthorityCertIssuerFingerPrint(authorityCertIssuer_block) : "";
+    const authorityCertIssuerFingerPrint = authorityCertIssuer_block
+        ? _readAuthorityCertIssuerFingerPrint(authorityCertIssuer_block)
+        : "";
 
     return {
         authorityCertIssuer,
@@ -483,8 +483,6 @@ function _readExtensions(buffer: Buffer, block: BlockInfo): CertificateExtension
  :       }
  */
 
-
-
 function _readSubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPublicKeyInfo {
     const inner_blocks = _readStruct(buffer, block);
 
@@ -549,12 +547,7 @@ export interface TbsCertificate {
 function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
     const blocks = _readStruct(buffer, block);
 
-    let version, serialNumber,
-        signature, issuer,
-        validity, subject,
-        subjectFingerPrint,
-        subjectPublicKeyInfo,
-        extensions;
+    let version, serialNumber, signature, issuer, validity, subject, subjectFingerPrint, subjectPublicKeyInfo, extensions;
 
     if (blocks.length === 6) {
         // X509 Version 1:
@@ -705,7 +698,6 @@ export function split_der(certificateChain: Certificate): Certificate[] {
  * @return a concatenated buffer containing the certificates
  */
 export function combine_der(certificates: Certificate[]): Certificate {
-
     // perform some sanity check
     for (const cert of certificates) {
         const b = split_der(cert);

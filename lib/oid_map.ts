@@ -1,6 +1,5 @@
-
 // https://github.com/lapo-luchini/asn1js/blob/master/oids.js
-export const oid_map: { [key: string]: { d: string, c: string, w?: boolean } } = {
+export const oid_map: { [key: string]: { d: string; c: string; w?: boolean } } = {
     "0.9.2342.19200300.100.1.1": { d: "userID", c: "Some oddball X.500 attribute collection" },
     "0.9.2342.19200300.100.1.3": { d: "rfc822Mailbox", c: "Some oddball X.500 attribute collection" },
     "0.9.2342.19200300.100.1.25": { d: "domainComponent", c: "Men are from Mars, this OID is from Pluto" },
@@ -262,5 +261,5 @@ export const oid_map: { [key: string]: { d: string, c: string, w?: boolean } } =
     "2.16.840.1.113730.1.12": { d: "netscapeSslServerName", c: "Netscape certificate extension" },
     "2.16.840.1.113730.1.13": { d: "netscapeComment", c: "Netscape certificate extension" },
 
-    "done": { d: "", c: "" },
+    done: { d: "", c: "" },
 };

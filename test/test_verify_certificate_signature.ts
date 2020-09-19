@@ -1,19 +1,7 @@
 import * as path from "path";
 import * as crypto from "crypto";
-import {
-    readPrivateKey,
-    verifyCertificateSignature,
-    readCertificate,
-    Certificate,
-    PrivateKey,
-    toPem,
-} from "../lib";
-import {
-    readTag,
-    _readStruct,
-    _readAlgorithmIdentifier,
-    _readSignatureValueBin,
-} from "../lib/asn1";
+import { readPrivateKey, verifyCertificateSignature, readCertificate, Certificate, PrivateKey, toPem } from "../lib";
+import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "../lib/asn1";
 
 function ellipsys(str: string): string {
     return str.substr(0, 16) + "[...]" + str.substr(-16);

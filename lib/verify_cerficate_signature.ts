@@ -8,29 +8,11 @@
 import * as crypto from "crypto";
 
 import { Certificate, PrivateKey } from "./common";
-import {
-    split_der,
-    exploreCertificate,
-} from "./crypto_explore_certificate";
+import { split_der, exploreCertificate } from "./crypto_explore_certificate";
 import { toPem } from "./crypto_utils";
-import {
-    _readAlgorithmIdentifier,
-    _readSignatureValueBin,
-    TagType,
-    readTag,
-    _readStruct,
-    _getBlock
-} from "./asn1";
+import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _readStruct, _getBlock } from "./asn1";
 
-
-
-
-
-export function verifyCertificateOrClrSignature(
-    certificateOrCrl: Buffer,
-    parentCerticate: Certificate,
-): boolean {
-
+export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCerticate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);
     const blocks = _readStruct(certificateOrCrl, block_info);
     const bufferToBeSigned = certificateOrCrl.slice(block_info.position, blocks[1].position - 2);
@@ -48,19 +30,15 @@ export function verifyCertificateOrClrSignature(
     return verify.verify(certPem, signatureValue);
 }
 
-export function verifyCertificateSignature(
-    certificate: Certificate,
-    parentCerticate: Certificate
-): boolean {
-    return verifyCertificateOrClrSignature(certificate, parentCerticate)
+export function verifyCertificateSignature(certificate: Certificate, parentCerticate: Certificate): boolean {
+    return verifyCertificateOrClrSignature(certificate, parentCerticate);
 }
 export function verifyCertificateRevocationListSignature(
     certificateRevocationList: Certificate,
     parentCerticate: Certificate
 ): boolean {
-    return verifyCertificateOrClrSignature(certificateRevocationList, parentCerticate)
+    return verifyCertificateOrClrSignature(certificateRevocationList, parentCerticate);
 }
-
 
 export type _VerifyStatus = "BadCertificateIssuerUseNotAllowed" | "BadCertificateInvalid" | "Good";
 export async function verifyCertificateChain(certificateChain: Certificate[]): Promise<{ status: _VerifyStatus; reason: string }> {

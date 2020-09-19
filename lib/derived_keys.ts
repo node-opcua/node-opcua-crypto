@@ -64,7 +64,7 @@ function plus(buf1: Buffer, buf2: Buffer): Buffer {
 //
 // see also http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/ws-secureconversation-1.3-os.html
 //          http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
-export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: number, sha1or256: "SHA1" | "SHA256") {
+export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: number, sha1or256: "SHA1" | "SHA256"): Buffer {
     assert(seed instanceof Buffer);
     assert(sha1or256 === "SHA1" || sha1or256 === "SHA256");
 
@@ -172,7 +172,7 @@ export type VerifyChunkSignatureOptions = VerifyMessageChunkSignatureOptions;
  * @param options.publicKey
  * @return {*}
  */
-export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatureOptions) {
+export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatureOptions): boolean {
     assert(chunk instanceof Buffer);
     let signatureLength = options.signatureLength || 0;
     if (signatureLength === 0) {

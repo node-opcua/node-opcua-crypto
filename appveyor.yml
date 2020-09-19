@@ -1,43 +1,42 @@
 # Test against this version of Node.js
 environment:
-  matrix:
-    - nodejs_version: "14"
-    # - nodejs_version: "8" // drop support for 8.0 , as end of life has been reached
-    - nodejs_version: "10"
-    - nodejs_version: "12"
+    matrix:
+        - nodejs_version: "14"
+        # - nodejs_version: "8" // drop support for 8.0 , as end of life has been reached
+        - nodejs_version: "10"
+        - nodejs_version: "12"
 
 platform:
-  - x86
-  - x64
+    - x86
+    - x64
 
 matrix:
-  allow_failures:
-    - nodejs_version: "0.10"
+    allow_failures:
+        - nodejs_version: "0.10"
 
 # fix line-endings in Windows
 init:
-  - git config --global core.autocrlf input
+    - git config --global core.autocrlf input
 
 # Install scripts. (runs after repo cloning)
 install:
-  # Get the latest stable version of Node.js or io.js
-  - ps: Install-Product node $env:nodejs_version $env:platform
-  # Output useful info for debugging.
-  - node --version
-  - npm --version
-  # install modules
-  - npm install -g mocha@7 typescript
-  - npm install
+    # Get the latest stable version of Node.js or io.js
+    - ps: Install-Product node $env:nodejs_version $env:platform
+    # Output useful info for debugging.
+    - node --version
+    - npm --version
+    # install modules
+    - npm install -g mocha@7 typescript
+    - npm install
 
 # Post-install test scripts.
 test_script:
-  # run tests
-  - npm test
+    # run tests
+    - npm test
 
 # Don't actually build.
 build: off
-
-cache:
-  # - node_modules
-  # - '%APPDATA%/npm'
-  #- packages
+#cache:
+# - node_modules
+# - '%APPDATA%/npm'
+#- packages

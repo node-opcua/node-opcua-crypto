@@ -143,11 +143,11 @@ export interface AlgorithmIdentifier {
     identifier: string;
 }
 
-export function _readIntegerAsByteString(buffer: Buffer, block: BlockInfo) {
+export function _readIntegerAsByteString(buffer: Buffer, block: BlockInfo): Buffer {
     return _getBlock(buffer, block);
 }
 
-export function _readListOfInteger(buffer: Buffer) {
+export function _readListOfInteger(buffer: Buffer): Buffer[] {
     const block = readTag(buffer, 0);
     const inner_blocks = _readStruct(buffer, block);
     return inner_blocks.map((bblock: BlockInfo) => {
@@ -155,7 +155,7 @@ export function _readListOfInteger(buffer: Buffer) {
     });
 }
 
-function parseOID(buffer: Buffer, start: number, end: number) {
+function parseOID(buffer: Buffer, start: number, end: number): string {
     // ASN.1 JavaScript decoder
     // Copyright (c) 2008-2014 Lapo Luchini <lapo@lapo.it>
     let s = "",
@@ -186,8 +186,7 @@ function parseOID(buffer: Buffer, start: number, end: number) {
     return s;
 }
 
-
-export function _readObjectIdentifier(buffer: Buffer, block: BlockInfo) {
+export function _readObjectIdentifier(buffer: Buffer, block: BlockInfo): { oid: string; name: string } {
     assert(block.tag === TagType.OBJECT_IDENTIFIER);
     const b = buffer.slice(block.position, block.position + block.length);
     const oid = parseOID(b, 0, block.length);
@@ -249,8 +248,6 @@ export function _readVersionValue(buffer: Buffer, block: BlockInfo): number {
     return _readIntegerValue(buffer, block);
 }
 
-
-
 /*
  4.1.2.5.2  GeneralizedTime
 
@@ -285,8 +282,6 @@ function _readBMPString(buffer: Buffer, block: BlockInfo): string {
     }
     return str;
 }
-
-
 
 /*
  http://tools.ietf.org/html/rfc5280
@@ -352,7 +347,6 @@ export function _readValue(buffer: Buffer, block: BlockInfo): any {
     }
 }
 
-
 export interface DirectoryName {
     stateOrProvinceName?: string;
     localityName?: string;
@@ -361,7 +355,7 @@ export interface DirectoryName {
     commonName?: string;
     countryName?: string;
 }
-export function compactDirectoryName(d: DirectoryName) {
+export function compactDirectoryName(d: DirectoryName): string {
     return JSON.stringify(d);
 }
 
@@ -394,7 +388,6 @@ export function _findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo
     return tmp[0];
 }
 
-
-export function _readTime(buffer: Buffer, block: BlockInfo) {
+export function _readTime(buffer: Buffer, block: BlockInfo): any {
     return _readValue(buffer, block);
 }
