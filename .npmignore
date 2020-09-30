@@ -2,6 +2,9 @@ test/
 tmp/
 .codeclimate.yml
 .travis.yml
+.fossa.yaml
+.mocharc.json
+.eslint*
 appveyor.yml
 Makefile
 .idea
@@ -11,5 +14,4 @@ node.exe
 .nyc_output/
 .vscode/
 *.tsbuildinfo
-
 
