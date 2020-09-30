@@ -10,6 +10,6 @@ doc/
 node.exe
 .nyc_output/
 .vscode/
-
+*.tsbuildinfo
 
 
