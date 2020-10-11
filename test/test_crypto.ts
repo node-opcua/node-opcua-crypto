@@ -8,7 +8,6 @@ import {
     DER,
     PublicKey,
     PublicKeyPEM,
-    setCertificateStore,
     rsa_length,
     convertPEMtoDER,
     RSA_PKCS1_OAEP_PADDING,
@@ -17,15 +16,18 @@ import {
     privateDecrypt_long,
     makeMessageChunkSignature,
     verifyMessageChunkSignature,
-    readPrivateKey,
     toPem,
+    extractPublicKeyFromCertificate,
+    publicEncrypt,
+} from "../source";
+import {
+    setCertificateStore,
+    readPrivateKey,
     readCertificate,
     readPublicKey,
-    extractPublicKeyFromCertificate,
     read_sshkey_as_pem,
-    publicEncrypt,
     readPrivateRsaKey,
-} from "../lib";
+} from "../source_nodejs";
 
 import * as loremIpsum1 from "lorem-ipsum";
 const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });

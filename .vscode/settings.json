@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
-        "camelcase"
+        "Struct",
+        "camelcase",
+        "sshpk"
     ],
     "git.ignoreLimitWarning": true
 }

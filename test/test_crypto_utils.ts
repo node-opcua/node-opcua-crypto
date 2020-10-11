@@ -3,10 +3,11 @@ import * as os from "os";
 import * as path from "path";
 
 import * as loremIpsum from "lorem-ipsum";
-
 import * as should from "should";
-import * as crypto_utils from "../lib";
-import { split_der } from "../lib";
+
+import { exploreCertificateInfo, makeSHA1Thumbprint, split_der, toPem } from "../source";
+import { readCertificate } from "../source_nodejs";
+
 // tslint:disable-next-line:unused-constant
 const should_ = should;
 
@@ -20,7 +21,7 @@ function make_lorem_ipsum_buffer() {
 
 describe("Crypto utils", function () {
     it("should read a PEM file", () => {
-        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
+        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
 
         // console.log(certificate.toString("hex"));
         // console.log(certificate.toString("base64"));
@@ -56,7 +57,7 @@ describe("Crypto utils", function () {
     });
 
     it("should read a certificate chain", () => {
-        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
         const arrayCertificate = split_der(certificate);
 
@@ -64,13 +65,13 @@ describe("Crypto utils", function () {
     });
 
     it("ZZ should read a certificate chain - write and read it again", () => {
-        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
 
-        const t = crypto_utils.toPem(certificate, "CERTIFICATE");
+        const t = toPem(certificate, "CERTIFICATE");
 
         const certificate_one_blob = path.join(os.tmpdir(), "./tmp.pem");
         fs.writeFileSync(certificate_one_blob, t, "ascii");
-        const certificate2 = crypto_utils.readCertificate(certificate_one_blob);
+        const certificate2 = readCertificate(certificate_one_blob);
 
         certificate.toString("base64").should.eql(certificate2.toString("base64"));
     });
@@ -78,7 +79,7 @@ describe("Crypto utils", function () {
     it("makeSHA1Thumbprint should produce a 20-byte thumbprint ", () => {
         const buf = make_lorem_ipsum_buffer();
 
-        const digest = crypto_utils.makeSHA1Thumbprint(buf);
+        const digest = makeSHA1Thumbprint(buf);
 
         digest.should.be.instanceOf(Buffer);
 
@@ -88,15 +89,15 @@ describe("Crypto utils", function () {
 
 describe("exploreCertificate", () => {
     it("should explore a 1024 bits RSA certificate", () => {
-        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
-        const data = crypto_utils.exploreCertificateInfo(certificate);
+        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
+        const data = exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(128);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);
     });
     it("should explore a 2048 bits RSA certificate", () => {
-        const certificate = crypto_utils.readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
-        const data = crypto_utils.exploreCertificateInfo(certificate);
+        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
+        const data = exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(256);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);

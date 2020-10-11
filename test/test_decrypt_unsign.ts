@@ -1,5 +1,5 @@
 import * as should from "should";
-import * as crypto_utils from "../lib";
+import { privateDecrypt_long, toPem, verifyChunkSignature } from "../source";
 import { inlineText, makebuffer_from_trace } from "./helpers/makebuffer_from_trace";
 
 // tslint:disable-next-line:unused-constant
@@ -91,7 +91,7 @@ describe("testing message decryption", () => {
         const encrypted_part = buffer.slice(start);
 
         // decrypt the encrypted part
-        const decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
+        const decrypted_part = privateDecrypt_long(encrypted_part, privateKey, 128);
 
         // recompose the buffer
         decrypted_part.copy(buffer, start);
@@ -100,13 +100,13 @@ describe("testing message decryption", () => {
         my_buffer.length.should.equal(start + 3 * (128 - 11));
 
         // verify signature
-        const publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
+        const publicKey = toPem(senderCertificate, "CERTIFICATE");
         const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
             publicKey,
         };
-        const boolSignatureIsOK = crypto_utils.verifyChunkSignature(my_buffer, options);
+        const boolSignatureIsOK = verifyChunkSignature(my_buffer, options);
 
         boolSignatureIsOK.should.eql(true);
 
@@ -116,7 +116,7 @@ describe("testing message decryption", () => {
             //xx signatureLength: 256,
             publicKey,
         };
-        const boolSignatureIsOK1 = crypto_utils.verifyChunkSignature(my_buffer, options1);
+        const boolSignatureIsOK1 = verifyChunkSignature(my_buffer, options1);
 
         boolSignatureIsOK1.should.eql(true);
     });

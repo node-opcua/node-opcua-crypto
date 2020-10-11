@@ -10,7 +10,7 @@ import {
     reduceLength,
     makeMessageChunkSignatureWithDerivedKeys,
     verifyChunkSignatureWithDerivedKeys,
-} from "../lib";
+} from "../source";
 
 import * as loremIpsum1 from "lorem-ipsum";
 const loremIpsum = loremIpsum1.loremIpsum({ count: 100 });

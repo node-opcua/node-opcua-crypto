@@ -1,7 +1,3 @@
-import * as fs from "fs";
-import * as assert from "assert";
-
-import { promisify } from "util";
 import {
     _readStruct,
     readTag,
@@ -22,8 +18,8 @@ import {
     _findBlockAtIndex,
     _readIntegerValue,
 } from "./asn1";
+import { CertificateRevocationList } from "./common";
 import { makeSHA1Thumbprint, convertPEMtoDER } from "./crypto_utils";
-import { Certificate } from "crypto";
 
 export type Version = string;
 export type Name = string;
@@ -87,16 +83,6 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
 }
 // see https://tools.ietf.org/html/rfc5280
 
-export type CertificateRevocationList = Buffer;
-export async function readCertificateRevocationList(filename: string): Promise<CertificateRevocationList> {
-    const crl = await promisify(fs.readFile)(filename);
-    if (crl[0] === 0x30 && crl[1] === 0x82) {
-        // der format
-        return crl as CertificateRevocationList;
-    }
-    const raw_crl = crl.toString();
-    return convertPEMtoDER(raw_crl);
-}
 export function exploreCertificateRevocationList(crl: CertificateRevocationList): CertificateRevocationListInfo {
     const blockInfo = readTag(crl, 0);
     const blocks = _readStruct(crl, blockInfo);

@@ -1,9 +1,9 @@
 import * as should from "should";
 import * as path from "path";
 import * as fs from "fs";
-import * as util from "util";
 
-import { readCertificate, exploreCertificate, exploreCertificateInfo, combine_der, split_der } from "../lib";
+import { exploreCertificate, combine_der, split_der } from "../source";
+import { readCertificate } from "../source_nodejs";
 
 describe(" exploring Certificates", function (this: Mocha.Suite) {
     this.timeout(200000);

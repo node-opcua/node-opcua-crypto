@@ -3,7 +3,7 @@
  */
 
 import { Certificate, CertificatePEM } from "./common";
-import { exploreCertificate, SubjectPublicKeyInfo } from "./crypto_explore_certificate";
+import { exploreCertificate } from "./crypto_explore_certificate";
 import { DirectoryName } from "./asn1";
 import { convertPEMtoDER } from "./crypto_utils";
 import * as assert from "assert";

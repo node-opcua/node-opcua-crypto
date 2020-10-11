@@ -1,7 +1,8 @@
-import { readCertificate, verifyCertificateChain } from "../lib";
 import * as path from "path";
+import { verifyCertificateChain } from "../source";
+import { readCertificate } from "../source_nodejs";
 
-describe("Test Cerficate Chain", () => {
+describe("Test Certificate Chain", () => {
     it("DX should verify a certificate chain", async () => {
         const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
         const certificate2 = readCertificate(path.join(__dirname, "./fixtures/certsChain/cacert.pem"));

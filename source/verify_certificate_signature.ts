@@ -1,6 +1,6 @@
 // tslint:disable: no-console
 
-// Now that we got a hash of the orginal certificate,
+// Now that we got a hash of the original certificate,
 // we need to verify if we can obtain the same hash by using the same hashing function
 // (in this case SHA-384). In order to do that, we need to extract just the body of
 // the signed certificate. Which, in our case, is everything but the signature.
@@ -12,7 +12,7 @@ import { split_der, exploreCertificate } from "./crypto_explore_certificate";
 import { toPem } from "./crypto_utils";
 import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _readStruct, _getBlock } from "./asn1";
 
-export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCerticate: Certificate): boolean {
+export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);
     const blocks = _readStruct(certificateOrCrl, block_info);
     const bufferToBeSigned = certificateOrCrl.slice(block_info.position, blocks[1].position - 2);
@@ -21,7 +21,7 @@ export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parent
     const signatureAlgorithm = _readAlgorithmIdentifier(certificateOrCrl, blocks[1]);
     const signatureValue = _readSignatureValueBin(certificateOrCrl, blocks[2]);
 
-    const p = split_der(parentCerticate)[0];
+    const p = split_der(parentCertificate)[0];
     //xx    const publicKey = extractPublicKeyFromCertificateSync(p);
     const certPem = toPem(p, "CERTIFICATE");
     const verify = crypto.createVerify(signatureAlgorithm.identifier);
@@ -30,14 +30,14 @@ export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parent
     return verify.verify(certPem, signatureValue);
 }
 
-export function verifyCertificateSignature(certificate: Certificate, parentCerticate: Certificate): boolean {
-    return verifyCertificateOrClrSignature(certificate, parentCerticate);
+export function verifyCertificateSignature(certificate: Certificate, parentCertificate: Certificate): boolean {
+    return verifyCertificateOrClrSignature(certificate, parentCertificate);
 }
 export function verifyCertificateRevocationListSignature(
     certificateRevocationList: Certificate,
-    parentCerticate: Certificate
+    parentCertificate: Certificate
 ): boolean {
-    return verifyCertificateOrClrSignature(certificateRevocationList, parentCerticate);
+    return verifyCertificateOrClrSignature(certificateRevocationList, parentCertificate);
 }
 
 export type _VerifyStatus = "BadCertificateIssuerUseNotAllowed" | "BadCertificateInvalid" | "Good";
@@ -74,7 +74,7 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         if (!certInfo.tbsCertificate.extensions) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "Cannot finx X409 Extension 3 in certificate",
+                reason: "Cannot find X409 Extension 3 in certificate",
             };
         }
 
@@ -82,7 +82,7 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         if (!certParentInfo.tbsCertificate.extensions || !certInfo.tbsCertificate.extensions.authorityKeyIdentifier) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "Cannot finx X409 Extension 3 in certificate (parent)",
+                reason: "Cannot find X409 Extension 3 in certificate (parent)",
             };
         }
 

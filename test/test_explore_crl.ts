@@ -1,13 +1,12 @@
 import * as path from "path";
 import {
-    readCertificateRevocationList,
     verifyCertificateRevocationListSignature,
-    readCertificate,
     exploreCertificateRevocationList,
     verifyCertificateSignature,
     exploreCertificate,
     toPem,
-} from "../lib";
+} from "../source";
+import { readCertificateRevocationList, readCertificate } from "../source_nodejs";
 
 describe("Explore Certificate Revocation List", () => {
     it("should read and explore a PEM revocation list", async () => {

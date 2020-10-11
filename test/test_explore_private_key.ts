@@ -1,5 +1,6 @@
 import * as path from "path";
-import { convertPEMtoDER, explorePrivateKey, readPrivateRsaKey, readPrivateKeyPEM } from "../lib";
+import { convertPEMtoDER, explorePrivateKey } from "../source";
+import { readPrivateRsaKey, readPrivateKeyPEM } from "../source_nodejs";
 
 describe(" exploring Private Key", function () {
     it("should explore a RSA private key", () => {

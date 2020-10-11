@@ -10,3 +10,4 @@ export type PublicKey = DER;
 export type PublicKeyPEM = PEM;
 
 export type Signature = Buffer;
+export type CertificateRevocationList = Buffer;

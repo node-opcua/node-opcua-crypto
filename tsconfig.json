@@ -12,7 +12,7 @@
         "traceResolution": false,
         "incremental": true,
         "types": ["node", "mocha", "should"],
-        "rootDir": "lib"
+        "rootDir": "."
     },
-    "files": ["lib/index.ts"]
+    "files": ["source/index.ts", "source_nodejs/index.ts"]
 }
