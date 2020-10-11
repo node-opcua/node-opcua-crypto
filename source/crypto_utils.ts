@@ -8,9 +8,8 @@ import { createFastUninitializedBuffer } from "./buffer_utils";
 import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM, Signature } from "./common";
 import { combine_der } from "./crypto_explore_certificate";
 import * as assert from "assert";
+import { hexy } from "hexy";
 
-// tslint:disable:no-var-requires
-import hexy = require("hexy");
 const jsrsasign = require("jsrsasign");
 
 const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([\/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n)/gm;
@@ -85,9 +84,9 @@ export function hexDump(buffer: Buffer, width?: number): string {
     }
     width = width || 32;
     if (buffer.length > 1024) {
-        return hexy.hexy(buffer.slice(0, 1024), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
+        return hexy(buffer.slice(0, 1024), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
     } else {
-        return hexy.hexy(buffer, { width, format: "twos" });
+        return hexy(buffer, { width, format: "twos" });
     }
 }
 

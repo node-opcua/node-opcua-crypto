@@ -23,9 +23,6 @@ describe("Crypto utils", function () {
     it("should read a PEM file", () => {
         const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
 
-        // console.log(certificate.toString("hex"));
-        // console.log(certificate.toString("base64"));
-        // console.log(hexy.hexy(certificate, {width: 32}));
         certificate
             .toString("base64")
             .should.equal(
