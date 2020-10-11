@@ -1,4 +1,4 @@
-import assert = require("assert");
+import * as assert from "assert";
 import { oid_map } from "./oid_map";
 
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js

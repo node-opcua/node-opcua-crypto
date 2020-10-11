@@ -1,4 +1,4 @@
-import assert = require("assert");
+import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM } from "../source/common";

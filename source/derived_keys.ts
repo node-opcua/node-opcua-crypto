@@ -7,7 +7,7 @@ import { createFastUninitializedBuffer } from "./buffer_utils";
 import { Nonce } from "./common";
 import { verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions } from "./crypto_utils";
 import { exploreCertificateInfo } from "./explore_certificate";
-import assert = require("assert");
+import * as assert from "assert";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
     return crypto.createHmac(sha1or256, secret).update(message).digest();
