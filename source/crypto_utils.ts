@@ -7,7 +7,7 @@ import * as crypto from "crypto";
 import { createFastUninitializedBuffer } from "./buffer_utils";
 import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM, Signature } from "./common";
 import { combine_der } from "./crypto_explore_certificate";
-import * as assert from "assert";
+import assert = require("assert");
 
 // tslint:disable:no-var-requires
 import hexy = require("hexy");

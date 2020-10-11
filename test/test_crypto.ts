@@ -1,4 +1,4 @@
-import * as assert from "assert";
+import assert = require("assert");
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";

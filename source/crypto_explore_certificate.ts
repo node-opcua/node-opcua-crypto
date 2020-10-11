@@ -52,7 +52,7 @@
 //  - http://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art030
 //  openssl can be also used to discover the content of a DER file
 //  $ openssl asn1parse -in cert.pem
-import * as assert from "assert";
+import assert = require("assert");
 
 import {
     _readBitString,

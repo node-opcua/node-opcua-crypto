@@ -4,7 +4,7 @@
   "description": "Crypto tools for Node-OPCUA",
   "main": "./index.js",
   "types": "./index.d.ts",
-  "browser": "index_web.js",
+  "browser": "./index_web.js",
   "scripts": {
     "build": "npx tsc",
     "prepare": "npm run build",

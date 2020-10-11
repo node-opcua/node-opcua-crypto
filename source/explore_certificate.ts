@@ -6,7 +6,7 @@ import { Certificate, CertificatePEM } from "./common";
 import { exploreCertificate } from "./crypto_explore_certificate";
 import { DirectoryName } from "./asn1";
 import { convertPEMtoDER } from "./crypto_utils";
-import * as assert from "assert";
+import assert = require("assert");
 
 export type PublicKeyLength = 128 | 256 | 384 | 512;
 
