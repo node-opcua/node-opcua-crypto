@@ -1,2 +1,2 @@
-export * from "./source";
-export * from "./source_nodejs";
+export * from "./dist/source";
+export * from "./dist/source_nodejs";
