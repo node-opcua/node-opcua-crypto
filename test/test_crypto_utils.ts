@@ -82,6 +82,18 @@ describe("Crypto utils", function () {
 
         digest.length.should.eql(20); // SHA1 should condensed to 160 bits
     });
+
+    it("toPem should return a string if provided certificate is a buffer containing a PEM string", () => {
+        const certificate = fs.readFileSync(path.join(__dirname, "./fixtures/certs/cert1.pem"), null);
+        const pemCertificate = toPem(certificate, "CERTIFICATE");
+        pemCertificate.should.be.type('string');
+    });
+
+    it("toPem should return a certificate directly if provided certificate is PEM string", () => {
+        const certificate = fs.readFileSync(path.join(__dirname, "./fixtures/certs/cert1.pem"), 'ascii');
+        const pemCertificate = toPem(certificate, "CERTIFICATE");
+        pemCertificate.should.eql(certificate);
+    });
 });
 
 describe("exploreCertificate", () => {
