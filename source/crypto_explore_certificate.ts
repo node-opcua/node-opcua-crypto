@@ -385,7 +385,7 @@ function readExtKeyUsage(oid: string, buffer: Buffer): string {
  -- by extnID
  }
  */
-function _readExtension(buffer: Buffer, block: BlockInfo) {
+export function _readExtension(buffer: Buffer, block: BlockInfo) {
     const inner_blocks = _readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
@@ -544,7 +544,7 @@ export interface TbsCertificate {
     extensions: CertificateExtension | null;
 }
 
-function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
+export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
     const blocks = _readStruct(buffer, block);
 
     let version, serialNumber, signature, issuer, validity, subject, subjectFingerPrint, subjectPublicKeyInfo, extensions;

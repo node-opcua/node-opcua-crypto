@@ -8,3 +8,4 @@ export * from "./crypto_utils";
 export * from "./crypto_explore_certificate";
 export * from "./verify_certificate_signature";
 export * from "./explore_certificate_revocation_list";
+export * from "./explore_certificate_signing_request";
