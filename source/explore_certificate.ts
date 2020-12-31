@@ -3,7 +3,7 @@
  */
 
 import { Certificate, CertificatePEM } from "./common";
-import { exploreCertificate } from "./crypto_explore_certificate";
+import { exploreCertificate, SubjectPublicKey } from "./crypto_explore_certificate";
 import { DirectoryName } from "./asn1";
 import { convertPEMtoDER } from "./crypto_utils";
 import * as assert from "assert";
@@ -23,7 +23,7 @@ export interface CertificateInfo {
     /** info about certificate owner */
     subject: DirectoryName;
     /** public key */
-    publicKey: Buffer;
+    publicKey: SubjectPublicKey;
 }
 
 export function coerceCertificate(certificate: Certificate | CertificatePEM): Certificate {

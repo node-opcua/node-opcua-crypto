@@ -375,6 +375,20 @@ function readExtKeyUsage(oid: string, buffer: Buffer): string {
         }
         */
 }
+
+
+export interface SubjectPublicKey {
+    modulus: Buffer
+}
+function _readSubjectPublicKey(buffer: Buffer): SubjectPublicKey{
+
+    const block_info = readTag(buffer, 0);
+    const blocks = _readStruct(buffer, block_info);
+
+    return {
+        modulus: buffer.slice(blocks[0].position+1, blocks[0].position+ blocks[0].length)
+    }
+}
 /*
  Extension  ::=  SEQUENCE  {
  extnID      OBJECT IDENTIFIER,
@@ -498,7 +512,7 @@ function _readSubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPub
     return {
         algorithm: algorithm.identifier,
         keyLength: (values[0].length - 1) as PublicKeyLength,
-        subjectPublicKey: subjectPublicKey.data,
+        subjectPublicKey: _readSubjectPublicKey(subjectPublicKey.data),
         //xx values: values,
         //xx values_length : values.map(function (a){ return a.length; })
     };
@@ -507,7 +521,7 @@ function _readSubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPub
 export interface SubjectPublicKeyInfo {
     algorithm: string;
     keyLength: PublicKeyLength;
-    subjectPublicKey: Buffer;
+    subjectPublicKey: SubjectPublicKey;
 }
 
 export interface BasicConstraints {
@@ -623,53 +637,6 @@ export function exploreCertificate(certificate: Certificate): CertificateInterna
         };
     }
     return (certificate as any)._exploreCertificate_cache;
-}
-
-// tslint:disable:no-empty-interface
-export interface PrivateKeyInternals {
-    /**/
-}
-
-export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
-    assert(privateKey instanceof Buffer);
-    const block_info = readTag(privateKey, 0);
-    const blocks = _readStruct(privateKey, block_info);
-
-    /* istanbul ignore next */
-    if (doDebug) {
-        // tslint:disable:no-console
-        console.log(block_info);
-
-        // tslint:disable:no-console
-        console.log(
-            blocks.map((b) => ({
-                tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
-                l: b.length,
-                p: b.position,
-                buff: privateKey.slice(b.position, b.position + b.length).toString("hex"),
-            }))
-        );
-    }
-
-    const b = blocks[2];
-    const bb = privateKey.slice(b.position, b.position + b.length);
-    const block_info1 = readTag(bb, 0);
-    const blocks1 = _readStruct(bb, block_info1);
-
-    /* istanbul ignore next */
-    if (doDebug) {
-        // tslint:disable:no-console
-        console.log(
-            blocks1.map((b) => ({
-                tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
-                l: b.length,
-                p: b.position,
-                buff: privateKey.slice(b.position, b.position + b.length).toString("hex"),
-            }))
-        );
-    }
-
-    return {};
 }
 
 /**

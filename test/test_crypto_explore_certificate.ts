@@ -148,7 +148,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         should(certificate_info.tbsCertificate.extensions).not.eql(null);
 
         (certificate_info.tbsCertificate.subjectPublicKeyInfo
-            .subjectPublicKey as any) = certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.toString("base64");
+            .subjectPublicKey.modulus as any) = certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus.toString("base64");
 
         // console.log(JSON.stringify(certificate_info, null, " "));
     });
