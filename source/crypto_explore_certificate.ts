@@ -200,7 +200,7 @@ function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
         authorityCertIssuerFingerPrint,
         serial: authorityCertSerialNumber_block
             ? formatBuffer2DigitHexWithColum(_getBlock(buffer, authorityCertSerialNumber_block!))
-            : null, // can be null for self-signed certf
+            : null, // can be null for self-signed cert
         keyIdentifier: keyIdentifier_block ? formatBuffer2DigitHexWithColum(_getBlock(buffer, keyIdentifier_block!)) : null, // can be null for self-signed certf
     };
 }
@@ -320,6 +320,10 @@ export interface ExtKeyUsage {
     codeSigning: boolean;
     emailProtection: boolean;
     timeStamping: boolean;
+    ocspSigning: boolean;
+    ipsecEndSystem: boolean;
+    ipsecTunnel: boolean;
+    ipsecUser: boolean;
     // etc ... to be completed
 }
 
@@ -360,34 +364,76 @@ function readKeyUsage(oid: string, buffer: Buffer): KeyUsage {
     };
 }
 
-function readExtKeyUsage(oid: string, buffer: Buffer): string {
-    return "readExtKeyUsage " + oid + "  " + buffer.toString("hex");
-    /*    // handle extKeyUsage
-        // value is a SEQUENCE of OIDs
-        var ev = asn1.fromDer(e.value);
-        for (var vi = 0; vi < ev.value.length; ++vi) {
-            var oid = asn1.derToOid(ev.value[vi].value);
-            if (oid in oids) {
-                e[oids[oid]] = true;
-            } else {
-                e[oid] = true;
-            }
-        }
-        */
-}
+function readExtKeyUsage(oid: string, buffer: Buffer): ExtKeyUsage {
+    assert(oid === "2.5.29.37");
+    // see https://tools.ietf.org/html/rfc5280#section-4.2.1.12
+    const block_info = readTag(buffer, 0);
 
+    const inner_blocks = _readStruct(buffer, block_info);
+
+    const extKeyUsage: ExtKeyUsage = {
+        serverAuth: false,
+        clientAuth: false,
+        codeSigning: false,
+        emailProtection: false,
+        timeStamping: false,
+        ipsecEndSystem: false,
+        ipsecTunnel: false,
+        ipsecUser: false,
+        ocspSigning: false,
+    };
+    for (const block of inner_blocks) {
+        const identifier = _readObjectIdentifier(buffer, block);
+        (extKeyUsage as any)[identifier.name] = true;
+    }
+    /*
+    
+   id-kp OBJECT IDENTIFIER ::= { id-pkix 3 }
+
+   id-kp-serverAuth             OBJECT IDENTIFIER ::= { id-kp 1 }
+   -- TLS WWW server authentication
+   -- Key usage bits that may be consistent: digitalSignature,
+   -- keyEncipherment or keyAgreement
+
+   id-kp-clientAuth             OBJECT IDENTIFIER ::= { id-kp 2 }
+   -- TLS WWW client authentication
+   -- Key usage bits that may be consistent: digitalSignature
+   -- and/or keyAgreement
+
+   id-kp-codeSigning             OBJECT IDENTIFIER ::= { id-kp 3 }
+   -- Signing of downloadable executable code
+   -- Key usage bits that may be consistent: digitalSignature
+
+   id-kp-emailProtection         OBJECT IDENTIFIER ::= { id-kp 4 }
+   -- Email protection
+   -- Key usage bits that may be consistent: digitalSignature,
+   -- nonRepudiation, and/or (keyEncipherment or keyAgreement)
+
+   id-kp-timeStamping            OBJECT IDENTIFIER ::= { id-kp 8 }
+   -- Binding the hash of an object to a time
+   -- Key usage bits that may be consistent: digitalSignature
+   -- and/or nonRepudiation
+
+   id-kp-OCSPSigning            OBJECT IDENTIFIER ::= { id-kp 9 }
+   -- Signing OCSP responses
+   -- Key usage bits that may be consistent: digitalSignature
+   -- and/or nonRepudiation
+
+   */
+    // set flags
+    return extKeyUsage;
+}
 
 export interface SubjectPublicKey {
-    modulus: Buffer
+    modulus: Buffer;
 }
-function _readSubjectPublicKey(buffer: Buffer): SubjectPublicKey{
-
+function _readSubjectPublicKey(buffer: Buffer): SubjectPublicKey {
     const block_info = readTag(buffer, 0);
     const blocks = _readStruct(buffer, block_info);
 
     return {
-        modulus: buffer.slice(blocks[0].position+1, blocks[0].position+ blocks[0].length)
-    }
+        modulus: buffer.slice(blocks[0].position + 1, blocks[0].position + blocks[0].length),
+    };
 }
 /*
  Extension  ::=  SEQUENCE  {
@@ -399,7 +445,7 @@ function _readSubjectPublicKey(buffer: Buffer): SubjectPublicKey{
  -- by extnID
  }
  */
-export function _readExtension(buffer: Buffer, block: BlockInfo) {
+export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: { oid: string; name: string }; value: any } {
     const inner_blocks = _readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
@@ -542,7 +588,7 @@ export interface CertificateExtension {
     subjectKeyIdentifier?: string;
     authorityKeyIdentifier?: AuthorithyKeyIdentifier;
     keyUsage?: KeyUsage;
-    extKeyUsage?: KeyUsage;
+    extKeyUsage?: ExtKeyUsage;
     subjectAltName?: any;
 }
 

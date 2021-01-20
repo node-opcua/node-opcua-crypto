@@ -3,6 +3,7 @@
         "Struct",
         "camelcase",
         "hexy",
+        "ipsec",
         "jsrsasign",
         "sshpk"
     ],

@@ -73,7 +73,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         );
 
         if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
-            // when serial and keyIdentifier are providef the certificate is not self-signed
+            // when serial and keyIdentifier are provided the certificate is not self-signed
             should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.serial);
             should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier);
         }
@@ -101,7 +101,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         );
 
         if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
-            // when serial and keyIdentifier are providef the certificate is not self-signed
+            // when serial and keyIdentifier are provided the certificate is not self-signed
             should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.serial);
             should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier);
         }
@@ -147,8 +147,8 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         certificate_info.tbsCertificate.version.should.eql(3);
         should(certificate_info.tbsCertificate.extensions).not.eql(null);
 
-        (certificate_info.tbsCertificate.subjectPublicKeyInfo
-            .subjectPublicKey.modulus as any) = certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus.toString("base64");
+        (certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey
+            .modulus as any) = certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus.toString("base64");
 
         // console.log(JSON.stringify(certificate_info, null, " "));
     });
