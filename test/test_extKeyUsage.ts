@@ -1,16 +1,9 @@
 import * as path from "path";
-import {
-    verifyCertificateRevocationListSignature,
-    exploreCertificateRevocationList,
-    verifyCertificateSignature,
-    exploreCertificate,
-    toPem,
-    exploreCertificateInfo,
-} from "../source";
-import { readCertificateRevocationList, readCertificate } from "../source_nodejs";
+import { exploreCertificate } from "../source";
+import { readCertificate } from "../source_nodejs";
 import * as should from "should";
 
-describe("ExtKeyUsage", () => {
+describe("X509ExtKeyUsage", () => {
     it("should parse extKeyUsage 1", () => {
         const certificateFile = path.join(__dirname, "./fixtures/certificate_with_extKeyUsage1.pem");
         const certificate = readCertificate(certificateFile);

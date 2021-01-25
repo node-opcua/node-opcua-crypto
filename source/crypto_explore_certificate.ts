@@ -142,7 +142,7 @@ function _readValidity(buffer: Buffer, block: BlockInfo): Validity {
     };
 }
 
-function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorithyKeyIdentifier {
+function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorityKeyIdentifier {
     /**
      *  where a CA distributes its public key in the form of a "self-signed"
      *  certificate, the authority key identifier MAY be omitted.  Th
@@ -303,7 +303,8 @@ function _readSubjectAltNames(buffer: Buffer) {
     return _readGeneralNames(buffer, block_info);
 }
 
-export interface KeyUsage {
+// named X509KeyUsage not to confuse with DOM KeyUsage
+export interface X509KeyUsage {
     digitalSignature: boolean;
     nonRepudiation: boolean;
     keyEncipherment: boolean;
@@ -314,7 +315,7 @@ export interface KeyUsage {
     encipherOnly: boolean;
     decipherOnly: boolean;
 }
-export interface ExtKeyUsage {
+export interface X509ExtKeyUsage {
     clientAuth: boolean;
     serverAuth: boolean;
     codeSigning: boolean;
@@ -327,7 +328,7 @@ export interface ExtKeyUsage {
     // etc ... to be completed
 }
 
-function readKeyUsage(oid: string, buffer: Buffer): KeyUsage {
+function readKeyUsage(oid: string, buffer: Buffer): X509KeyUsage {
     const block_info = readTag(buffer, 0);
 
     // get value as BIT STRING
@@ -364,14 +365,14 @@ function readKeyUsage(oid: string, buffer: Buffer): KeyUsage {
     };
 }
 
-function readExtKeyUsage(oid: string, buffer: Buffer): ExtKeyUsage {
+function readExtKeyUsage(oid: string, buffer: Buffer): X509ExtKeyUsage {
     assert(oid === "2.5.29.37");
     // see https://tools.ietf.org/html/rfc5280#section-4.2.1.12
     const block_info = readTag(buffer, 0);
 
     const inner_blocks = _readStruct(buffer, block_info);
 
-    const extKeyUsage: ExtKeyUsage = {
+    const extKeyUsage: X509ExtKeyUsage = {
         serverAuth: false,
         clientAuth: false,
         codeSigning: false,
@@ -576,7 +577,7 @@ export interface BasicConstraints {
     pathLengthConstraint?: number; // 0 Unlimited
 }
 
-export interface AuthorithyKeyIdentifier {
+export interface AuthorityKeyIdentifier {
     keyIdentifier: string | null;
     authorityCertIssuer: DirectoryName | null;
     authorityCertIssuerFingerPrint: string;
@@ -586,9 +587,9 @@ export interface AuthorithyKeyIdentifier {
 export interface CertificateExtension {
     basicConstraints: BasicConstraints;
     subjectKeyIdentifier?: string;
-    authorityKeyIdentifier?: AuthorithyKeyIdentifier;
-    keyUsage?: KeyUsage;
-    extKeyUsage?: ExtKeyUsage;
+    authorityKeyIdentifier?: AuthorityKeyIdentifier;
+    keyUsage?: X509KeyUsage;
+    extKeyUsage?: X509ExtKeyUsage;
     subjectAltName?: any;
 }
 

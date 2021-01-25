@@ -1,20 +1,19 @@
-import * as  assert  from "assert";
+import * as assert from "assert";
 import { BlockInfo, readTag, _findBlockAtIndex, _getBlock, _readObjectIdentifier, _readStruct, _readVersionValue } from "./asn1";
 
-import { BasicConstraints, _readExtension } from "./crypto_explore_certificate";
+import { BasicConstraints, X509KeyUsage, _readExtension } from "./crypto_explore_certificate";
 
 export interface ExtensionRequest {
-    basicConstraints: BasicConstraints,
-    keyUsage: KeyUsage,
-    subjectAltName: any
+    basicConstraints: BasicConstraints;
+    keyUsage: X509KeyUsage;
+    subjectAltName: any;
 }
 export interface CertificateSigningRequestInfo {
-    extensionRequest: ExtensionRequest
+    extensionRequest: ExtensionRequest;
 }
 
 function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
     const block = readTag(buffer, 0);
-
 
     const inner_blocks = _readStruct(buffer, block);
     const extensions = inner_blocks.map((block1) => _readExtension(buffer, block1));
@@ -41,7 +40,7 @@ export function readCertificationRequestInfo(buffer: Buffer, block: BlockInfo): 
             throw new Error(" Cannot find extension Request in ASN1 block");
         }
         const buf = _getBlock(buffer, blocks2[1]);
-        
+
         const extensionRequest = _readExtensionRequest(buf);
 
         return { extensionRequest };
