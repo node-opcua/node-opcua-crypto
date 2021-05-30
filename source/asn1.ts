@@ -21,6 +21,11 @@ export enum TagType {
     GeneralString = 0x1b,
     UniversalString = 0x1c,
     BMPString = 0x1e,
+
+    SEQUENCE = 0x30,
+    SET= 0x31,
+
+    A3= 0xA3
 }
 
 export interface BlockInfo {

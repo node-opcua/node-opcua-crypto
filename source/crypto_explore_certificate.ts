@@ -506,7 +506,6 @@ export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: 
 // Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
 function _readExtensions(buffer: Buffer, block: BlockInfo): CertificateExtension {
     assert(block.tag === 0xa3);
-
     let inner_blocks = _readStruct(buffer, block);
     inner_blocks = _readStruct(buffer, inner_blocks[0]);
 
