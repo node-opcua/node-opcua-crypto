@@ -71,18 +71,26 @@ function debugLog(...args: [any?, ...any[]]) {
         console.log(console, ...args);
     }
 }
+const c = crypto.createCipheriv;;
+(crypto as any).createCipheriv = (algorithm: any,key: any,iv: any)=> { 
+    console.log("aa=",key,algorithm);
+    console.log('p', iv.length);
+    return c(algorithm,key,iv); 
+};
 
 // symmetric encryption and decryption
-function encrypt_buffer(buffer: Buffer, algorithm: string, password: string | Buffer): Buffer {
-    const cipher = crypto.createCipher(algorithm, password);
+function encrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer {
+    const iv = Buffer.alloc(16, 0); // Initialization vector.
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
     const encrypted_chunks = [];
     encrypted_chunks.push(cipher.update(buffer));
     encrypted_chunks.push(cipher.final());
     return Buffer.concat(encrypted_chunks);
 }
 
-function decrypt_buffer(buffer: Buffer, algorithm: string, key: string | Buffer): Buffer {
-    const decipher = crypto.createDecipher(algorithm, key);
+function decrypt_buffer(buffer: Buffer, algorithm: string, key:  Buffer): Buffer {
+    const iv = Buffer.alloc(16, 0); // Initialization vector.
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
     const decrypted_chunks = [];
     decrypted_chunks.push(decipher.update(buffer));
     decrypted_chunks.push(decipher.final());
@@ -404,13 +412,13 @@ describe("testing and exploring the NodeJS crypto api", function () {
     it("should encrypt a message", function () {
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
-        const publicKey = fs.readFileSync(alice_public_key_filename).toString("ascii");
+        const key = crypto.randomBytes(32);
 
-        const buf = Buffer.alloc(16);
-        buf.writeDoubleLE(3.14, 0);
-        buf.writeDoubleLE(3.14, 8);
+        const bufferToEncrypt = Buffer.alloc(32);
+        bufferToEncrypt.writeDoubleLE(3.14, 0);
+        bufferToEncrypt.writeDoubleLE(3.14, 8);
 
-        const encryptedBuf = encrypt_buffer(buf, "aes-256-cbc", publicKey);
+        const encryptedBuf = encrypt_buffer(bufferToEncrypt, "aes-256-cbc", key);
 
         if (!fs.existsSync("tmp")) {
             fs.mkdirSync("tmp");
@@ -421,16 +429,17 @@ describe("testing and exploring the NodeJS crypto api", function () {
     });
 
     it("exploring crypto api with symmetrical encryption/decryption", function () {
-        const key = "salt_from_the_user_document",
-            buffer = Buffer.from("This is a top , very top secret message !! ah ah" + loremIpsum);
+        const key = crypto.randomBytes(32);
 
-        const encrypted_buff = encrypt_buffer(buffer, "aes-256-cbc", key);
-        const decrypted_buff = decrypt_buffer(encrypted_buff, "aes-256-cbc", key);
+        const bufferToEncrypt = Buffer.from("This is a top , very top secret message !! ah ah" + loremIpsum);
+
+        const encryptedBuffer = encrypt_buffer(bufferToEncrypt, "aes-256-cbc", key);
+        const decryptedBuffer = decrypt_buffer(encryptedBuffer, "aes-256-cbc", key);
 
         // xx console.log("encrypted  %d :", encrypted_buff.length,encrypted_buff.toString("hex"));
         // xx console.log("decrypted  %d :", decrypted_buff.length,decrypted_buff.toString("hex"));
         // xx console.log("decrypted  %d :", buffer.length,buffer.toString("hex"));
-        buffer.toString("hex").should.equal(decrypted_buff.toString("hex"));
+        bufferToEncrypt.toString("hex").should.equal(decryptedBuffer.toString("hex"));
     });
 });
 

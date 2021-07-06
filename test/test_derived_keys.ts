@@ -67,7 +67,7 @@ describe("test derived key making", function () {
         //xx console.log(hexDump(buf));
     });
 
-    function perform_symmetric_encryption_test(options: any, done: (err?: Error | null) => void): void {
+    function perform_symmetric_encryption_test(options: ComputeDerivedKeysOptions, done: (err?: Error | null) => void): void {
         const derivedKeys = computeDerivedKeys(secret, seed, options);
 
         derivedKeys.should.have.ownProperty("sha1or256");
@@ -119,7 +119,7 @@ describe("test derived key making", function () {
         reduced.toString("ascii").should.equal("Hello");
     });
 
-    function test_verifyChunkSignatureWithDerivedKeys(options: any) {
+    function test_verifyChunkSignatureWithDerivedKeys(options: ComputeDerivedKeysOptions) {
         const derivedKeys = computeDerivedKeys(secret, seed, options);
 
         const clear_message = make_lorem_ipsum_buffer();
