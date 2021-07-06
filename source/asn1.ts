@@ -29,7 +29,7 @@ export enum TagType {
 }
 
 export interface BlockInfo {
-    tag: TagType;
+    tag: TagType | number;
     position: number;
     length: number;
 }
