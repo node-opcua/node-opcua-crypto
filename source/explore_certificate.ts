@@ -8,7 +8,7 @@ import { DirectoryName } from "./asn1";
 import { convertPEMtoDER } from "./crypto_utils";
 import * as assert from "assert";
 
-export type PublicKeyLength = 128 | 256 | 384 | 512;
+export type PublicKeyLength = 64 | 96 | 128 | 256 | 384 | 512;
 
 /**
  * A structure exposing useful information about a certificate

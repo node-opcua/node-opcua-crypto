@@ -67,6 +67,7 @@ import {
     _readListOfInteger,
     _readObjectIdentifier,
     _readAlgorithmIdentifier,
+    _readECCAlgorithmIdentifier,
     _readBooleanValue,
     _readIntegerValue,
     _readLongIntegerValue,
@@ -564,6 +565,26 @@ function _readSubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPub
     };
 }
 
+function _readSubjectECCPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPublicKeyInfo {
+    const inner_blocks = _readStruct(buffer, block);
+
+    // first parameter is the second element of the first block, which is why we have another algorithm
+    const algorithm = _readECCAlgorithmIdentifier(buffer, inner_blocks[0]);
+
+    // the public key is already in bit format, we just need to read it
+    const subjectPublicKey = _readBitString(buffer, inner_blocks[1]);
+
+    // take out the data which is the entirity of our public key 
+    const data = subjectPublicKey.data;
+    return {
+        algorithm: algorithm.identifier,
+        keyLength: (data.length - 1) as PublicKeyLength,
+        subjectPublicKey: {
+            modulus: data
+        }
+    };
+}
+
 export interface SubjectPublicKeyInfo {
     algorithm: string;
     keyLength: PublicKeyLength;
@@ -607,7 +628,8 @@ export interface TbsCertificate {
 export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertificate {
     const blocks = _readStruct(buffer, block);
 
-    let version, serialNumber, signature, issuer, validity, subject, subjectFingerPrint, subjectPublicKeyInfo, extensions;
+    let version, serialNumber, signature, issuer, validity, subject, subjectFingerPrint, extensions;
+    let subjectPublicKeyInfo: SubjectPublicKeyInfo;
 
     if (blocks.length === 6) {
         // X509 Version 1:
@@ -624,7 +646,6 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
         extensions = null;
     } else {
         // X509 Version 3:
-
         const version_block = _findBlockAtIndex(blocks, 0);
         if (!version_block) {
             throw new Error("cannot find version block");
@@ -636,7 +657,21 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
         validity = _readValidity(buffer, blocks[4]);
         subject = _readName(buffer, blocks[5]);
         subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[5])));
-        subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[6]);
+
+        const inner_block = _readStruct(buffer, blocks[6])
+        const what_type = _readAlgorithmIdentifier(buffer, inner_block[0]).identifier
+
+        switch (what_type) {
+            case "rsaEncryption": {
+                subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[6]);
+                break;
+            }
+            case "ecPublicKey":
+            default: {
+                subjectPublicKeyInfo = _readSubjectECCPublicKeyInfo(buffer, blocks[6]);
+                break;
+            }
+        }
 
         const extensionBlock = _findBlockAtIndex(blocks, 3);
         if (!extensionBlock) {
