@@ -23,9 +23,9 @@ export enum TagType {
     BMPString = 0x1e,
 
     SEQUENCE = 0x30,
-    SET= 0x31,
+    SET = 0x31,
 
-    A3= 0xA3
+    A3 = 0xA3
 }
 
 export interface BlockInfo {
@@ -103,7 +103,6 @@ export interface BitString {
 export function _readBitString(buffer: Buffer, block: BlockInfo): BitString {
     assert(block.tag === TagType.BIT_STRING);
     const data = _getBlock(buffer, block);
-
     // number of skipped bits
     const ignore_bits = data.readUInt8(0);
 
@@ -205,8 +204,15 @@ export function _readAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): Algo
     const inner_blocks = _readStruct(buffer, block);
     return {
         identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
-    };
-}
+    }
+};
+
+export function _readECCAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
+    const inner_blocks = _readStruct(buffer, block);
+    return {
+        identifier: _readObjectIdentifier(buffer, inner_blocks[1]).name, // difference with RSA as algorithm is second element of nested block
+    }
+};
 
 export type SignatureValue = string;
 
