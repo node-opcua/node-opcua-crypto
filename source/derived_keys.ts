@@ -212,7 +212,7 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
 //
 
 export function computePaddingFooter(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
-    assert(derivedKeys.hasOwnProperty("encryptingBlockSize"));
+    assert(Object.prototype.hasOwnProperty.call(derivedKeys, "encryptingBlockSize"));
     const paddingSize = derivedKeys.encryptingBlockSize - ((buffer.length + 1) % derivedKeys.encryptingBlockSize);
     const padding = createFastUninitializedBuffer(paddingSize + 1);
     padding.fill(paddingSize);
@@ -220,7 +220,7 @@ export function computePaddingFooter(buffer: Buffer, derivedKeys: DerivedKeys): 
 }
 
 function derivedKeys_algorithm(derivedKeys: DerivedKeys) {
-    assert(derivedKeys.hasOwnProperty("algorithm"));
+    assert(Object.prototype.hasOwnProperty.call(derivedKeys, "algorithm"));
     const algorithm = derivedKeys.algorithm || "aes-128-cbc";
     assert(algorithm === "aes-128-cbc" || algorithm === "aes-256-cbc");
     return algorithm;

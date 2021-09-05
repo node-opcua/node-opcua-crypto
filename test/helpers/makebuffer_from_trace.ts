@@ -1,9 +1,9 @@
 // tslint:disable-next-line:ban-types
-export function inlineText(f: Function): string {
+export function inlineText(f: () => void): string {
     let k = f
         .toString()
-        .replace(/^[^\/]+\/\*!?/, "")
-        .replace(/\*\/[^\/]+$/, "");
+        .replace(/^[^/]+\/\*!?/, "")
+        .replace(/\*\/[^/]+$/, "");
     k = k
         .split("\n")
         .map((t) => t.trim())
@@ -49,6 +49,6 @@ export function hexString(str: string): string {
 }
 
 // tslint:disable-next-line:ban-types
-export function makebuffer_from_trace(func: Function): Buffer {
+export function makebuffer_from_trace(func: () => void): Buffer {
     return makeBuffer(hexString(inlineText(func)));
 }

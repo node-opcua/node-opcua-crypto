@@ -12,7 +12,7 @@ import { hexy } from "hexy";
 
 const jsrsasign = require("jsrsasign");
 
-const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([\/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n)/gm;
+const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n)/gm;
 
 const PEM_TYPE_REGEX = /^(-----BEGIN (.*)-----)/m;
 // Copyright 2012 The Obvious Corporation.
@@ -106,7 +106,7 @@ interface MakeMessageChunkSignatureOptions {
  * @return - the signature
  */
 export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChunkSignatureOptions): Buffer {
-    assert(options.hasOwnProperty("algorithm"));
+    assert(Object.prototype.hasOwnProperty.call(options,"algorithm"));
     assert(chunk instanceof Buffer);
     assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(options.privateKey) as string) >= 0);
     // signature length = 128 bytes
