@@ -114,7 +114,7 @@ export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChu
     signer.update(chunk);
     const signature = signer.sign(options.privateKey);
     assert(!options.signatureLength || signature.length === options.signatureLength);
-    return signature as Buffer; // Buffer
+    return signature;
 }
 
 export interface VerifyMessageChunkSignatureOptions {
