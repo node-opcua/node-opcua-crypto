@@ -15,7 +15,7 @@
     "cost-of-modules": "npx cost-of-modules --no-install",
     "release-it": "npx release-it",
     "prettier-format": "prettier --config .prettierrc.js lib/**/*.ts test/**/*.ts --write",
-    "ncu": "npx npm-check-updates -u"
+    "ncu": "npx npm-check-updates -u -x env-paths,chalk,hexy"
   },
   "keywords": [
     "OPCUA",
@@ -47,7 +47,7 @@
   "dependencies": {
     "better-assert": "^1.0.2",
     "chalk": "^4.1.2",
-    "hexy": "^0.3.2",
+    "hexy": "0.3.1",
     "jsrsasign": "^10.4.0",
     "sshpk": "^1.16.1"
   },

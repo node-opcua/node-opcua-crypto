@@ -119,6 +119,9 @@ export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeD
 
     const buf = makePseudoRandomBuffer(secret, seed, minLength, options.sha1or256);
 
+    // +---------------+---------------------+-----------------------+
+    // + signingKey    + encryptingKey       + initializationVector  +
+    // +---------------+---------------------+-----------------------+
     return {
         signatureLength: options.signatureLength,
         signingKeyLength: options.signingKeyLength,
