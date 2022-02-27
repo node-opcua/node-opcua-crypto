@@ -71,11 +71,10 @@ function debugLog(...args: [any?, ...any[]]) {
         console.log(console, ...args);
     }
 }
-const c = crypto.createCipheriv;;
-(crypto as any).createCipheriv = (algorithm: any,key: any,iv: any)=> { 
-    console.log("aa=",key,algorithm);
-    console.log('p', iv.length);
-    return c(algorithm,key,iv); 
+const c = crypto.createCipheriv;
+(crypto as any).createCipheriv = (algorithm: any, key: any, iv: any) => {
+    console.log("createCipheriv=", key.toString("hex"), algorithm, "l=", iv.length);
+    return c(algorithm, key, iv);
 };
 
 // symmetric encryption and decryption
@@ -88,7 +87,7 @@ function encrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer 
     return Buffer.concat(encrypted_chunks);
 }
 
-function decrypt_buffer(buffer: Buffer, algorithm: string, key:  Buffer): Buffer {
+function decrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer {
     const iv = Buffer.alloc(16, 0); // Initialization vector.
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     const decrypted_chunks = [];
