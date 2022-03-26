@@ -17,6 +17,7 @@ import {
     _readDirectoryName,
     _findBlockAtIndex,
     _readIntegerValue,
+    TagType,
 } from "./asn1";
 import { CertificateRevocationList } from "./common";
 import { makeSHA1Thumbprint, convertPEMtoDER } from "./crypto_utils";
@@ -53,33 +54,61 @@ export function readNameForCrl(buffer: Buffer, block: BlockInfo): DirectoryName 
 function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
     const blocks = _readStruct(buffer, blockInfo);
 
-    const version = _readIntegerValue(buffer, blocks[0]);
-    const signature = _readAlgorithmIdentifier(buffer, blocks[1]);
-    const issuer = readNameForCrl(buffer, blocks[2]);
-    const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[2])));
+    const hasOptionalVersion = blocks[0].tag === TagType.INTEGER;
 
-    const thisUpdate = _readTime(buffer, blocks[3]);
-    const nextUpdate = _readTime(buffer, blocks[4]);
+    if (hasOptionalVersion) {
+        const version = _readIntegerValue(buffer, blocks[0]);
+        const signature = _readAlgorithmIdentifier(buffer, blocks[1]);
+        const issuer = readNameForCrl(buffer, blocks[2]);
+        const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[2])));
 
-    const revokedCertificates: RevokedCertificate[] = [];
+        const thisUpdate = _readTime(buffer, blocks[3]);
+        const nextUpdate = _readTime(buffer, blocks[4]);
 
-    if (blocks[5] && blocks[5].tag < 0x80) {
-        const list = _readStruct(buffer, blocks[5]);
-        for (const r of list) {
-            // sometime blocks[5] doesn't exits .. in this case
-            const rr = _readStruct(buffer, r);
-            const userCertificate = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, rr[0]));
-            const revocationDate = _readTime(buffer, rr[1]);
-            revokedCertificates.push({
-                revocationDate,
-                userCertificate,
-            });
+        const revokedCertificates: RevokedCertificate[] = [];
+
+        if (blocks[5] && blocks[5].tag < 0x80) {
+            const list = _readStruct(buffer, blocks[5]);
+            for (const r of list) {
+                // sometime blocks[5] doesn't exits .. in this case
+                const rr = _readStruct(buffer, r);
+                const userCertificate = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, rr[0]));
+                const revocationDate = _readTime(buffer, rr[1]);
+                revokedCertificates.push({
+                    revocationDate,
+                    userCertificate,
+                });
+            }
         }
+
+        const ext0 = _findBlockAtIndex(blocks, 0);
+        return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
+    } else {
+
+        const signature = _readAlgorithmIdentifier(buffer, blocks[0]);
+        const issuer = readNameForCrl(buffer, blocks[1]);
+        const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[1])));
+
+        const thisUpdate = _readTime(buffer, blocks[2]);
+        const nextUpdate = _readTime(buffer, blocks[3]);
+
+        const revokedCertificates: RevokedCertificate[] = [];
+
+        if (blocks[4] && blocks[4].tag < 0x80) {
+            const list = _readStruct(buffer, blocks[4]);
+            for (const r of list) {
+                // sometime blocks[5] doesn't exits .. in this case
+                const rr = _readStruct(buffer, r);
+                const userCertificate = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, rr[0]));
+                const revocationDate = _readTime(buffer, rr[1]);
+                revokedCertificates.push({
+                    revocationDate,
+                    userCertificate,
+                });
+            }
+        }
+        return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
     }
-
-    const ext0 = _findBlockAtIndex(blocks, 0);
-
-    return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
 }
 // see https://tools.ietf.org/html/rfc5280
 
