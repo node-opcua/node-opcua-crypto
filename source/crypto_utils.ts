@@ -12,7 +12,7 @@ import { hexy } from "hexy";
 
 const jsrsasign = require("jsrsasign");
 
-const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n)/gm;
+const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n?)/gm;
 
 const PEM_TYPE_REGEX = /^(-----BEGIN (.*)-----)/m;
 // Copyright 2012 The Obvious Corporation.

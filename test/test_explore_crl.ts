@@ -87,4 +87,11 @@ describe("Explore Certificate Revocation List", () => {
         const crlPem = toPem(crl, "X509 CRL");
         crlPem.should.match(/BEGIN X509 CRL/);
     });
+
+    it("CRLBAD - should read and explore a PEM revocation list - node-opcua#1127", async () => {
+        const crlFilename = path.join(__dirname, "fixtures/crl/crl_version_1.pem");
+        const crl = await readCertificateRevocationList(crlFilename);
+        const crlInfo = exploreCertificateRevocationList(crl);
+        crlInfo.tbsCertList.revokedCertificates.length.should.eql(0);
+    });
 });
