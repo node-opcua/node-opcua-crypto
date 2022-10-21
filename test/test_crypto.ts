@@ -400,8 +400,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
         alice.generateKeys();
         bob.generateKeys();
 
-        const alice_secret = alice.computeSecret(bob.getPublicKey(), "hex");
-        const bob_secret = bob.computeSecret(alice.getPublicKey(), "hex");
+        const alice_secret = alice.computeSecret(bob.getPublicKey());
+        const bob_secret = bob.computeSecret(alice.getPublicKey());
 
         /* alice_secret and bob_secret should be the same */
         alice_secret.should.eql(bob_secret);
