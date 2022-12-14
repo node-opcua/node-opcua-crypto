@@ -56,9 +56,20 @@ export function convertPEMtoDER(raw_key: PEM): DER {
  * @param pem
  * @return
  */
-export function toPem(raw_key: Buffer | string, pem: string): string {
+export function toPem(raw_key: Buffer | string | crypto.KeyObject, pem: string): string {
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
+
+    if (raw_key instanceof crypto.KeyObject) {
+        if (pem === "RSA PRIVATE KEY") {
+            return raw_key.export({ format: "pem", type: "pkcs1" }).toString();
+        } else if (pem === "PRIVATE KEY") {
+            return raw_key.export({ format: "pem", type: "pkcs8" }).toString();
+        } else {
+            throw new Error("Unsupported case!");
+        }
+    }
+
     let pemType = identifyPemType(raw_key);
     if (pemType) {
         return raw_key instanceof Buffer ? raw_key.toString("utf8") : raw_key;
@@ -180,7 +191,7 @@ assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 
 // publicEncrypt and  privateDecrypt only work with
 // small buffer that depends of the key size.
-export function publicEncrypt_native(buffer: Buffer, publicKey: PublicKeyPEM, algorithm?: PaddingAlgorithm): Buffer {
+export function publicEncrypt_native(buffer: Buffer, publicKey: crypto.KeyLike, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
@@ -195,7 +206,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: PublicKeyPEM, al
     );
 }
 
-export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKeyPEM, algorithm?: PaddingAlgorithm): Buffer {
+export function privateDecrypt_native(buffer: Buffer, privateKey: crypto.KeyLike, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
@@ -220,7 +231,7 @@ export const privateDecrypt = privateDecrypt_native;
 
 export function publicEncrypt_long(
     buffer: Buffer,
-    publicKey: PublicKeyPEM,
+    publicKey: crypto.KeyLike,
     blockSize: number,
     padding: number,
     paddingAlgorithm?: PaddingAlgorithm
@@ -239,6 +250,7 @@ export function publicEncrypt_long(
     for (let i = 0; i < nbBlocks; i++) {
         const currentBlock = buffer.subarray(chunk_size * i, chunk_size * (i + 1));
         const encrypted_chunk = publicEncrypt(currentBlock, publicKey, paddingAlgorithm);
+        // istanbul ignore next
         if (encrypted_chunk.length !== blockSize) {
             throw new Error(`publicEncrypt_long unexpected chunk length ${encrypted_chunk.length}  expecting ${blockSize}`);
         }
@@ -249,11 +261,12 @@ export function publicEncrypt_long(
 
 export function privateDecrypt_long(
     buffer: Buffer,
-    privateKey: PrivateKeyPEM,
+    privateKey: crypto.KeyLike,
     blockSize: number,
     paddingAlgorithm?: number
 ): Buffer {
     paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_PADDING;
+    // istanbul ignore next
     if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
         throw new Error("Invalid padding algorithm " + paddingAlgorithm);
     }
@@ -281,18 +294,25 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof Buffer) {
-        publicKey = toPem(publicKey, "PUBLIC KEY");
+    if (publicKey instanceof crypto.KeyObject) {
+        return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;
 }
+
+export function coercePrivateKey(privateKey: PrivateKey | PrivateKeyPEM): PrivateKey {
+    if (typeof privateKey === "string") {
+        return crypto.createPrivateKey(privateKey);
+    }
+    return privateKey;
+}
+
 export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): PrivateKeyPEM {
     if (privateKey instanceof Buffer) {
-        
-        const o = crypto.createPrivateKey({ key: privateKey, format: "der", type: "pkcs1"});
+        const o = crypto.createPrivateKey({ key: privateKey, format: "der", type: "pkcs1" });
 
-        const e = o.export({format: "der", type: "pkcs1"});
+        const e = o.export({ format: "der", type: "pkcs1" });
         privateKey = toPem(e, "RSA PRIVATE KEY");
     }
     assert(typeof privateKey === "string");
@@ -306,22 +326,17 @@ export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): Pri
  * @return the key length in bytes.
  */
 export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
-    key = coercePrivateKeyPem(key);
-    assert(typeof key === "string");
-    if (/PRIVATE/.test(key)) {
-        const o = crypto.createPrivateKey(key);
-        // in node 16 and above : 
-        // return o.asymmetricKeyDetails.modulusLength/8
-        // in node <16 : 
-        const key2 = o.export({ type: "pkcs1", format: "pem" });
-        const a = jsrsasign.KEYUTIL.getKey(key2);
-        return a.n.toString(16).length / 2;
-    }
-    const a = jsrsasign.KEYUTIL.getKey(key);
+    key = coercePrivateKey(key);
+
+    // in node 16 and above :
+    // return o.asymmetricKeyDetails.modulusLength/8
+    // in node <16 :
+    const key2 = key.export({ type: "pkcs1", format: "pem" }).toString();
+    const a = jsrsasign.KEYUTIL.getKey(key2);
     return a.n.toString(16).length / 2;
 }
 
-export function rsaLengthPublicKey(key: PublicKeyPEM  | PublicKey): number {
+export function rsaLengthPublicKey(key: PublicKeyPEM | PublicKey): number {
     key = coercePublicKeyPem(key);
     assert(typeof key === "string");
     const a = jsrsasign.KEYUTIL.getKey(key);

@@ -1,7 +1,7 @@
 import * as path from "path";
 import { convertPEMtoDER, exploreCertificate, explorePrivateKey } from "../source";
 import { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "../source/public_private_match";
-import { readPrivateRsaKey, readPrivateKeyPEM, readCertificate } from "../source_nodejs";
+import { readPrivateRsaKey, readPrivateKeyPEM, readCertificate, readPrivateKey } from "../source_nodejs";
 
 const useCases = [1024, 2048];
 describe("Checking that public key (from certificate) and private key matches", function () {
@@ -9,8 +9,7 @@ describe("Checking that public key (from certificate) and private key matches", 
         const certificateFile = path.join(__dirname, `fixtures/certs/server_cert_${keyLength}.pem`);
         const privateKeyFile = path.join(__dirname, `fixtures/certs/server_key_${keyLength}.pem`);
         const certificate = readCertificate(certificateFile);
-        const privateKeyPEM = readPrivateKeyPEM(privateKeyFile);
-        const privateKey = convertPEMtoDER(privateKeyPEM);
+        const privateKey = readPrivateKey(privateKeyFile);
         it("publicKeyAndPrivateKeyMatches: should explore a RSA private key " + keyLength, () => {
             const i = exploreCertificate(certificate);
             const j = explorePrivateKey(privateKey);

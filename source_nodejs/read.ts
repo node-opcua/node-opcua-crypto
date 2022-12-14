@@ -1,8 +1,10 @@
 import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
+import { createPrivateKey, createPublicKey } from "crypto";
 import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM } from "../source/common";
 import { convertPEMtoDER, identifyPemType } from "../source/crypto_utils";
+
 const sshpk = require("sshpk");
 
 /**
@@ -40,14 +42,33 @@ export function readCertificate(filename: string): Certificate {
  * read a DER or PEM certificate from file
  */
 export function readPublicKey(filename: string): PublicKey {
-    return _readPemOrDerFileAsDER(filename) as PublicKey;
+    if (filename.match(/.*\.der/)) {
+        const der = fs.readFileSync(filename) as Buffer;
+        return createPublicKey(der);
+    } else {
+        const raw_key: string = _readPemFile(filename);
+        return createPublicKey(raw_key);
+    }
 }
 
+function myCreatePrivateKey(rawKey: string | Buffer) {
+    // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
+    const p = process.env.OPENSSL_CONF;
+    const retValue = createPrivateKey(rawKey);
+    process.env.OPENSSL_CONF = "/dev/null";
+    return retValue;
+}
 /**
  * read a DER or PEM certificate from file
  */
 export function readPrivateKey(filename: string): PrivateKey {
-    return _readPemOrDerFileAsDER(filename) as PrivateKey;
+    if (filename.match(/.*\.der/)) {
+        const der = fs.readFileSync(filename) as Buffer;
+        return myCreatePrivateKey(der);
+    } else {
+        const raw_key: string = _readPemFile(filename);
+        return myCreatePrivateKey(raw_key);
+    }
 }
 
 export function readCertificatePEM(filename: string): CertificatePEM {
@@ -69,27 +90,26 @@ export function setCertificateStore(store: string): string {
     return old_store;
 }
 
-export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
-    if (filename.substring(0, 1) !== ".") {
-        filename = __certificate_store + filename;
-    }
-    const key: string = fs.readFileSync(filename, "ascii");
-    const sshKey = sshpk.parseKey(key, "ssh");
-
-    return sshKey.toString("pkcs8") as PEM;
-}
-
 /**
  *
  * @param filename
  */
-export function readPrivateRsaKey(filename: string): PrivateKeyPEM {
+export function readPrivateRsaKey(filename: string): PrivateKey {
     if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
-    return fs.readFileSync(filename, "ascii") as string;
+    const content = fs.readFileSync(filename, "ascii");
+    const sshKey = sshpk.parsePrivateKey(content, "auto");
+    const key = sshKey.toString("pkcs1") as PEM;
+    return createPrivateKey({ format: "pem", type: "pkcs1", key });
 }
 
-export function readPublicRsaKey(filename: string): PublicKeyPEM {
-    return readPrivateRsaKey(filename);
+export function readPublicRsaKey(filename: string): PublicKey {
+    if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
+        filename = __certificate_store + filename;
+    }
+    const content = fs.readFileSync(filename, "ascii");
+    const sshKey = sshpk.parseKey(content, "ssh");
+    const key = sshKey.toString("pkcs1") as PEM;
+    return createPublicKey({ format: "pem", type: "pkcs1", key });
 }

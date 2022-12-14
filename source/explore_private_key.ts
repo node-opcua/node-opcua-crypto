@@ -13,13 +13,12 @@ export interface PrivateKeyInternals {
     prime2: Buffer;
     exponent1: Buffer;
     exponent2: Buffer;
-
 }
 
 function f(buffer: Buffer, b: BlockInfo) {
-    return buffer.subarray(b.position+1, b.position + b.length)
+    return buffer.subarray(b.position + 1, b.position + b.length);
 }
-const doDebug= !!process.env.DEBUG;
+const doDebug = !!process.env.DEBUG;
 /**
  * 
  * @param privateKey RSAPrivateKey ::= SEQUENCE {
@@ -35,22 +34,23 @@ const doDebug= !!process.env.DEBUG;
  *  otherPrimeInfos   OtherPrimeInfos OPTIONAL
 }
  */
-export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
+export function explorePrivateKey(privateKey1: PrivateKey): PrivateKeyInternals {
+    const privateKey = privateKey1.export({ format: "der", type: "pkcs1" }) as Buffer;
     assert(privateKey instanceof Buffer);
     const block_info = readTag(privateKey, 0);
     const blocks = _readStruct(privateKey, block_info);
 
     if (blocks.length === 9) {
         // alice_rsa
-        const version = f(privateKey,blocks[0]);// _readIntegerAsByteString(privateKey, blocks1[0]);
-        const modulus=  f(privateKey, blocks[1]);
-        const publicExponent=  f(privateKey, blocks[2]);
-        const privateExponent=  f(privateKey, blocks[3]);
-        const prime1=  f(privateKey, blocks[4]);
-        const prime2=  f(privateKey, blocks[5]);
-        const exponent1=  f(privateKey, blocks[6]);
-        const exponent2=  f(privateKey, blocks[7]);
-    
+        const version = f(privateKey, blocks[0]); // _readIntegerAsByteString(privateKey, blocks1[0]);
+        const modulus = f(privateKey, blocks[1]);
+        const publicExponent = f(privateKey, blocks[2]);
+        const privateExponent = f(privateKey, blocks[3]);
+        const prime1 = f(privateKey, blocks[4]);
+        const prime2 = f(privateKey, blocks[5]);
+        const exponent1 = f(privateKey, blocks[6]);
+        const exponent2 = f(privateKey, blocks[7]);
+
         return {
             version,
             modulus,
@@ -59,14 +59,13 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
             prime1,
             prime2,
             exponent1,
-            exponent2
+            exponent2,
         };
-    
     }
     /* istanbul ignore next */
     if (doDebug) {
         // tslint:disable:no-console
-        console.log("-------------------- private key:")
+        console.log("-------------------- private key:");
         console.log(block_info);
 
         // tslint:disable:no-console
@@ -98,15 +97,14 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
         );
     }
 
-    const version =f(bb, blocks1[0]);
-    const modulus=  f(bb, blocks1[1]);
-    const publicExponent=  f(bb, blocks1[2]);
-    const privateExponent=  f(bb, blocks1[3]);
-    const prime1=  f(bb, blocks1[4]);
-    const prime2=  f(bb, blocks1[5]);
-    const exponent1=  f(bb, blocks1[6]);
-    const exponent2=  f(bb, blocks1[7]);
-
+    const version = f(bb, blocks1[0]);
+    const modulus = f(bb, blocks1[1]);
+    const publicExponent = f(bb, blocks1[2]);
+    const privateExponent = f(bb, blocks1[3]);
+    const prime1 = f(bb, blocks1[4]);
+    const prime2 = f(bb, blocks1[5]);
+    const exponent1 = f(bb, blocks1[6]);
+    const exponent2 = f(bb, blocks1[7]);
 
     return {
         version,
@@ -116,6 +114,6 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
         prime1,
         prime2,
         exponent1,
-        exponent2
+        exponent2,
     };
 }

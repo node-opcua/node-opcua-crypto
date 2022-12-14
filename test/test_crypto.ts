@@ -22,12 +22,12 @@ import {
     verifyMessageChunkSignature,
 } from "../source";
 import {
-    read_sshkey_as_pem,
     readCertificate,
     readPrivateKey,
     readPrivateRsaKey,
     readPublicKey,
     setCertificateStore,
+    readPublicRsaKey,
 } from "../source_nodejs";
 
 import * as loremIpsum1 from "lorem-ipsum";
@@ -82,7 +82,7 @@ const c = crypto.createCipheriv;
 function encrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer {
     const iv = Buffer.alloc(16, 0); // Initialization vector.
     const cipher = crypto.createCipheriv(algorithm, key, iv);
-    const encrypted_chunks = [];
+    const encrypted_chunks: Buffer[] = [];
     encrypted_chunks.push(cipher.update(buffer));
     encrypted_chunks.push(cipher.final());
     return Buffer.concat(encrypted_chunks);
@@ -91,48 +91,11 @@ function encrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer 
 function decrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer {
     const iv = Buffer.alloc(16, 0); // Initialization vector.
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
-    const decrypted_chunks = [];
+    const decrypted_chunks: Buffer[] = [];
     decrypted_chunks.push(decipher.update(buffer));
     decrypted_chunks.push(decipher.final());
     return Buffer.concat(decrypted_chunks);
 }
-
-//  ursa only work with node version <= 0.10
-//  however crypto.publicEncrypt only appear in node > 0.11.14
-//describe("testing publicEncrypt / privateDecrypt native and ursa",function(){
-//
-//    it("publicEncrypt_native and  privateDecrypt_native" ,function(){
-//
-//        const bob_public_key  = read_sshkey_as_pem('bob_id_rsa.pub');
-//
-//        const message = Buffer.alloc("Hello World");
-//
-//        const encrypted_native =  publicEncrypt_native(message,bob_public_key);
-//        const encrypted_ursa   =  publicEncrypt_ursa(message,bob_public_key);
-//
-//        encrypted_native.should.eql(encrypted_ursa);
-//
-//    });
-//
-//});
-
-//describe("testing RSA_PKCS1_V15 asymmetric encryption", function() {
-//
-//    it("should encrypt and decrypt with RSA_PKCS1_V15",function(){
-//        const algorithm = "RSA-PKCS1-V15";
-//        const bob_public_key     = read_sshkey_as_pem('bob_id_rsa.pub');
-//
-//        const message = "Hello World";
-//
-//        const encrypted_message = encrypt_buffer(message,algorithm ,bob_public_key);
-//
-//        const bob_private_key = read_private_rsa_key('bob_id_rsa');
-//        const decrypted_message = decrypt_buffer(encrypted_message,algorithm,bob_private_key);
-//
-//        decrypted_message.should.eql(message);
-//
-//    });
-//});
 
 describe("testing and exploring the NodeJS crypto api", function () {
     beforeEach(function (done) {
@@ -190,22 +153,16 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
     if (crypto.publicEncrypt !== null) {
         it("should check that bob rsa key is 2048bit long (256 bytes)", function () {
-            const key: PublicKeyPEM = read_sshkey_as_pem("bob_id_rsa.pub");
-            rsaLengthPrivateKey(key).should.equal(256);
-
-            const keyDer: PublicKey = convertPEMtoDER(key);
-            rsaLengthPublicKey(keyDer).should.equal(256);
+            const key = readPublicRsaKey("bob_id_rsa.pub");
+            rsaLengthPublicKey(key).should.equal(256);
         });
 
         it("should check that john rsa key is 1024bit long (128 bytes)", function () {
-            const key: PublicKeyPEM = read_sshkey_as_pem("john_id_rsa.pub");
-            rsaLengthPrivateKey(key).should.equal(128);
-
-            const keyDer: PublicKey = convertPEMtoDER(key);
-            rsaLengthPublicKey(keyDer).should.equal(128);
+            const key = readPublicRsaKey("john_id_rsa.pub");
+            rsaLengthPublicKey(key).should.equal(128);
         });
         it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
-            const john_public_key: PublicKeyPEM = read_sshkey_as_pem("john_id_rsa.pub"); // 1024 bit RSA
+            const john_public_key = readPublicRsaKey("john_id_rsa.pub"); // 1024 bit RSA
             debugLog("john_public_key", john_public_key);
             let encryptedBuffer;
 
@@ -237,7 +194,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         it("RSA_PKCS1_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
             //
-            const bob_public_key: PublicKeyPEM = read_sshkey_as_pem("bob_id_rsa.pub");
+            const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
             debugLog("bob_public_key", bob_public_key);
             let encryptedBuffer;
 
@@ -270,7 +227,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         it("RSA_PKCS1_OAEP_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
             //
-            const bob_public_key = read_sshkey_as_pem("bob_id_rsa.pub");
+            const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
             debugLog("bob_public_key", bob_public_key);
             let encryptedBuffer;
 
@@ -303,7 +260,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         it("publicEncrypt  shall produce  different encrypted string if call many times with the same input", function () {
             //xx            const bob_public_key = readCertificate('test/fixtures/certs/alice_cert_1024.pem'); // 2048bit long key
-            const bob_public_key = read_sshkey_as_pem("bob_id_rsa.pub"); // 2048bit long key
+            const bob_public_key = readPublicRsaKey("bob_id_rsa.pub"); // 2048bit long key
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
 
             const initialBuffer = Buffer.from(loremIpsum.substr(0, 25));
@@ -319,7 +276,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         });
 
         it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes", function () {
-            const bob_public_key = read_sshkey_as_pem("bob_id_rsa.pub"); // 2048bit long key
+            const bob_public_key = readPublicRsaKey("bob_id_rsa.pub"); // 2048bit long key
 
             const initialBuffer = Buffer.from(loremIpsum.substr(0, 256));
             const encryptedBuffer = publicEncrypt_long(initialBuffer, bob_public_key, 256, 11);
@@ -331,7 +288,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         });
 
         it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 1280 bytes", function () {
-            const bob_public_key = read_sshkey_as_pem("bob_id_rsa.pub");
+            const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
 
             const initialBuffer = Buffer.from(loremIpsum.substr(0, 1024));
             const encryptedBuffer = publicEncrypt_long(initialBuffer, bob_public_key, 256, 11);
@@ -358,7 +315,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             debugLog("length of original  message = ", message.length);
 
             const alice_private_key = readPrivateRsaKey("alice_id_rsa");
-            const bob_public_key = read_sshkey_as_pem("bob_id_rsa.pub");
+            const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
 
             const signature = crypto.createSign("RSA-SHA256").update(message).sign(alice_private_key);
             debugLog("signature = ", signature.toString("hex"));
@@ -378,7 +335,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             // Bob must first decipher the message using its own private key
 
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
-            const alice_public_key = read_sshkey_as_pem("alice_id_rsa.pub");
+            const alice_public_key = readPublicRsaKey("alice_id_rsa.pub");
 
             //xx encryptedMessage += "q";
 
@@ -548,7 +505,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
         });
 
         it("should sign with a private key and verify with the certificate (DER) - " + algorithm, function () {
-            const alice_private_key: DER = readPrivateKey(alice_private_key_filename);
+            const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
                 signatureLength: length,
@@ -612,6 +569,7 @@ describe("extractPublicKeyFromCertificate", function () {
         const certificate2 = readCertificate(bob_certificate_filename);
 
         const publickey2 = readPublicKey(bob_public_key_filename);
+        const publickey2Der = publickey2.export({ format: "der", type: "spki" });
 
         extractPublicKeyFromCertificate(certificate2, (err: Error | null, publicKey?: PublicKeyPEM) => {
             if (!publicKey) {
@@ -619,7 +577,7 @@ describe("extractPublicKeyFromCertificate", function () {
             }
             const raw_public_key = convertPEMtoDER(publicKey);
 
-            raw_public_key.toString("base64").should.eql(publickey2.toString("base64"));
+            raw_public_key.toString("base64").should.eql(publickey2Der.toString("base64"));
             done(err);
         });
     });
