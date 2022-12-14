@@ -321,7 +321,7 @@ export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
     return a.n.toString(16).length / 2;
 }
 
-export function rsaLengthPublicKey(key: PublicKeyPEM): number {
+export function rsaLengthPublicKey(key: PublicKeyPEM  | PublicKey): number {
     key = coercePublicKeyPem(key);
     assert(typeof key === "string");
     const a = jsrsasign.KEYUTIL.getKey(key);

@@ -5,28 +5,29 @@ import * as path from "path";
 
 import * as should from "should";
 import {
+    convertPEMtoDER,
     DER,
+    extractPublicKeyFromCertificate,
+    makeMessageChunkSignature,
+    privateDecrypt_long,
+    publicEncrypt_long,
+    publicEncrypt,
     PublicKey,
     PublicKeyPEM,
-    rsaLengthPrivateKey,
-    convertPEMtoDER,
     RSA_PKCS1_OAEP_PADDING,
     RSA_PKCS1_PADDING,
-    publicEncrypt_long,
-    privateDecrypt_long,
-    makeMessageChunkSignature,
-    verifyMessageChunkSignature,
+    rsaLengthPrivateKey,
+    rsaLengthPublicKey,
     toPem,
-    extractPublicKeyFromCertificate,
-    publicEncrypt,
+    verifyMessageChunkSignature,
 } from "../source";
 import {
-    setCertificateStore,
-    readPrivateKey,
-    readCertificate,
-    readPublicKey,
     read_sshkey_as_pem,
+    readCertificate,
+    readPrivateKey,
     readPrivateRsaKey,
+    readPublicKey,
+    setCertificateStore,
 } from "../source_nodejs";
 
 import * as loremIpsum1 from "lorem-ipsum";
@@ -193,7 +194,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             rsaLengthPrivateKey(key).should.equal(256);
 
             const keyDer: PublicKey = convertPEMtoDER(key);
-            rsaLengthPrivateKey(keyDer).should.equal(256);
+            rsaLengthPublicKey(keyDer).should.equal(256);
         });
 
         it("should check that john rsa key is 1024bit long (128 bytes)", function () {
@@ -201,7 +202,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             rsaLengthPrivateKey(key).should.equal(128);
 
             const keyDer: PublicKey = convertPEMtoDER(key);
-            rsaLengthPrivateKey(keyDer).should.equal(128);
+            rsaLengthPublicKey(keyDer).should.equal(128);
         });
         it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
             const john_public_key: PublicKeyPEM = read_sshkey_as_pem("john_id_rsa.pub"); // 1024 bit RSA
