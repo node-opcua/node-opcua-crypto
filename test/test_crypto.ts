@@ -8,7 +8,7 @@ import {
     DER,
     PublicKey,
     PublicKeyPEM,
-    rsa_length,
+    rsaLengthPrivateKey,
     convertPEMtoDER,
     RSA_PKCS1_OAEP_PADDING,
     RSA_PKCS1_PADDING,
@@ -190,18 +190,18 @@ describe("testing and exploring the NodeJS crypto api", function () {
     if (crypto.publicEncrypt !== null) {
         it("should check that bob rsa key is 2048bit long (256 bytes)", function () {
             const key: PublicKeyPEM = read_sshkey_as_pem("bob_id_rsa.pub");
-            rsa_length(key).should.equal(256);
+            rsaLengthPrivateKey(key).should.equal(256);
 
             const keyDer: PublicKey = convertPEMtoDER(key);
-            rsa_length(keyDer).should.equal(256);
+            rsaLengthPrivateKey(keyDer).should.equal(256);
         });
 
         it("should check that john rsa key is 1024bit long (128 bytes)", function () {
             const key: PublicKeyPEM = read_sshkey_as_pem("john_id_rsa.pub");
-            rsa_length(key).should.equal(128);
+            rsaLengthPrivateKey(key).should.equal(128);
 
             const keyDer: PublicKey = convertPEMtoDER(key);
-            rsa_length(keyDer).should.equal(128);
+            rsaLengthPrivateKey(keyDer).should.equal(128);
         });
         it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
             const john_public_key: PublicKeyPEM = read_sshkey_as_pem("john_id_rsa.pub"); // 1024 bit RSA
@@ -600,7 +600,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
     make_suite("RSA-SHA512", 128);
     make_suite("RSA-SHA256", 128);
     make_suite("RSA-SHA1", 128);
-    make_suite("RSA-MD4", 128);
+    // Obsolete  make_suite("RSA-MD4", 128);
     make_suite("sha224WithRSAEncryption", 128);
     make_suite("sha1WithRSAEncryption", 128);
     make_suite("sha256WithRSAEncryption", 128);

@@ -61,7 +61,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
     assert(typeof pem === "string");
     let pemType = identifyPemType(raw_key);
     if (pemType) {
-        return raw_key instanceof Buffer ?  raw_key.toString("utf8") : raw_key;
+        return raw_key instanceof Buffer ? raw_key.toString("utf8") : raw_key;
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
@@ -84,7 +84,7 @@ export function hexDump(buffer: Buffer, width?: number): string {
     }
     width = width || 32;
     if (buffer.length > 1024) {
-        return hexy(buffer.slice(0, 1024), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
+        return hexy(buffer.subarray(0, 1024), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
     } else {
         return hexy(buffer, { width, format: "twos" });
     }
@@ -106,7 +106,7 @@ interface MakeMessageChunkSignatureOptions {
  * @return - the signature
  */
 export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChunkSignatureOptions): Buffer {
-    assert(Object.prototype.hasOwnProperty.call(options,"algorithm"));
+    assert(Object.prototype.hasOwnProperty.call(options, "algorithm"));
     assert(chunk instanceof Buffer);
     assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(options.privateKey) as string) >= 0);
     // signature length = 128 bytes
@@ -223,29 +223,40 @@ export function publicEncrypt_long(
     publicKey: PublicKeyPEM,
     blockSize: number,
     padding: number,
-    algorithm?: PaddingAlgorithm
+    paddingAlgorithm?: PaddingAlgorithm
 ): Buffer {
-    if (algorithm === undefined) {
-        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
+    if (paddingAlgorithm === undefined) {
+        paddingAlgorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
-    assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
+    if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
+        throw new Error("Invalid padding algorithm " + paddingAlgorithm);
+    }
 
     const chunk_size = blockSize - padding;
     const nbBlocks = Math.ceil(buffer.length / chunk_size);
 
     const outputBuffer = createFastUninitializedBuffer(nbBlocks * blockSize);
     for (let i = 0; i < nbBlocks; i++) {
-        const currentBlock = buffer.slice(chunk_size * i, chunk_size * (i + 1));
-        const encrypted_chunk = publicEncrypt(currentBlock, publicKey, algorithm);
-        assert(encrypted_chunk.length === blockSize);
+        const currentBlock = buffer.subarray(chunk_size * i, chunk_size * (i + 1));
+        const encrypted_chunk = publicEncrypt(currentBlock, publicKey, paddingAlgorithm);
+        if (encrypted_chunk.length !== blockSize) {
+            throw new Error(`publicEncrypt_long unexpected chunk length ${encrypted_chunk.length}  expecting ${blockSize}`);
+        }
         encrypted_chunk.copy(outputBuffer, i * blockSize);
     }
     return outputBuffer;
 }
 
-export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKeyPEM, blockSize: number, algorithm?: number): Buffer {
-    algorithm = algorithm || RSA_PKCS1_PADDING;
-    assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
+export function privateDecrypt_long(
+    buffer: Buffer,
+    privateKey: PrivateKeyPEM,
+    blockSize: number,
+    paddingAlgorithm?: number
+): Buffer {
+    paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_PADDING;
+    if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
+        throw new Error("Invalid padding algorithm " + paddingAlgorithm);
+    }
 
     const nbBlocks = Math.ceil(buffer.length / blockSize);
 
@@ -253,12 +264,12 @@ export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKeyPEM, b
 
     let total_length = 0;
     for (let i = 0; i < nbBlocks; i++) {
-        const currentBlock = buffer.slice(blockSize * i, Math.min(blockSize * (i + 1), buffer.length));
-        const decrypted_buf = privateDecrypt(currentBlock, privateKey, algorithm);
+        const currentBlock = buffer.subarray(blockSize * i, Math.min(blockSize * (i + 1), buffer.length));
+        const decrypted_buf = privateDecrypt(currentBlock, privateKey, paddingAlgorithm);
         decrypted_buf.copy(outputBuffer, total_length);
         total_length += decrypted_buf.length;
     }
-    return outputBuffer.slice(0, total_length);
+    return outputBuffer.subarray(0, total_length);
 }
 
 export function coerceCertificatePem(certificate: Certificate | CertificatePEM): CertificatePEM {
@@ -276,14 +287,41 @@ export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicK
     assert(typeof publicKey === "string");
     return publicKey;
 }
+export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): PrivateKeyPEM {
+    if (privateKey instanceof Buffer) {
+        
+        const o = crypto.createPrivateKey({ key: privateKey, format: "der", type: "pkcs1"});
+
+        const e = o.export({format: "der", type: "pkcs1"});
+        privateKey = toPem(e, "RSA PRIVATE KEY");
+    }
+    assert(typeof privateKey === "string");
+    return privateKey;
+}
 
 /***
- * @method rsa_length
+ * @method rsaLengthPrivateKey
  * A very expensive way to determine the rsa key length ( i.e 2048bits or 1024bits)
  * @param key  a PEM public key or a PEM rsa private key
- * @return { the key length in bytes.
+ * @return the key length in bytes.
  */
-export function rsa_length(key: PublicKeyPEM | PublicKey): number {
+export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
+    key = coercePrivateKeyPem(key);
+    assert(typeof key === "string");
+    if (/PRIVATE/.test(key)) {
+        const o = crypto.createPrivateKey(key);
+        // in node 16 and above : 
+        // return o.asymmetricKeyDetails.modulusLength/8
+        // in node <16 : 
+        const key2 = o.export({ type: "pkcs1", format: "pem" });
+        const a = jsrsasign.KEYUTIL.getKey(key2);
+        return a.n.toString(16).length / 2;
+    }
+    const a = jsrsasign.KEYUTIL.getKey(key);
+    return a.n.toString(16).length / 2;
+}
+
+export function rsaLengthPublicKey(key: PublicKeyPEM): number {
     key = coercePublicKeyPem(key);
     assert(typeof key === "string");
     const a = jsrsasign.KEYUTIL.getKey(key);

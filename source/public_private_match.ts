@@ -1,7 +1,7 @@
-import { exploreCertificate } from ".";
-import { Certificate } from "./common";
-import { PrivateKey } from "./common";
 import { explorePrivateKey } from "./explore_private_key";
+import { Certificate, CertificatePEM, PrivateKey, PrivateKeyPEM } from "./common";
+import { privateDecrypt_long, publicEncrypt_long, toPem } from "./crypto_utils";
+import { exploreCertificate } from "./crypto_explore_certificate";
 
 export function  publicKeyAndPrivateKeyMatches(certificate: Certificate,privateKey: PrivateKey): boolean {
 
@@ -15,4 +15,27 @@ export function  publicKeyAndPrivateKeyMatches(certificate: Certificate,privateK
         return false;
     }
     return modulus1.toString("hex") === modulus2.toString("hex");
+}
+
+
+
+/**
+ * check that the given certificate matches the given private key
+ * @param certificate
+ * @param privateKey
+ */
+function certificateMatchesPrivateKeyPEM(certificate: CertificatePEM, privateKey: PrivateKeyPEM, blockSize: number): boolean {
+    const initialBuffer = Buffer.from("Lorem Ipsum");
+    const encryptedBuffer = publicEncrypt_long(initialBuffer, certificate, blockSize, 11);
+    const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKey, blockSize);
+    const finalString = decryptedBuffer.toString("utf-8");
+    return initialBuffer.toString("utf-8") === finalString;
+}
+
+export function certificateMatchesPrivateKey(certificate: Certificate, privateKey: PrivateKey): boolean {
+    const e = explorePrivateKey(privateKey);
+    const blockSize = e.modulus.length;
+    const certificatePEM = toPem(certificate, "CERTIFICATE");
+    const privateKeyPEM = toPem(privateKey, "RSA PRIVATE KEY");
+    return certificateMatchesPrivateKeyPEM(certificatePEM, privateKeyPEM, blockSize);
 }

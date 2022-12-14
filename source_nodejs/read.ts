@@ -70,7 +70,7 @@ export function setCertificateStore(store: string): string {
 }
 
 export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
-    if (filename.substr(0, 1) !== ".") {
+    if (filename.substring(0, 1) !== ".") {
         filename = __certificate_store + filename;
     }
     const key: string = fs.readFileSync(filename, "ascii");
@@ -84,7 +84,7 @@ export function read_sshkey_as_pem(filename: string): PublicKeyPEM {
  * @param filename
  */
 export function readPrivateRsaKey(filename: string): PrivateKeyPEM {
-    if (filename.substr(0, 1) !== "." && !fs.existsSync(filename)) {
+    if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
     return fs.readFileSync(filename, "ascii") as string;

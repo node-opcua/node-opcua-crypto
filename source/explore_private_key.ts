@@ -17,7 +17,7 @@ export interface PrivateKeyInternals {
 }
 
 function f(buffer: Buffer, b: BlockInfo) {
-    return buffer.slice(b.position+1, b.position + b.length)
+    return buffer.subarray(b.position+1, b.position + b.length)
 }
 const doDebug= !!process.env.DEBUG;
 /**
@@ -66,7 +66,7 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
     /* istanbul ignore next */
     if (doDebug) {
         // tslint:disable:no-console
-        console.log("--------------------")
+        console.log("-------------------- private key:")
         console.log(block_info);
 
         // tslint:disable:no-console
@@ -75,13 +75,13 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
                 tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
                 l: b.length,
                 p: b.position,
-                buff: privateKey.slice(b.position, b.position + b.length).toString("hex"),
+                buff: privateKey.subarray(b.position, b.position + b.length).toString("hex"),
             }))
         );
     }
 
     const b = blocks[2];
-    const bb = privateKey.slice(b.position, b.position + b.length);
+    const bb = privateKey.subarray(b.position, b.position + b.length);
     const block_info1 = readTag(bb, 0);
     const blocks1 = _readStruct(bb, block_info1);
 
@@ -93,7 +93,7 @@ export function explorePrivateKey(privateKey: PrivateKey): PrivateKeyInternals {
                 tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
                 l: b.length,
                 p: b.position,
-                buff: bb.slice(b.position, b.position + b.length).toString("hex"),
+                buff: bb.subarray(b.position, b.position + b.length).toString("hex"),
             }))
         );
     }
