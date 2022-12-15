@@ -104,22 +104,10 @@ export function hexDump(buffer: Buffer, width?: number): string {
 interface MakeMessageChunkSignatureOptions {
     signatureLength: number;
     algorithm: string;
-    privateKey: CertificatePEM;
+    privateKey: PrivateKey;
 }
 
-/**
- * @method makeMessageChunkSignature
- * @param chunk
- * @param options
- * @param options.signatureLength
- * @param options.algorithm   for example "RSA-SHA256"
- * @param options.privateKey
- * @return - the signature
- */
 export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChunkSignatureOptions): Buffer {
-    assert(Object.prototype.hasOwnProperty.call(options, "algorithm"));
-    assert(chunk instanceof Buffer);
-    assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(options.privateKey) as string) >= 0);
     // signature length = 128 bytes
     const signer = crypto.createSign(options.algorithm);
     signer.update(chunk);
@@ -295,6 +283,13 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
     if (publicKey instanceof crypto.KeyObject) {
+        return publicKey.export({ format: "pem", type: "pkcs1" }).toString();
+    }
+    assert(typeof publicKey === "string");
+    return publicKey;
+}
+export function coerceRsaPublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
+    if (publicKey instanceof crypto.KeyObject) {
         return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
@@ -342,6 +337,13 @@ export function rsaLengthPublicKey(key: PublicKeyPEM | PublicKey): number {
     const a = jsrsasign.KEYUTIL.getKey(key);
     return a.n.toString(16).length / 2;
 }
+export function rsaLengthRsaPublicKey(key: PublicKeyPEM | PublicKey): number {
+    key = coerceRsaPublicKeyPem(key);
+    assert(typeof key === "string");
+    const a = jsrsasign.KEYUTIL.getKey(key);
+    return a.n.toString(16).length / 2;
+}
+
 
 export function extractPublicKeyFromCertificateSync(certificate: Certificate | CertificatePEM): PublicKeyPEM {
     certificate = coerceCertificatePem(certificate);

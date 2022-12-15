@@ -7,17 +7,6 @@ import { convertPEMtoDER, identifyPemType } from "../source/crypto_utils";
 
 const sshpk = require("sshpk");
 
-/**
- * @method readKeyPem
- * @param filename
- */
-export function readKeyPem(filename: string): string {
-    const raw_key = fs.readFileSync(filename, "utf8");
-    const pemType = identifyPemType(raw_key);
-    assert(typeof pemType === "string"); // must have a valid pem type
-    return raw_key;
-}
-
 function _readPemFile(filename: string): PEM {
     assert(typeof filename === "string");
     return fs.readFileSync(filename, "ascii");
@@ -53,9 +42,10 @@ export function readPublicKey(filename: string): PublicKey {
 
 function myCreatePrivateKey(rawKey: string | Buffer) {
     // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
-    const p = process.env.OPENSSL_CONF;
-    const retValue = createPrivateKey(rawKey);
+    const backup = process.env.OPENSSL_CONF;
     process.env.OPENSSL_CONF = "/dev/null";
+    const retValue = createPrivateKey(rawKey);
+    process.env.OPENSSL_CONF = backup;
     return retValue;
 }
 /**

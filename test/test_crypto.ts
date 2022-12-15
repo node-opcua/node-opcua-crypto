@@ -20,6 +20,7 @@ import {
     rsaLengthPublicKey,
     toPem,
     verifyMessageChunkSignature,
+    rsaLengthRsaPublicKey,
 } from "../source";
 import {
     readCertificate,
@@ -154,12 +155,12 @@ describe("testing and exploring the NodeJS crypto api", function () {
     if (crypto.publicEncrypt !== null) {
         it("should check that bob rsa key is 2048bit long (256 bytes)", function () {
             const key = readPublicRsaKey("bob_id_rsa.pub");
-            rsaLengthPublicKey(key).should.equal(256);
+            rsaLengthRsaPublicKey(key).should.equal(256);
         });
 
         it("should check that john rsa key is 1024bit long (128 bytes)", function () {
             const key = readPublicRsaKey("john_id_rsa.pub");
-            rsaLengthPublicKey(key).should.equal(128);
+            rsaLengthRsaPublicKey(key).should.equal(128);
         });
         it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
             const john_public_key = readPublicRsaKey("john_id_rsa.pub"); // 1024 bit RSA
@@ -433,12 +434,12 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
     // crypto.getHashes().forEach(function(a){ make_suite(a,128); });
 
-    function make_suite(algorithm: string, length: number) {
-        it("should sign with a private key and verify with the public key (ASCII) - " + algorithm, function () {
-            const alice_private_key = fs.readFileSync(alice_private_key_filename, "ascii");
+    function make_suite(algorithm: string, signatureLength: number) {
+        it("should sign with a private key and verify with the public key - " + algorithm, function () {
+            const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 privateKey: alice_private_key,
             };
             const signature = makeMessageChunkSignature(chunk, options1);
@@ -450,7 +451,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
             const options2 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 publicKey: alice_public_key,
             };
             const signVerif = verifyMessageChunkSignature(chunk, signature, options2);
@@ -458,10 +459,10 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
         });
 
         it("should sign with a private key and verify with the certificate (ASCII) - " + algorithm, function () {
-            const alice_private_key = fs.readFileSync(alice_private_key_filename, "ascii");
+            const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 privateKey: alice_private_key,
             };
 
@@ -474,7 +475,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
             const options2 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 publicKey: alice_certificate,
             };
             const signVerif = verifyMessageChunkSignature(chunk, signature, options2);
@@ -482,10 +483,10 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
         });
 
         it("should sign with a private key and verify with a OUT OF DATE certificate (ASCII) - " + algorithm, function () {
-            const alice_private_key = fs.readFileSync(alice_private_key_filename, "ascii");
+            const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 privateKey: alice_private_key,
             };
             const signature = makeMessageChunkSignature(chunk, options1);
@@ -497,19 +498,19 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
             const options2 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 publicKey: alice_certificate,
             };
             const signVerif = verifyMessageChunkSignature(chunk, signature, options2);
-            signVerif.should.eql(true, "Verification of message chunk signature should succeed signatureLength=" + length);
+            signVerif.should.eql(true, "Verification of message chunk signature should succeed signatureLength=" + signatureLength);
         });
 
         it("should sign with a private key and verify with the certificate (DER) - " + algorithm, function () {
             const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
-                signatureLength: length,
-                privateKey: toPem(alice_private_key, "RSA PRIVATE KEY"),
+                signatureLength,
+                privateKey: alice_private_key,
             };
             const signature = makeMessageChunkSignature(chunk, options1);
 
@@ -520,7 +521,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
             const options2 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 publicKey: toPem(alice_certificate, "CERTIFICATE"),
             };
             const signVerif = verifyMessageChunkSignature(chunk, signature, options2);
@@ -528,11 +529,11 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
         });
 
         it("should sign with a other private key and verify with a OUT OF DATE certificate (ASCII) - " + algorithm, function () {
-            const private_key = readPrivateKey(bob_private_key_filename);
+            const privateKey = readPrivateKey(bob_private_key_filename);
             const options1 = {
                 algorithm,
-                signatureLength: length,
-                privateKey: toPem(private_key, "RSA PRIVATE KEY"),
+                signatureLength,
+                privateKey,
             };
 
             const signature = makeMessageChunkSignature(chunk, options1);
@@ -544,7 +545,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
 
             const options2 = {
                 algorithm,
-                signatureLength: length,
+                signatureLength,
                 publicKey: toPem(certificate, "CERTIFICATE"),
             };
 
