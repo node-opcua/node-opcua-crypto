@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-crypto",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Crypto tools for Node-OPCUA",
   "main": "./index.js",
   "types": "./index.d.ts",
