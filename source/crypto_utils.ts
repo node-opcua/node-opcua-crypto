@@ -283,7 +283,7 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
     if (publicKey instanceof crypto.KeyObject) {
-        return publicKey.export({ format: "pem", type: "pkcs1" }).toString();
+        return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;
