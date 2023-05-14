@@ -35,8 +35,7 @@ const doDebug = !!process.env.DEBUG;
 }
  */
 export function explorePrivateKey(privateKey1: PrivateKey): PrivateKeyInternals {
-    const privateKey = privateKey1.export({ format: "der", type: "pkcs1" }) as Buffer;
-    assert(privateKey instanceof Buffer);
+    const privateKey = privateKey1.export({ format: "der", type: "pkcs1" });
     const block_info = readTag(privateKey, 0);
     const blocks = _readStruct(privateKey, block_info);
 

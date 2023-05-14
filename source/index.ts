@@ -11,3 +11,7 @@ export * from "./explore_certificate_revocation_list";
 export * from "./explore_certificate_signing_request";
 export * from "./explore_private_key";
 export * from "./public_private_match";
+export * from "./x509/create_key_pair";
+export * from "./x509/create_certificate_signing_request";
+export * from "./x509/create_self_signed_certificate";
+export * from "./subject";

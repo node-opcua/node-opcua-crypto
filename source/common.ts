@@ -13,3 +13,10 @@ export type PublicKeyPEM = PEM;
 
 export type Signature = Buffer;
 export type CertificateRevocationList = Buffer;
+
+export enum CertificatePurpose {
+    NotSpecified = 0,
+    ForCertificateAuthority = 1,
+    ForApplication = 2,
+    ForUserAuthentication = 3, // X509
+}

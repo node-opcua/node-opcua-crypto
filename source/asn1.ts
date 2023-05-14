@@ -192,7 +192,7 @@ function parseOID(buffer: Buffer, start: number, end: number): string {
 
 export function _readObjectIdentifier(buffer: Buffer, block: BlockInfo): { oid: string; name: string } {
     assert(block.tag === TagType.OBJECT_IDENTIFIER);
-    const b = buffer.slice(block.position, block.position + block.length);
+    const b = buffer.subarray(block.position, block.position + block.length);
     const oid = parseOID(b, 0, block.length);
     return {
         oid,

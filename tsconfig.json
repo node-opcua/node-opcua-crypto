@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "composite": true,
         "skipLibCheck": true,
         "target": "es6",
         "moduleResolution": "node",
@@ -14,5 +15,5 @@
         "types": ["node", "mocha", "should"],
         "rootDir": "."
     },
-    "files": ["source/index.ts", "source_nodejs/index.ts"]
+    "include": ["./source/*.ts", "./source_nodejs/*.ts", "source/x509/*.ts" ]
 }
