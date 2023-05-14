@@ -1,11 +1,23 @@
 {
     "cSpell.words": [
-        "Struct",
+        "cakey",
         "camelcase",
+        "fulluri",
         "hexy",
         "ipsec",
         "jsrsasign",
-        "sshpk"
+        "KEYUTIL",
+        "KJUR",
+        "notafter",
+        "notbefore",
+        "prvpem",
+        "pubpem",
+        "sbjpubkey",
+        "secp",
+        "sigalg",
+        "sshpk",
+        "strparse",
+        "Struct"
     ],
     "git.ignoreLimitWarning": true
 }

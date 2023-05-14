@@ -32,3 +32,6 @@ tmp/
 dist/
 doc/
 tsconfig.tsbuildinfo
+
+
+_tmp*
