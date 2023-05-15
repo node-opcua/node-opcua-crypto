@@ -21,12 +21,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as assert from "assert";
-import * as crypto from "crypto";
-import * as fs from "fs";
-import * as path from "path";
+import assert from "assert";
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import should from "should";
+import *  as loremIpsum1 from "lorem-ipsum";
+import "mocha";
 
-import * as should from "should";
 import {
     convertPEMtoDER,
     DER,
@@ -44,7 +46,7 @@ import {
     toPem,
     verifyMessageChunkSignature,
     rsaLengthRsaPublicKey,
-} from "../source";
+} from "..";
 import {
     readCertificate,
     readPrivateKey,
@@ -52,9 +54,8 @@ import {
     readPublicKey,
     setCertificateStore,
     readPublicRsaKey,
-} from "../source_nodejs";
+} from "..";
 
-import * as loremIpsum1 from "lorem-ipsum";
 const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });
 
 // tslint:disable-next-line:unused-constant
@@ -66,7 +67,7 @@ let old_store: string | null = null;
 
 function switch_to_test_certificate_store() {
     assert(old_store === null);
-    old_store = setCertificateStore(path.join(__dirname, "./fixtures/certs/"));
+    old_store = setCertificateStore(path.join(__dirname, "../test-fixtures/certs/"));
 }
 
 function restore_default_certificate_store() {
@@ -78,15 +79,15 @@ function restore_default_certificate_store() {
     old_store = null;
 }
 
-const alice_private_key_filename = path.join(__dirname, "./fixtures/alice_bob/alice_key_1024.pem");
-const alice_public_key_filename = path.join(__dirname, "./fixtures/alice_bob/alice_public_key_1024.pub");
-const alice_certificate_filename = path.join(__dirname, "./fixtures/alice_bob/alice_cert_1024.pem");
-const alice_out_of_date_certificate_filename = path.join(__dirname, "./fixtures/alice_bob/alice_cert_1024_outofdate.pem");
+const alice_private_key_filename = path.join(__dirname, "../test-fixtures/alice_bob/alice_key_1024.pem");
+const alice_public_key_filename = path.join(__dirname, "../test-fixtures/alice_bob/alice_public_key_1024.pub");
+const alice_certificate_filename = path.join(__dirname, "../test-fixtures/alice_bob/alice_cert_1024.pem");
+const alice_out_of_date_certificate_filename = path.join(__dirname, "../test-fixtures/alice_bob/alice_cert_1024_outofdate.pem");
 
-const bob_private_key_filename = path.join(__dirname, "./fixtures/alice_bob/bob_key_1024.pem");
-const bob_public_key_filename = path.join(__dirname, "./fixtures/alice_bob/bob_public_key_1024.pub");
-const bob_certificate_filename = path.join(__dirname, "./fixtures/alice_bob/bob_cert_1024.pem");
-const bob_certificate_out_of_date_filename = path.join(__dirname, "./fixtures/alice_bob/bob_cert_1024_outofdate.pem");
+const bob_private_key_filename = path.join(__dirname, "../test-fixtures/alice_bob/bob_key_1024.pem");
+const bob_public_key_filename = path.join(__dirname, "../test-fixtures/alice_bob/bob_public_key_1024.pub");
+const bob_certificate_filename = path.join(__dirname, "../test-fixtures/alice_bob/bob_cert_1024.pem");
+const bob_certificate_out_of_date_filename = path.join(__dirname, "../test-fixtures/alice_bob/bob_cert_1024_outofdate.pem");
 
 const doDebug = false;
 

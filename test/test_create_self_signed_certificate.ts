@@ -21,15 +21,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
-import * as util from "util";
-// import * as crypto from "crypto";
+import fs from "fs";
+import util from "util";
 
-import * as x509 from "@peculiar/x509";
-import { readCertificate, readPrivateKey } from "../source_nodejs";
-import { CertificatePurpose, convertPEMtoDER, exploreCertificate, explorePrivateKey } from "../source";
-import { generateKeyPair, pemToPrivateKey, privateKeyToPEM } from "../source/x509/create_key_pair";
-import { createSelfSignedCertificate } from "../source/x509/create_self_signed_certificate";
+import x509 from "@peculiar/x509";
+import { readCertificate, readPrivateKey , CertificatePurpose, convertPEMtoDER, exploreCertificate, explorePrivateKey, generateKeyPair, pemToPrivateKey, privateKeyToPEM ,  createSelfSignedCertificate } from "..";
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
 describe("creating X509 self-signed certificates", function () {

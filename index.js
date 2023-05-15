@@ -1,4 +1,4 @@
 module.exports = {
-    ...require("./dist/source"),
-    ...require("./dist/source_nodejs"),
+    ...require("./dist-cjs/source"),
+    ...require("./dist-cjs/source_nodejs"),
 };

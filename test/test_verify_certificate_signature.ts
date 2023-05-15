@@ -21,11 +21,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
-import * as crypto from "crypto";
-import { verifyCertificateSignature, Certificate, PrivateKey, toPem } from "../source";
-import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "../source/asn1";
-import { readCertificate, readPrivateKey } from "../source_nodejs";
+import path from "path";
+import crypto from "crypto";
+import { verifyCertificateSignature, Certificate, PrivateKey, toPem } from "..";
+import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "..";
+import { readCertificate, readPrivateKey } from "..";
 
 function ellipsis(str: string): string {
     return str.substr(0, 16) + "[...]" + str.substr(-16);
@@ -84,23 +84,23 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
 
 describe("Verify Certificate Signature", () => {
     it("WW investigate how certificate signature is build", () => {
-        const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
-        const caPrivateKey = readPrivateKey(path.join(__dirname, "./fixtures/certsChain/cakey.pem"));
+        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
+        const caPrivateKey = readPrivateKey(path.join(__dirname, "../test-fixtures/certsChain/cakey.pem"));
         investigateCertificateSignature(certificate1, caPrivateKey);
     });
 
     it("WW should verify the signature of certificate signed by a CA", () => {
-        const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
-        const certificate2 = readCertificate(path.join(__dirname, "./fixtures/certsChain/cacert.pem"));
+        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
+        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
         verifyCertificateSignature(certificate1, certificate2).should.eql(true);
     });
     it("WW should verify the signature of a self-signed certificate", () => {
-        const certificate2 = readCertificate(path.join(__dirname, "./fixtures/certsChain/cacert.pem"));
+        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
         verifyCertificateSignature(certificate2, certificate2).should.eql(true);
     });
     it("WW should fail when verifying a signature with the wrong parent certificate ", () => {
-        const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
-        const certificate2 = readCertificate(path.join(__dirname, "./fixtures/certsChain/wrongcacert.pem"));
+        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
+        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"));
         verifyCertificateSignature(certificate1, certificate2).should.eql(false);
     });
 });

@@ -21,7 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as should from "should";
+import  should from "should";
+import * as loremIpsum1 from "lorem-ipsum";
 import {
     computeDerivedKeys,
     ComputeDerivedKeysOptions,
@@ -33,9 +34,8 @@ import {
     reduceLength,
     makeMessageChunkSignatureWithDerivedKeys,
     verifyChunkSignatureWithDerivedKeys,
-} from "../source";
+} from "..";
 
-import * as loremIpsum1 from "lorem-ipsum";
 const loremIpsum = loremIpsum1.loremIpsum({ count: 100 });
 
 // tslint:disable-next-line:unused-constant

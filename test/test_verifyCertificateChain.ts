@@ -21,15 +21,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
-import { verifyCertificateChain } from "../source";
-import { readCertificate } from "../source_nodejs";
+import path from "path";
+import { verifyCertificateChain } from "..";
+import { readCertificate } from "..";
 
 describe("Test Certificate Chain", () => {
     it("DX should verify a certificate chain", async () => {
-        const certificate1 = readCertificate(path.join(__dirname, "./fixtures/certsChain/1000.pem"));
-        const certificate2 = readCertificate(path.join(__dirname, "./fixtures/certsChain/cacert.pem"));
-        const certificate3 = readCertificate(path.join(__dirname, "./fixtures/certsChain/wrongcacert.pem"));
+        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
+        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
+        const certificate3 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"));
         (await verifyCertificateChain([certificate1, certificate2])).status.should.eql("Good");
         (await verifyCertificateChain([certificate2, certificate1])).status.should.eql("BadCertificateInvalid");
         (await verifyCertificateChain([certificate1, certificate3])).should.eql({

@@ -1,12 +1,8 @@
 {
     "compilerOptions": {
-        "composite": true,
-        "skipLibCheck": true,
-        "target": "es6",
+             "esModuleInterop": true,
+        "skipLibCheck": false,
         "moduleResolution": "node",
-        "module": "commonjs",
-        "declaration": true,
-        "outDir": "./dist",
         "sourceMap": true,
         "strict": true,
         "listFiles": false,

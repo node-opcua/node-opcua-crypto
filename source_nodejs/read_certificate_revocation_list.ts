@@ -21,10 +21,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
+import fs from "fs";
 import { promisify } from "util";
-import { convertPEMtoDER } from "../source/crypto_utils";
-import { CertificateRevocationList } from "../source/common";
+import { convertPEMtoDER } from "../source/crypto_utils.js";
+import { CertificateRevocationList } from "../source/common.js";
 
 export async function readCertificateRevocationList(filename: string): Promise<CertificateRevocationList> {
     const crl = await promisify(fs.readFile)(filename);

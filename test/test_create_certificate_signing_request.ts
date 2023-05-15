@@ -21,14 +21,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
+import fs from "fs";
 import "should";
-
-import { readCertificate } from "../source_nodejs";
-import { generateKeyPair } from "../source/x509/create_key_pair";
-import { createCertificateSigningRequest } from "../source/x509/create_certificate_signing_request";
+import "mocha";
+import { readCertificate } from "..";
+import { generateKeyPair } from "..";
+import { createCertificateSigningRequest } from "..";
 import { exploreCertificateSigningRequest } from "..";
-import { CertificatePurpose } from "../source/common";
+import { CertificatePurpose } from "..";
 
 describe("creating X509 certificate signing requests", function () {
     this.timeout(100000);

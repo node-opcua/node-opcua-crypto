@@ -21,13 +21,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
-import { makeSHA1Thumbprint } from "../source";
-import { readCertificate } from "../source_nodejs";
+import path from "path";
+import { makeSHA1Thumbprint } from "..";
+import { readCertificate } from "..";
 
 describe("makeSHA1Thumbprint", () => {
     it("should calculate a certificate SHA1-thumbprint", () => {
-        const cert = readCertificate(path.join(__dirname, "fixtures/NodeOPCUA [40BA2E8A5BEEC90067A7E554C5F3F2ECDD5BCDDF].der"));
+        const cert = readCertificate(path.join(__dirname, "../test-fixtures/NodeOPCUA [40BA2E8A5BEEC90067A7E554C5F3F2ECDD5BCDDF].der"));
         const thumbprint = makeSHA1Thumbprint(cert);
         thumbprint.toString("hex").toUpperCase().should.eql("40BA2E8A5BEEC90067A7E554C5F3F2ECDD5BCDDF");
     });

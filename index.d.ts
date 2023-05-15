@@ -1,2 +1,2 @@
-export * from "./dist/source";
-export * from "./dist/source_nodejs";
+export * from "./dist-types/source/index.d.js";
+export * from "./dist-types/source_nodejs/index.d.js";

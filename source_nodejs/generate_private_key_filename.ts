@@ -21,8 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
-import { generateKeyPair, privateKeyToPEM } from "../source";
+import fs from "fs";
+import { generateKeyPair, privateKeyToPEM } from "../source/index.js";
 
 export async function generatePrivateKeyFile(privateKeyFilename: string, modulusLength: 1024 | 2048 | 3072 | 4096) {
     const keys = await generateKeyPair(modulusLength);

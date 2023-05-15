@@ -21,14 +21,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
-import { exploreCertificate } from "../source";
-import { readCertificate } from "../source_nodejs";
-import * as should from "should";
+import path from "path";
+import { exploreCertificate, readCertificate } from "..";
+import should from "should";
 
 describe("X509ExtKeyUsage", () => {
     it("should parse extKeyUsage 1", () => {
-        const certificateFile = path.join(__dirname, "./fixtures/certificate_with_extKeyUsage1.pem");
+        const certificateFile = path.join(__dirname, "../test-fixtures/certificate_with_extKeyUsage1.pem");
         const certificate = readCertificate(certificateFile);
 
         const info = exploreCertificate(certificate);
@@ -39,7 +38,7 @@ describe("X509ExtKeyUsage", () => {
         info.tbsCertificate.extensions!.extKeyUsage!.clientAuth.should.eql(true);
     });
     it("should parse extKeyUsage 2", () => {
-        const certificateFile = path.join(__dirname, "./fixtures/certificate_with_extKeyUsage2.pem");
+        const certificateFile = path.join(__dirname, "../test-fixtures/certificate_with_extKeyUsage2.pem");
         const certificate = readCertificate(certificateFile);
 
         const info = exploreCertificate(certificate);

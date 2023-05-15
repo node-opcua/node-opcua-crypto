@@ -1,3 +1,3 @@
 module.exports = {
-    ...require("./dist/source"),
+    ...require("./dist-cjs/source"),
 };

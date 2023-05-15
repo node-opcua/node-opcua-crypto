@@ -21,11 +21,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
+import fs from "fs";
 import { promisify } from "util";
-import { convertPEMtoDER } from "../source/crypto_utils";
-import { CertificateRevocationList } from "../source/common";
-import { assert } from "console";
+import { convertPEMtoDER } from "../source/crypto_utils.js";
+import { CertificateRevocationList } from "../source/common.js";
 
 export type CertificateSigningRequest = Buffer;
 

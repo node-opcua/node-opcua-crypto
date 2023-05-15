@@ -21,18 +21,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
-import * as loremIpsum from "lorem-ipsum";
-import * as should from "should";
+import  * as loremIpsum from "lorem-ipsum";
+import "should";
+import "mocha";
 
-import { exploreCertificateInfo, makeSHA1Thumbprint, split_der, toPem } from "../source";
-import { readCertificate } from "../source_nodejs";
+import { exploreCertificateInfo, makeSHA1Thumbprint, split_der, toPem } from "..";
+import { readCertificate } from "..";
 
-// tslint:disable-next-line:unused-constant
-const should_ = should;
 
 // tslint:disable:no-var-requires
 const loremIpsumTxt = (loremIpsum as any).loremIpsum({ units: "words", count: 100 });
@@ -44,7 +43,7 @@ function make_lorem_ipsum_buffer() {
 
 describe("Crypto utils", function () {
     it("should read a PEM file", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate.pem"));
 
         certificate
             .toString("base64")
@@ -77,7 +76,7 @@ describe("Crypto utils", function () {
     });
 
     it("should read a certificate chain", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
 
         const arrayCertificate = split_der(certificate);
 
@@ -85,7 +84,7 @@ describe("Crypto utils", function () {
     });
 
     it("ZZ should read a certificate chain - write and read it again", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_chain.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
 
         const t = toPem(certificate, "CERTIFICATE");
 
@@ -107,13 +106,13 @@ describe("Crypto utils", function () {
     });
 
     it("toPem should return a string if provided certificate is a buffer containing a PEM string", () => {
-        const certificate = fs.readFileSync(path.join(__dirname, "./fixtures/certs/cert1.pem"), null);
+        const certificate = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"), null);
         const pemCertificate = toPem(certificate, "CERTIFICATE");
         pemCertificate.should.be.type('string');
     });
 
     it("toPem should return a certificate directly if provided certificate is PEM string", () => {
-        const certificate = fs.readFileSync(path.join(__dirname, "./fixtures/certs/cert1.pem"), 'ascii');
+        const certificate = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"), 'ascii');
         const pemCertificate = toPem(certificate, "CERTIFICATE");
         pemCertificate.should.eql(certificate);
     });
@@ -121,14 +120,14 @@ describe("Crypto utils", function () {
 
 describe("exploreCertificate", () => {
     it("should explore a 1024 bits RSA certificate", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem"));
         const data = exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(128);
         data.notAfter.should.be.instanceOf(Date);
         data.notBefore.should.be.instanceOf(Date);
     });
     it("should explore a 2048 bits RSA certificate", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_2048.pem"));
         const data = exploreCertificateInfo(certificate);
         data.publicKeyLength.should.eql(256);
         data.notAfter.should.be.instanceOf(Date);

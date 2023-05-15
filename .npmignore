@@ -1,5 +1,16 @@
 test/
+dist-test/
+test-fixtures/
+source/
+source_nodejs/
+_tmp*
+.fossa*
+.github/
+.prettierrc.js
+tsconfig*
+tslint*
 tmp/
+scripts/
 .codeclimate.yml
 .travis.yml
 .fossa.yaml

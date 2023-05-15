@@ -20,7 +20,7 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import { crypto } from "./_crypto";
+import { crypto } from "./_crypto.js";
 
 // https://stackoverflow.com/questions/56807959/generate-public-key-from-private-key-using-webcrypto-api
 export async function buildPublicKey(privateKey: CryptoKey): Promise<CryptoKey> {

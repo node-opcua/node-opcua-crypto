@@ -21,8 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { BlockInfo, readTag, TagType, _readIntegerAsByteString, _readStruct } from "./asn1";
-import { PrivateKey } from "./common";
+import { BlockInfo, readTag, TagType, _readIntegerAsByteString, _readStruct } from "./asn1.js";
+import { PrivateKey } from "./common.js";
 
 // tslint:disable:no-empty-interface
 export interface PrivateKeyInternals {

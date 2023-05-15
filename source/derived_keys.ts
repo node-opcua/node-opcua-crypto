@@ -24,13 +24,13 @@
 /**
  * @module node_opcua_crypto
  */
-import * as crypto from "crypto";
+import assert from "assert";
+import crypto from "crypto";
 
-import { createFastUninitializedBuffer } from "./buffer_utils";
-import { Nonce } from "./common";
-import { verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions } from "./crypto_utils";
-import { exploreCertificateInfo } from "./explore_certificate";
-import * as assert from "assert";
+import { createFastUninitializedBuffer } from "./buffer_utils.js";
+import { Nonce } from "./common.js";
+import { verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions } from "./crypto_utils.js";
+import { exploreCertificateInfo } from "./explore_certificate.js";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
     return crypto.createHmac(sha1or256, secret).update(message).digest();

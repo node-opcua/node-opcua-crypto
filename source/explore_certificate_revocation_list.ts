@@ -41,9 +41,9 @@ import {
     _findBlockAtIndex,
     _readIntegerValue,
     TagType,
-} from "./asn1";
-import { CertificateRevocationList } from "./common";
-import { makeSHA1Thumbprint, convertPEMtoDER } from "./crypto_utils";
+} from "./asn1.js";
+import { CertificateRevocationList } from "./common.js";
+import { makeSHA1Thumbprint, convertPEMtoDER } from "./crypto_utils.js";
 
 export type Version = string;
 export type Name = string;
