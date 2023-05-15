@@ -28,7 +28,8 @@
 import constants from "constants";
 import crypto from "crypto";
 import assert from "assert";
-import { hexy } from "hexy";
+
+const { hexy } = require("hexy");
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM, Signature } from "./common.js";

@@ -20,10 +20,12 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import { crypto } from "./_crypto.js";
+import { getCrypto } from "./_crypto";
 
 // https://stackoverflow.com/questions/56807959/generate-public-key-from-private-key-using-webcrypto-api
 export async function buildPublicKey(privateKey: CryptoKey): Promise<CryptoKey> {
+    const crypto = getCrypto();
+
     // export private key to JWK
     const jwk = await crypto.subtle.exportKey("jwk", privateKey);
 
@@ -33,12 +35,18 @@ export async function buildPublicKey(privateKey: CryptoKey): Promise<CryptoKey> 
     delete jwk.dq;
     delete jwk.q;
     delete jwk.qi;
-    jwk.key_ops = ["encrypt", "wrapKey"];
+    jwk.key_ops = [
+        "encrypt",
+        "sign",
+        // "wrapKey"
+    ];
 
     // import public key
-    const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "RSA-OAEP", hash: "SHA-512" }, true, [
-        "encrypt",
-        "wrapKey",
+    // const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "RSA-OAEP", hash: { name: "SHA-256" } }, true, [
+    const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } }, true, [
+     //   "encrypt",
+   //     "sign",
+        // "wrapKey",
     ]);
 
     return publicKey;

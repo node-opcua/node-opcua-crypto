@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 import { Subject } from "../subject.js";
 import { CertificatePurpose } from "../common.js";
-import { x509 } from "./_crypto.js";
+import { getCrypto, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
 import { buildPublicKey } from "./_build_public_key.js";
 
@@ -49,6 +49,9 @@ export async function createSelfSignedCertificate({
     applicationUri,
     purpose,
 }: CreateSelfSignCertificateOptions) {
+
+    const crypto = getCrypto();
+
     const publicKey = await buildPublicKey(privateKey);
 
     const keys = {
@@ -78,7 +81,7 @@ export async function createSelfSignedCertificate({
     const name = s1;
 
     const cert = await x509.X509CertificateGenerator.createSelfSigned({
-        serialNumber: "01",
+        serialNumber: Date.now().toString(),
         name,
         notBefore,
         notAfter,
@@ -96,7 +99,7 @@ export async function createSelfSignedCertificate({
             await x509.SubjectKeyIdentifierExtension.create(keys.publicKey),
             new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
         ],
-    });
+    }, crypto);
 
     return { cert: cert.toString("pem"), der: cert };
 }

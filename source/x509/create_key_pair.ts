@@ -20,9 +20,12 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import { x509, crypto} from "./_crypto.js";
+import { x509 } from "./_crypto.js";
+import { getCrypto } from "./_crypto";
 
 export async function generateKeyPair(modulusLength: 1024 | 2048 | 3072 | 4096 = 2048): Promise<CryptoKeyPair> {
+    const crypto = getCrypto();
+
     const alg: RsaHashedKeyGenParams = {
         name: "RSASSA-PKCS1-v1_5",
         hash: { name: "SHA-256" },
@@ -39,12 +42,16 @@ export async function generatePrivateKey(modulusLength: 1024 | 2048 | 3072 | 409
 }
 
 export async function privateKeyToPEM(privateKey: CryptoKey) {
+    const crypto = getCrypto();
+
     const privDer = await crypto.subtle.exportKey("pkcs8", privateKey);
     const privPem = x509.PemConverter.encode(privDer, "PRIVATE KEY");
     return { privPem, privDer };
 }
 
 export async function derToPrivateKey(privDer: ArrayBuffer): Promise<CryptoKey> {
+    const crypto = getCrypto();
+
     return await crypto.subtle.importKey(
         "pkcs8",
         privDer,
@@ -53,7 +60,16 @@ export async function derToPrivateKey(privDer: ArrayBuffer): Promise<CryptoKey> 
             hash: { name: "SHA-256" },
         },
         true,
-        ["sign", "encrypt", "decrypt", "verify", "wrapKey", "unwrapKey", "deriveKey", "deriveBits"]
+        [
+            "sign",
+            // "encrypt",
+            // "decrypt",
+            // "verify",
+            //    "wrapKey",
+            //    "unwrapKey",
+            //    "deriveKey",
+            //    "deriveBits"
+        ]
     );
 }
 
