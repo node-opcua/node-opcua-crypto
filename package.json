@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-crypto",
-  "version": "3.0.0-alpha",
+  "version": "3.0.0-beta.0",
   "description": "Crypto tools for Node-OPCUA",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -28,7 +28,7 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "engine": {
-  	"node": ">15.0"
+    "node": ">15.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
