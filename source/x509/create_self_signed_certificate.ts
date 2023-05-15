@@ -20,11 +20,11 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import { Subject } from "../subject";
-import { CertificatePurpose } from "../common";
-import { x509 } from "./_crypto";
-import { getAttributes } from "./_get_attributes";
-import { buildPublicKey } from "./_build_public_key";
+import { Subject } from "../subject.js";
+import { CertificatePurpose } from "../common.js";
+import { x509 } from "./_crypto.js";
+import { getAttributes } from "./_get_attributes.js";
+import { buildPublicKey } from "./_build_public_key.js";
 
 export interface CreateSelfSignCertificateOptions {
     privateKey: CryptoKey;

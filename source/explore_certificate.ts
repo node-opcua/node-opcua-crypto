@@ -23,12 +23,13 @@
 /**
  * @module node_opcua_crypto
  */
+import assert from "assert";
 
-import { Certificate, CertificatePEM } from "./common";
-import { exploreCertificate, SubjectPublicKey } from "./crypto_explore_certificate";
-import { DirectoryName } from "./asn1";
-import { convertPEMtoDER } from "./crypto_utils";
-import * as assert from "assert";
+import { Certificate, CertificatePEM } from "./common.js";
+import { exploreCertificate, SubjectPublicKey } from "./crypto_explore_certificate.js";
+import { DirectoryName } from "./asn1.js";
+import { convertPEMtoDER } from "./crypto_utils.js";
+
 
 export type PublicKeyLength = 64 | 96 | 128 | 256 | 384 | 512;
 

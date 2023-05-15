@@ -22,12 +22,12 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 
-import * as assert from "assert";
-import * as fs from "fs";
-import * as path from "path";
+import assert from "assert";
+import fs from "fs";
+import path from "path";
 import { createPrivateKey, createPublicKey } from "crypto";
-import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM } from "../source/common";
-import { convertPEMtoDER, identifyPemType } from "../source/crypto_utils";
+import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM } from "../source/common.js";
+import { convertPEMtoDER, identifyPemType } from "../source/crypto_utils.js";
 
 const sshpk = require("sshpk");
 

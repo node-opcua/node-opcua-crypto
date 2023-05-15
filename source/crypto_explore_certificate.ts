@@ -54,7 +54,7 @@
 //  - http://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art030
 //  openssl can be also used to discover the content of a DER file
 //  $ openssl asn1parse -in cert.pem
-import * as assert from "assert";
+import assert from "assert";
 
 import {
     _readBitString,
@@ -81,10 +81,10 @@ import {
     _readTime,
     _findBlockAtIndex,
     _readDirectoryName,
-} from "./asn1";
-import { Certificate, PrivateKey } from "./common";
-import { PublicKeyLength } from "./explore_certificate";
-import { makeSHA1Thumbprint } from "./crypto_utils";
+} from "./asn1.js";
+import { Certificate, PrivateKey } from "./common.js";
+import { PublicKeyLength } from "./explore_certificate.js";
+import { makeSHA1Thumbprint } from "./crypto_utils.js";
 
 // Converted from: https://www.cs.auckland.ac.nz/~pgut001/dumpasn1.cfg
 // which is made by Peter Gutmann and whose license states:
@@ -459,7 +459,7 @@ export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: 
 
     const identifier = _readObjectIdentifier(buffer, inner_blocks[0]);
     const buf = _getBlock(buffer, inner_blocks[1]);
-    let value = null;
+    let value: string|null | any = null;
     switch (identifier.name) {
         case "subjectKeyIdentifier":
             /* from https://tools.ietf.org/html/rfc3280#section-4.1 :

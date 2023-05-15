@@ -21,12 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as fs from "fs";
-// import * as crypto from "crypto";
-
-import { readPrivateKey } from "../source_nodejs";
-import { explorePrivateKey } from "../source";
-import { derToPrivateKey, generateKeyPair, generatePrivateKey, privateKeyToPEM } from "../source/x509/create_key_pair";
+import fs from "fs";
+import { readPrivateKey, explorePrivateKey ,derToPrivateKey, generateKeyPair, generatePrivateKey, privateKeyToPEM } from "..";
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
 describe("creating X509 key pair", function () {

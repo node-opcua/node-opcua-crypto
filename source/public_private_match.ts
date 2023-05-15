@@ -21,10 +21,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { explorePrivateKey } from "./explore_private_key";
-import { Certificate, CertificatePEM, PrivateKey, PrivateKeyPEM } from "./common";
-import { privateDecrypt_long, publicEncrypt_long, toPem } from "./crypto_utils";
-import { exploreCertificate } from "./crypto_explore_certificate";
+import { explorePrivateKey } from "./explore_private_key.js";
+import { Certificate, CertificatePEM, PrivateKey, PrivateKeyPEM } from "./common.js";
+import { privateDecrypt_long, publicEncrypt_long, toPem } from "./crypto_utils.js";
+import { exploreCertificate } from "./crypto_explore_certificate.js";
 
 export function publicKeyAndPrivateKeyMatches(certificate: Certificate, privateKey: PrivateKey): boolean {
     const i = exploreCertificate(certificate);

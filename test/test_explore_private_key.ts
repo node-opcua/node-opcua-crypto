@@ -21,9 +21,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
-import { convertPEMtoDER, explorePrivateKey } from "../source";
-import { readPrivateRsaKey, readPrivateKeyPEM, readPrivateKey } from "../source_nodejs";
+import  path from "path";
+import { convertPEMtoDER, explorePrivateKey } from "..";
+import { readPrivateRsaKey, readPrivateKeyPEM, readPrivateKey } from "..";
 import "should";
 
 describe(" exploring Private Key", function () {
@@ -44,7 +44,7 @@ describe(" exploring Private Key", function () {
 
         */
 
-        const privateKeyRSA = readPrivateRsaKey(path.join(__dirname, "./fixtures/certs/alice_id_rsa"));
+        const privateKeyRSA = readPrivateRsaKey(path.join(__dirname, "../test-fixtures/certs/alice_id_rsa"));
         const a = explorePrivateKey(privateKeyRSA);
         // console.log("modulus = ", a.modulus.toString("hex"));
         a.modulus.length.should.eql(2048 / 8);
@@ -78,7 +78,7 @@ SEQUENCE (3 elem)
       Modulus=B31F816D72E524391E436062D41A10351C2E01292E0F010A8BECA3B23535C17096855B921A4D04E0B631DD226AF86E6A75780CF54BFF363ABBDF4505F0E59B741CA99872E0E056F34504E571FD9A4EC6F2A376BF605025136C55D0B006745102943F4F344B7138D64C5A5F76369430903A9F4BB1DB8AC90D52ED8B54EE52F0A2310EDFDA0969A70A1E74FB99D7E49FBC83D3093DE3CCC30EB42C4BA339A02C70C780A7BC9108B5369EE2F6222F43A4C36DC60DF357578C9A4D8D6F8999FB80506C0D73DAFF29CF22ECA4A9CD22296AE66C4D172591348C25440B22C2A547803EF0D83FDE2837639F0DBB22A579FEF012AEB0B303CB8DED0A5B31811949F1144D7BE8F2E73A634BFFE4D8E65CBD6825105DFBE84BFFE30E58BB5AAD78730A6A64E43D961CC3D8DCC439849357982FDE98DB7099651A8B03ECF46839E9DA2818ED4C5883C1E5BDEAD8F29BF18505CCAD17F04EC0E49509A9BE43B5E503EC330E22E4BF28E571DDF81A7E6125D5CD94094BF23753066176D8BE66E5520F64432D5757162CA71AE8870F6D424358676F1C9287623D787EBAF6D0189D085431C7CAB1E7BF37DF282058453083E8BF6D37108EFF455B2C4945AA60D768FCF837B3A7F88AB56731BC569AE73C45220627BF9912BF1E1284B1170CBA0D929A23519D8FC469BF376C61CE62361B9937660DFE70983883E3B6778A5094EB81E202D1DC8B3B
 
       */
-        const privateKey = readPrivateKey(path.join(__dirname, "./fixtures/certs/demo_key_4096.pem"));
+        const privateKey = readPrivateKey(path.join(__dirname, "../test-fixtures/certs/demo_key_4096.pem"));
         const a = explorePrivateKey(privateKey);
         a.modulus.length.should.eql(4096 / 8);
         a.modulus

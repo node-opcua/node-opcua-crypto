@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-export * from "./read";
-export * from "./read_certificate_revocation_list";
-export * from "./read_certificate_signing_request";
-export * from "./generate_private_key_filename";
+export * from "./read.js";
+export * from "./read_certificate_revocation_list.js";
+export * from "./read_certificate_signing_request.js";
+export * from "./generate_private_key_filename.js";

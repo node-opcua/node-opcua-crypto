@@ -21,19 +21,19 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
+import path from "path";
 import {
     verifyCertificateRevocationListSignature,
     exploreCertificateRevocationList,
     verifyCertificateSignature,
     exploreCertificate,
     toPem,
-} from "../source";
-import { readCertificateRevocationList, readCertificate } from "../source_nodejs";
+} from "..";
+import { readCertificateRevocationList, readCertificate } from "..";
 
 describe("Explore Certificate Revocation List", () => {
     it("should read and explore a PEM revocation list", async () => {
-        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list3.pem");
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list3.pem");
         const crl = await readCertificateRevocationList(crlFilename);
 
         // xx console.log(crl.toString("hex"));
@@ -42,7 +42,7 @@ describe("Explore Certificate Revocation List", () => {
         crlInfo.tbsCertList.revokedCertificates.length.should.eql(0);
     });
     it("should explore crl1 ", async () => {
-        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list1.crl");
         const crl = await readCertificateRevocationList(crlFilename);
         // xx console.log(crl.toString("hex"));
 
@@ -68,14 +68,14 @@ describe("Explore Certificate Revocation List", () => {
         crlInfo.tbsCertList.signature.identifier.should.eql("sha256WithRSAEncryption");
     });
     it("should verify a CRL signature", async () => {
-        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list1.crl");
 
         const crl = await readCertificateRevocationList(crlFilename);
         const crlInfo = exploreCertificateRevocationList(crl);
 
         // console.log(util.inspect(crlInfo, { colors: true, depth: 100 }));
 
-        const issuerCertifcateFile = path.join(__dirname, "fixtures/crl/ctt_ca1I.der");
+        const issuerCertifcateFile = path.join(__dirname, "../test-fixtures/crl/ctt_ca1I.der");
 
         const certificateOfIssuer = await readCertificate(issuerCertifcateFile);
         const certificateOfIssuerInfo = await exploreCertificate(certificateOfIssuer);
@@ -97,14 +97,14 @@ describe("Explore Certificate Revocation List", () => {
         verifyCertificateRevocationListSignature(crl, certificateOfIssuer).should.eql(true);
     });
     it("should load a crl PEM", async () => {
-        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list4.pem");
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list4.pem");
         const crl = await readCertificateRevocationList(crlFilename);
         const crlInfo = await exploreCertificateRevocationList(crl);
         console.log(crlInfo);
     });
 
     it("should convert a DER CRL to PEM", async () => {
-        const crlFilename = path.join(__dirname, "fixtures/crl/certificate_revocation_list1.crl");
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list1.crl");
         const crl = await readCertificateRevocationList(crlFilename);
 
         const crlPem = toPem(crl, "X509 CRL");
@@ -112,7 +112,7 @@ describe("Explore Certificate Revocation List", () => {
     });
 
     it("CRLBAD - should read and explore a PEM revocation list - node-opcua#1127", async () => {
-        const crlFilename = path.join(__dirname, "fixtures/crl/crl_version_1.pem");
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/crl_version_1.pem");
         const crl = await readCertificateRevocationList(crlFilename);
         const crlInfo = exploreCertificateRevocationList(crl);
         crlInfo.tbsCertList.revokedCertificates.length.should.eql(0);

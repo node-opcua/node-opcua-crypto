@@ -21,16 +21,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as path from "path";
-import { exploreCertificateSigningRequest } from "../source/explore_certificate_signing_request";
+import path from "path";
+import { exploreCertificateSigningRequest } from "..";
 
-import { readCertificateSigningRequest } from "../source_nodejs";
+import { readCertificateSigningRequest } from "..";
 
 const doDebug = !!process.env.DEBUG;
 
 describe("Explore Certificate Signing Request", () => {
     it("ECSR1- should read and explore a Certificate Signing Request", async () => {
-        const csr1Filename = path.join(__dirname, "fixtures/csr/csr1.pem");
+        const csr1Filename = path.join(__dirname, "../test-fixtures/csr/csr1.pem");
         const csr1 = await readCertificateSigningRequest(csr1Filename);
 
         const csrInfo = exploreCertificateSigningRequest(csr1);

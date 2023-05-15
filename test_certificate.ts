@@ -1,5 +1,5 @@
 // tslint:disable: no-console
-import * as fs from "fs";
+import fs from "fs";
 import { exploreCertificate, readCertificate } from ".";
 
 async function testCertificate(filename: string): Promise<void> {

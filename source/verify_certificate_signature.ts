@@ -28,12 +28,12 @@
 // (in this case SHA-384). In order to do that, we need to extract just the body of
 // the signed certificate. Which, in our case, is everything but the signature.
 // The start of the body is always the first digit of the second line of the following command:
-import * as crypto from "crypto";
+import crypto from "crypto";
 
-import { Certificate, PrivateKey } from "./common";
-import { split_der, exploreCertificate } from "./crypto_explore_certificate";
-import { toPem } from "./crypto_utils";
-import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _readStruct, _getBlock } from "./asn1";
+import { Certificate, PrivateKey } from "./common.js";
+import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";
+import { toPem } from "./crypto_utils.js";
+import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _readStruct, _getBlock } from "./asn1.js";
 
 export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);

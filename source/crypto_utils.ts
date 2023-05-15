@@ -25,13 +25,14 @@
 /**
  * @module node_opcua_crypto
  */
-import * as constants from "constants";
-import * as crypto from "crypto";
-import { createFastUninitializedBuffer } from "./buffer_utils";
-import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM, Signature } from "./common";
-import { combine_der } from "./crypto_explore_certificate";
-import * as assert from "assert";
+import constants from "constants";
+import crypto from "crypto";
+import assert from "assert";
 import { hexy } from "hexy";
+
+import { createFastUninitializedBuffer } from "./buffer_utils.js";
+import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM, Signature } from "./common.js";
+import { combine_der } from "./crypto_explore_certificate.js";
 
 const jsrsasign = require("jsrsasign");
 

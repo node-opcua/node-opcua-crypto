@@ -5,12 +5,27 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "browser": "./index_web.js",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist-esm/index.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "npx tsc",
+    "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json ./tsconfig-test.cjs.json",
+    "build:clean": "npx rimraf ./dist ./dist-*",
+    "build": "npm run build:clean && npm run compile && node ./scripts/prepare-package-json.mjs",
     "prepare": "npm run build",
     "tslint": "tslint --project . --fix",
     "lint": "eslint . --ext .ts",
-    "test": "mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail test/**/*.ts",
+    "test:esm": "mocha test -r ts-node/register -r source-map-support/register -R spec --recursive --timeout 200000 --bail",
+    "test:cjs": "mocha dist-test  -r source-map-support/register -R spec --recursive --timeout 200000 --bail",
+    "test": "npm run test:esm && npm run test:cjs",
     "makedoc": "npx typedoc -out doc",
     "cost-of-modules": "npx cost-of-modules --no-install",
     "release-it": "npx release-it",

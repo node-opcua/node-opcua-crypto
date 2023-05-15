@@ -21,17 +21,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import * as should from "should";
-import * as path from "path";
-import * as fs from "fs";
+import should from "should";
+import path from "path";
+import fs from "fs";
 
-import { exploreCertificate, combine_der, split_der } from "../source";
-import { readCertificate } from "../source_nodejs";
+import { readCertificate, exploreCertificate, combine_der, split_der } from "..";
 
 describe(" exploring Certificates", function (this: Mocha.Suite) {
     this.timeout(200000);
     it("should extract the information out of a 1024-bits certificate", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_1024.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem"));
 
         //xx console.log(hexDump(certificate));
         const certificate_info = exploreCertificate(certificate);
@@ -51,7 +50,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
     });
 
     it("should extract the information out of a 2048-bits certificate ", () => {
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/server_cert_2048.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_2048.pem"));
 
         // console.log(hexDump(certificate))
         const certificate_info = exploreCertificate(certificate);
@@ -63,7 +62,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
     it("should extract the information out of a 4096-bits certificate - 1", () => {
         //  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -config toto.cnf -nodes -subj '/CN=localhost' -sha256
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/certs/demo_certificate_4096.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate_4096.pem"));
 
         const certificate_info = exploreCertificate(certificate);
 
@@ -74,7 +73,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
     });
 
     it("should read a V3 X509 self-certificate (with extensions)", () => {
-        const filename = path.join(__dirname, "./fixtures/certs/demo_certificate.pem");
+        const filename = path.join(__dirname, "../test-fixtures/certs/demo_certificate.pem");
         fs.existsSync(filename).should.equal(true);
 
         const certificate = readCertificate(filename);
@@ -102,7 +101,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         }
     });
     it("should read a V3 X509 certificate  signed by ta CA (with extensions)", () => {
-        const filename = path.join(__dirname, "./fixtures/certsChain/1000.pem");
+        const filename = path.join(__dirname, "../test-fixtures/certsChain/1000.pem");
         fs.existsSync(filename).should.equal(true);
 
         const certificate = readCertificate(filename);
@@ -133,7 +132,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
     it("should read a V1 X509 certificate", () => {
         // note : http://stackoverflow.com/questions/26788244/how-to-create-a-legacy-v1-or-v2-x-509-cert-for-testing
 
-        const filename = path.join(__dirname, "./fixtures/certs/demo_certificate_x509_V1.pem");
+        const filename = path.join(__dirname, "../test-fixtures/certs/demo_certificate_x509_V1.pem");
         fs.existsSync(filename).should.equal(true, "certificate file must exist");
 
         const certificate = readCertificate(filename);
@@ -148,7 +147,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
     it("investigate certificate with block problem 1", () => {
         // this certificate is Version 3 but has no Extension.
-        const filename = path.join(__dirname, "./fixtures/certs/certificate_with_block_issue.pem");
+        const filename = path.join(__dirname, "../test-fixtures/certs/certificate_with_block_issue.pem");
         fs.existsSync(filename).should.equal(true, "certificate file must exist");
 
         const certificate = readCertificate(filename);
@@ -160,7 +159,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
     });
     it("investigate certificate with block problem 2", () => {
         // this certificate is Version 3 but has no Extension.
-        const filename = path.join(__dirname, "./fixtures/certs/certificate_with_block_issue2.pem");
+        const filename = path.join(__dirname, "../test-fixtures/certs/certificate_with_block_issue2.pem");
         fs.existsSync(filename).should.equal(true, "certificate file must exist");
 
         const certificate = readCertificate(filename);
@@ -179,8 +178,8 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
 describe("exploring certificate chains", () => {
     it("should combine 2 certificates in a single block", () => {
-        const cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
-        const cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
+        const cert1_name = path.join(__dirname, "../test-fixtures/certs/client_cert_1024.pem");
+        const cert2_name = path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem");
 
         fs.existsSync(cert1_name).should.eql(true);
         fs.existsSync(cert2_name).should.eql(true);
@@ -214,9 +213,9 @@ describe("exploring certificate chains", () => {
     });
 
     it("should combine 3 certificates in a single block", () => {
-        const cert1_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
-        const cert2_name = path.join(__dirname, "./fixtures/certs/server_cert_1024.pem");
-        const cert3_name = path.join(__dirname, "./fixtures/certs/client_cert_1024.pem");
+        const cert1_name = path.join(__dirname, "../test-fixtures/certs/client_cert_1024.pem");
+        const cert2_name = path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem");
+        const cert3_name = path.join(__dirname, "../test-fixtures/certs/client_cert_1024.pem");
 
         fs.existsSync(cert1_name).should.eql(true);
         fs.existsSync(cert2_name).should.eql(true);
@@ -263,7 +262,7 @@ describe("explore ECC certificates", () => {
         //openssl ec -in private-key.pem -pubout -out public-key.pem
         //openssl req -new -x509 -key private-key.pem -out cert.pem -days 360
 
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/ecc_certificates/prime256_certif.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/prime256_certif.pem"));
         //xx console.log(hexDump(certificate));
         const certificate_info = exploreCertificate(certificate);
         console.log(" Version                   : ", certificate_info.tbsCertificate.version);
@@ -280,7 +279,7 @@ describe("explore ECC certificates", () => {
         //openssl ec -in private-key.pem -pubout -out public-key.pem
         //openssl req -new -x509 -key private-key.pem -out cert.pem -days 360
 
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/ecc_certificates/brainpool256_certif.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/brainpool256_certif.pem"));
 
         const certificate_info = exploreCertificate(certificate);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm.should.eql("brainpoolP256r1");
@@ -293,7 +292,7 @@ describe("explore ECC certificates", () => {
         //openssl ec -in private-key.pem -pubout -out public-key.pem
         //openssl req -new -x509 -key private-key.pem -out cert.pem -days 360
 
-        const certificate = readCertificate(path.join(__dirname, "./fixtures/ecc_certificates/brainpoolP384r1_certif.pem"));
+        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/brainpoolP384r1_certif.pem"));
 
         const certificate_info = exploreCertificate(certificate);
         certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm.should.eql("brainpoolP384r1");
