@@ -2,10 +2,10 @@
  * @module node_opcua_crypto
  */
 // ---------------------------------------------------------------------------------------------------------------------
-// crypto_explore_certificate
+// node-opcua-crypto
 // ---------------------------------------------------------------------------------------------------------------------
-// Copyright (c) 2014-2022 - Etienne Rossignon
-// Copyright (c) 2022 - Sterfive.com
+// Copyright (c) 2014-2022 - Etienne Rossignon - etienne.rossignon (at) gadz.org
+// Copyright (c) 2022-2023 - Sterfive.com
 // ---------------------------------------------------------------------------------------------------------------------
 //
 // This  project is licensed under the terms of the MIT license.
@@ -22,9 +22,10 @@
 // WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//
-//
 // ---------------------------------------------------------------------------------------------------------------------
+
+// portion of this code has been ported from : 
+//
 // ASN.1 JavaScript decoder Copyright (c) 2008-2014 Lapo Luchini lapo@lapo.it
 // Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby
 // granted, provided that the above copyright notice and this permission notice appear in all copies.
