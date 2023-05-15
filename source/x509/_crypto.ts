@@ -1,5 +1,26 @@
-import x509 from "@peculiar/x509";
+const x509 = require("@peculiar/x509");
 import { Crypto } from "@peculiar/webcrypto";
-export const crypto = new Crypto();
-x509.cryptoProvider.set(crypto);
+
+let _crypto: Crypto | undefined;
+
+declare const crypto: any;
+declare const window: any;
+
+if (typeof window === "undefined") {
+    _crypto = require("crypto");
+    if (!_crypto?.subtle) {
+        _crypto = new Crypto();
+        console.log("using @peculiar/webcrypto");
+    } else {
+        console.log("using nodejs crypto (native)");
+    }
+    x509.cryptoProvider.set(_crypto);
+} else {
+    // using browser crypto
+    _crypto = crypto;
+    x509.cryptoProvider.set(crypto);
+}
+export function getCrypto() {
+    return _crypto || crypto || require("crypto");
+}
 export * as x509 from "@peculiar/x509";

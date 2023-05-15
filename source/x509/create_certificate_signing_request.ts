@@ -23,7 +23,7 @@
 import { Subject } from "../subject.js";
 import { CertificatePurpose } from "../common.js";
 import { getAttributes } from "./_get_attributes.js";
-import { x509 } from "./_crypto.js";
+import { getCrypto, x509 } from "./_crypto.js";
 import { buildPublicKey } from "./_build_public_key.js";
 
 interface CreateCertificateSigningRequestOptions {
@@ -45,6 +45,10 @@ export async function createCertificateSigningRequest({
     applicationUri,
     purpose,
 }: CreateCertificateSigningRequestOptions) {
+
+
+    const crypto = getCrypto();
+    
     const modulusLength = 2048;
 
     const alg = {
@@ -81,6 +85,6 @@ export async function createCertificateSigningRequest({
             new x509.KeyUsagesExtension(usages, true),
             new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
         ],
-    });
+    }, crypto);
     return { csr: csr.toString("pem"), der: csr };
 }

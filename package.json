@@ -18,7 +18,8 @@
   },
   "scripts": {
     "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json ./tsconfig-test.cjs.json",
-    "build:clean": "npx rimraf ./dist ./dist-*",
+    "build:demo": "node web/esbuild.mjs",
+    "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
     "build": "npm run build:clean && npm run compile && node ./scripts/prepare-package-json.mjs",
     "prepare": "npm run build",
     "tslint": "tslint --project . --fix",
@@ -57,7 +58,6 @@
     "mocha": "^10.2.0",
     "prettier": "^2.8.8",
     "should": "^13.2.3",
-    "source-map": "^0.7.4",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
@@ -66,8 +66,11 @@
     "@peculiar/webcrypto": "^1.4.3",
     "@peculiar/x509": "^1.9.3",
     "@types/jsrsasign": "^10.5.8",
+    "assert": "^2.0.0",
     "better-assert": "^1.0.2",
     "chalk": "^4.1.2",
+    "crypto": "^1.0.1",
+    "esbuild-plugin-polyfill-node": "^0.2.0",
     "hexy": "0.3.4",
     "jsrsasign": "^10.8.6",
     "sshpk": "^1.17.0"
