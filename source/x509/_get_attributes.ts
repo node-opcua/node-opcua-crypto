@@ -25,7 +25,11 @@ import { x509 } from "./_crypto.js";
 
 // key usage of OPCUA Server or OPCUA Client
 const keyUsageApplication =
-    x509.KeyUsageFlags.keyEncipherment | x509.KeyUsageFlags.dataEncipherment | x509.KeyUsageFlags.digitalSignature;
+    x509.KeyUsageFlags.keyEncipherment |
+    x509.KeyUsageFlags.nonRepudiation |
+    x509.KeyUsageFlags.dataEncipherment |
+    x509.KeyUsageFlags.keyCertSign |
+    x509.KeyUsageFlags.digitalSignature;
 
 // key usage for CA certificate
 const keyUsageCA = x509.KeyUsageFlags.keyCertSign | x509.KeyUsageFlags.cRLSign;
