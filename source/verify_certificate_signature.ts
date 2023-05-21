@@ -28,7 +28,7 @@
 // (in this case SHA-384). In order to do that, we need to extract just the body of
 // the signed certificate. Which, in our case, is everything but the signature.
 // The start of the body is always the first digit of the second line of the following command:
-import crypto from "crypto";
+import { createVerify } from "node:crypto";
 
 import { Certificate, PrivateKey } from "./common.js";
 import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";
@@ -47,7 +47,7 @@ export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parent
     const p = split_der(parentCertificate)[0];
     //xx    const publicKey = extractPublicKeyFromCertificateSync(p);
     const certPem = toPem(p, "CERTIFICATE");
-    const verify = crypto.createVerify(signatureAlgorithm.identifier);
+    const verify = createVerify(signatureAlgorithm.identifier);
     verify.update(bufferToBeSigned);
     verify.end();
     return verify.verify(certPem, signatureValue);

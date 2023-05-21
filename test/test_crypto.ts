@@ -21,12 +21,21 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import assert from "assert";
-import crypto from "crypto";
-import fs from "fs";
-import path from "path";
+import assert from "node:assert";
+import {
+    createHmac,
+    createCipheriv,
+    createDecipheriv,
+    createSign,
+    createVerify,
+    getDiffieHellman,
+    publicEncrypt as publicEncrypt_fromCrypto,
+    randomBytes,
+} from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import should from "should";
-import *  as loremIpsum1 from "lorem-ipsum";
+import * as loremIpsum1 from "lorem-ipsum";
 import "mocha";
 
 import {
@@ -47,19 +56,9 @@ import {
     verifyMessageChunkSignature,
     rsaLengthRsaPublicKey,
 } from "..";
-import {
-    readCertificate,
-    readPrivateKey,
-    readPrivateRsaKey,
-    readPublicKey,
-    setCertificateStore,
-    readPublicRsaKey,
-} from "..";
+import { readCertificate, readPrivateKey, readPrivateRsaKey, readPublicKey, setCertificateStore, readPublicRsaKey } from "..";
 
 const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });
-
-// tslint:disable-next-line:unused-constant
-const should_ = should;
 
 // see https://github.com/nodejs/node/issues/22815
 
@@ -97,16 +96,11 @@ function debugLog(...args: [any?, ...any[]]) {
         console.log(console, ...args);
     }
 }
-const c = crypto.createCipheriv;
-(crypto as any).createCipheriv = (algorithm: any, key: any, iv: any) => {
-    console.log("createCipheriv=", key.toString("hex"), algorithm, "l=", iv.length);
-    return c(algorithm, key, iv);
-};
 
 // symmetric encryption and decryption
 function encrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer {
     const iv = Buffer.alloc(16, 0); // Initialization vector.
-    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    const cipher = createCipheriv(algorithm, key, iv);
     const encrypted_chunks: Buffer[] = [];
     encrypted_chunks.push(cipher.update(buffer));
     encrypted_chunks.push(cipher.final());
@@ -115,7 +109,7 @@ function encrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer 
 
 function decrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer {
     const iv = Buffer.alloc(16, 0); // Initialization vector.
-    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    const decipher = createDecipheriv(algorithm, key, iv);
     const decrypted_chunks: Buffer[] = [];
     decrypted_chunks.push(decipher.update(buffer));
     decrypted_chunks.push(decipher.final());
@@ -143,7 +137,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         const alice_private_key = alice_private_key_pem.toString("ascii");
         debugLog(alice_private_key);
 
-        const signature = crypto.createSign("RSA-SHA256").update(message).sign(alice_private_key);
+        const signature = createSign("RSA-SHA256").update(message).sign(alice_private_key);
 
         debugLog("message   = ", message);
         debugLog("signature = ", signature.toString("hex"));
@@ -158,15 +152,15 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         const alice_public_key = fs.readFileSync(alice_public_key_filename, "ascii");
 
-        crypto.createVerify("RSA-SHA256").update(message_from_alice).verify(alice_public_key, signature).should.equal(true);
+        createVerify("RSA-SHA256").update(message_from_alice).verify(alice_public_key, signature).should.equal(true);
 
         // -------------------------
-        crypto.createVerify("RSA-SHA256").update("Hello**HACK**World").verify(alice_public_key, signature).should.equal(false);
+        createVerify("RSA-SHA256").update("Hello**HACK**World").verify(alice_public_key, signature).should.equal(false);
 
         // The keys are asymmetrical, this means that Bob cannot sign
         // a message using alice public key.
         should(function () {
-            const bob_sign = crypto.createSign("RSA-SHA256");
+            const bob_sign = createSign("RSA-SHA256");
             bob_sign.update("HelloWorld");
             const signature1 = bob_sign.sign(alice_public_key);
 
@@ -176,7 +170,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         }).throwError();
     });
 
-    if (crypto.publicEncrypt !== null) {
+    if (publicEncrypt_fromCrypto !== null) {
         it("should check that bob rsa key is 2048bit long (256 bytes)", function () {
             const key = readPublicRsaKey("bob_id_rsa.pub");
             rsaLengthRsaPublicKey(key).should.equal(256);
@@ -342,7 +336,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             const alice_private_key = readPrivateRsaKey("alice_id_rsa");
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
 
-            const signature = crypto.createSign("RSA-SHA256").update(message).sign(alice_private_key);
+            const signature = createSign("RSA-SHA256").update(message).sign(alice_private_key);
             debugLog("signature = ", signature.toString("hex"));
             debugLog("signature length = ", signature.length);
 
@@ -368,7 +362,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             debugLog("decrypted message=", decryptedMessage.toString());
 
             // then Bob must also verify that the signature is matching
-            crypto.createVerify("RSA-SHA256").update(decryptedMessage).verify(alice_public_key, signature).should.equal(true);
+            createVerify("RSA-SHA256").update(decryptedMessage).verify(alice_public_key, signature).should.equal(true);
 
             // He wants to verify that the message is really from by Alice.
             // Alice has given Bob her public_key.
@@ -377,8 +371,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
     }
 
     it("explore DiffieHellman encryption (generating keys)", function () {
-        const alice = crypto.getDiffieHellman("modp5");
-        const bob = crypto.getDiffieHellman("modp5");
+        const alice = getDiffieHellman("modp5");
+        const bob = getDiffieHellman("modp5");
 
         alice.generateKeys();
         bob.generateKeys();
@@ -394,7 +388,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
     it("should encrypt a message", function () {
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
-        const key = crypto.randomBytes(32);
+        const key = randomBytes(32);
 
         const bufferToEncrypt = Buffer.alloc(32);
         bufferToEncrypt.writeDoubleLE(3.14, 0);
@@ -411,7 +405,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
     });
 
     it("exploring crypto api with symmetrical encryption/decryption", function () {
-        const key = crypto.randomBytes(32);
+        const key = randomBytes(32);
 
         const bufferToEncrypt = Buffer.from("This is a top , very top secret message !! ah ah" + loremIpsum);
 
@@ -428,9 +422,9 @@ describe("testing and exploring the NodeJS crypto api", function () {
 describe("exploring symmetric signing", function () {
     it("should sign and verify", function () {
         const text = "I love cupcakes",
-            key = crypto.randomBytes(32);
+            key = randomBytes(32);
 
-        const hash = crypto.createHmac("sha1", key).update(text).digest();
+        const hash = createHmac("sha1", key).update(text).digest();
 
         assert(hash instanceof Buffer);
         //xx console.log(hash.toString("hex"), hash.length);

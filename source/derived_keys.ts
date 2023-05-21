@@ -24,8 +24,8 @@
 /**
  * @module node_opcua_crypto
  */
-import assert from "assert";
-import crypto from "crypto";
+import assert from "node:assert";
+import { createCipheriv, createDecipheriv, createHmac} from "node:crypto";
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import { Nonce } from "./common.js";
@@ -33,7 +33,7 @@ import { verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions } from 
 import { exploreCertificateInfo } from "./explore_certificate.js";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
-    return crypto.createHmac(sha1or256, secret).update(message).digest();
+    return createHmac(sha1or256, secret).update(message).digest();
 }
 
 function plus(buf1: Buffer, buf2: Buffer): Buffer {
@@ -91,7 +91,7 @@ export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: nu
     assert(seed instanceof Buffer);
     assert(sha1or256 === "SHA1" || sha1or256 === "SHA256");
 
-    const a = [];
+    const a: Buffer[] = [];
     a[0] = seed;
     let index = 1;
     let p_hash = createFastUninitializedBuffer(0);
@@ -256,12 +256,12 @@ export function encryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
-    const cypher = crypto.createCipheriv(algorithm, key, initVector);
+    const cipher = createCipheriv(algorithm, key, initVector);
 
-    cypher.setAutoPadding(false);
+    cipher.setAutoPadding(false);
     const encrypted_chunks = [];
-    encrypted_chunks.push(cypher.update(buffer));
-    encrypted_chunks.push(cypher.final());
+    encrypted_chunks.push(cipher.update(buffer));
+    encrypted_chunks.push(cipher.final());
     return Buffer.concat(encrypted_chunks);
 }
 
@@ -269,13 +269,13 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
-    const cypher = crypto.createDecipheriv(algorithm, key, initVector);
+    const cipher = createDecipheriv(algorithm, key, initVector);
 
-    cypher.setAutoPadding(false);
+    cipher.setAutoPadding(false);
 
     const decrypted_chunks = [];
-    decrypted_chunks.push(cypher.update(buffer));
-    decrypted_chunks.push(cypher.final());
+    decrypted_chunks.push(cipher.update(buffer));
+    decrypted_chunks.push(cipher.final());
 
     return Buffer.concat(decrypted_chunks);
 }
@@ -291,7 +291,7 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
     assert(derivedKeys.signingKey instanceof Buffer);
     assert(typeof derivedKeys.sha1or256 === "string");
     assert(derivedKeys.sha1or256 === "SHA1" || derivedKeys.sha1or256 === "SHA256");
-    const signature = crypto.createHmac(derivedKeys.sha1or256, derivedKeys.signingKey).update(message).digest();
+    const signature = createHmac(derivedKeys.sha1or256, derivedKeys.signingKey).update(message).digest();
     assert(signature.length === derivedKeys.signatureLength);
     return signature;
 }

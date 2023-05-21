@@ -21,8 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import path from "path";
-import crypto from "crypto";
+import path from "node:path";
+import { SignPrivateKeyInput, constants, createSign } from "node:crypto";
 import { verifyCertificateSignature, Certificate, PrivateKey, toPem } from "..";
 import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "..";
 import { readCertificate, readPrivateKey } from "..";
@@ -44,12 +44,12 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
     // console.log("SIGV", ellipsis(signatureValue.toString("hex")), signatureValue.length);
 
     function testPadding(padding: number, saltLength?: number): boolean {
-        const sign = crypto.createSign(signatureAlgorithm.identifier);
+        const sign = createSign(signatureAlgorithm.identifier);
         sign.update(bufferTbsCertificate);
         // verify.update(bufferSignatureAlgo);
         sign.end();
 
-        const signOption: crypto.SignPrivateKeyInput = {
+        const signOption: SignPrivateKeyInput = {
             key: toPem(caPrivateKey!, "RSA PRIVATE KEY"),
             padding,
         };
@@ -65,20 +65,20 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
         }
         return false;
     }
-    testPadding(crypto.constants.RSA_PKCS1_PADDING).should.eql(true);
+    testPadding(constants.RSA_PKCS1_PADDING).should.eql(true);
     if (false) {
-        testPadding(crypto.constants.RSA_PKCS1_PADDING, crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN);
-        testPadding(crypto.constants.RSA_PKCS1_PSS_PADDING, crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN);
-        testPadding(crypto.constants.RSA_X931_PADDING, crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN);
+        testPadding(constants.RSA_PKCS1_PADDING, constants.RSA_PSS_SALTLEN_MAX_SIGN);
+        testPadding(constants.RSA_PKCS1_PSS_PADDING, constants.RSA_PSS_SALTLEN_MAX_SIGN);
+        testPadding(constants.RSA_X931_PADDING, constants.RSA_PSS_SALTLEN_MAX_SIGN);
 
-        testPadding(crypto.constants.RSA_PKCS1_PADDING, crypto.constants.RSA_PSS_SALTLEN_DIGEST);
-        testPadding(crypto.constants.RSA_PKCS1_PSS_PADDING, crypto.constants.RSA_PSS_SALTLEN_DIGEST);
-        testPadding(crypto.constants.RSA_X931_PADDING, crypto.constants.RSA_PSS_SALTLEN_DIGEST);
+        testPadding(constants.RSA_PKCS1_PADDING, constants.RSA_PSS_SALTLEN_DIGEST);
+        testPadding(constants.RSA_PKCS1_PSS_PADDING, constants.RSA_PSS_SALTLEN_DIGEST);
+        testPadding(constants.RSA_X931_PADDING, constants.RSA_PSS_SALTLEN_DIGEST);
 
-        testPadding(crypto.constants.RSA_PKCS1_PADDING, crypto.constants.RSA_PSS_SALTLEN_AUTO);
-        testPadding(crypto.constants.RSA_PKCS1_PSS_PADDING, crypto.constants.RSA_PSS_SALTLEN_AUTO);
-        testPadding(crypto.constants.RSA_X931_PADDING, crypto.constants.RSA_PSS_SALTLEN_AUTO);
-        // testPadding(crypto.constants.RSA_NO_PADDING);
+        testPadding(constants.RSA_PKCS1_PADDING, constants.RSA_PSS_SALTLEN_AUTO);
+        testPadding(constants.RSA_PKCS1_PSS_PADDING, constants.RSA_PSS_SALTLEN_AUTO);
+        testPadding(constants.RSA_X931_PADDING, constants.RSA_PSS_SALTLEN_AUTO);
+        // testPadding(constants.RSA_NO_PADDING);
     }
 }
 
