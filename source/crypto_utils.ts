@@ -25,9 +25,18 @@
 /**
  * @module node_opcua_crypto
  */
-import constants from "constants";
-import crypto from "crypto";
-import assert from "assert";
+import constants from "node:constants";
+import assert from "node:assert";
+import {
+    createHash,
+    createSign,
+    createVerify,
+    publicEncrypt as publicEncrypt1,
+    privateDecrypt as privateDecrypt1,
+    KeyLike,
+    KeyObject,
+    createPrivateKey,
+} from "node:crypto";
 
 const { hexy } = require("hexy");
 
@@ -81,11 +90,11 @@ export function convertPEMtoDER(raw_key: PEM): DER {
  * @param pem
  * @return
  */
-export function toPem(raw_key: Buffer | string | crypto.KeyObject, pem: string): string {
+export function toPem(raw_key: Buffer | string | KeyObject, pem: string): string {
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
 
-    if (raw_key instanceof crypto.KeyObject) {
+    if (raw_key instanceof KeyObject) {
         if (pem === "RSA PRIVATE KEY") {
             return raw_key.export({ format: "pem", type: "pkcs1" }).toString();
         } else if (pem === "PRIVATE KEY") {
@@ -134,7 +143,7 @@ interface MakeMessageChunkSignatureOptions {
 
 export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChunkSignatureOptions): Buffer {
     // signature length = 128 bytes
-    const signer = crypto.createSign(options.algorithm);
+    const signer = createSign(options.algorithm);
     signer.update(chunk);
     const signature = signer.sign(options.privateKey);
     assert(!options.signatureLength || signature.length === options.signatureLength);
@@ -173,13 +182,13 @@ export function verifyMessageChunkSignature(
     assert(typeof options.publicKey === "string");
     assert(identifyPemType(options.publicKey));
 
-    const verify = crypto.createVerify(options.algorithm);
+    const verify = createVerify(options.algorithm);
     verify.update(blockToVerify);
     return verify.verify(options.publicKey, signature);
 }
 
 export function makeSHA1Thumbprint(buffer: Buffer): Signature {
-    return crypto.createHash("sha1").update(buffer).digest();
+    return createHash("sha1").update(buffer).digest();
 }
 
 // Basically when you =encrypt something using an RSA key (whether public or private), the encrypted value must
@@ -204,13 +213,13 @@ assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 
 // publicEncrypt and  privateDecrypt only work with
 // small buffer that depends of the key size.
-export function publicEncrypt_native(buffer: Buffer, publicKey: crypto.KeyLike, algorithm?: PaddingAlgorithm): Buffer {
+export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
     assert(buffer instanceof Buffer, "Expecting a buffer");
-    return crypto.publicEncrypt(
+    return publicEncrypt1(
         {
             key: publicKey,
             padding: algorithm,
@@ -219,7 +228,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: crypto.KeyLike, 
     );
 }
 
-export function privateDecrypt_native(buffer: Buffer, privateKey: crypto.KeyLike, algorithm?: PaddingAlgorithm): Buffer {
+export function privateDecrypt_native(buffer: Buffer, privateKey: KeyLike, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
@@ -227,7 +236,7 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: crypto.KeyLike
     assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
     assert(buffer instanceof Buffer, "Expecting a buffer");
     try {
-        return crypto.privateDecrypt(
+        return privateDecrypt1(
             {
                 key: privateKey,
                 padding: algorithm,
@@ -244,7 +253,7 @@ export const privateDecrypt = privateDecrypt_native;
 
 export function publicEncrypt_long(
     buffer: Buffer,
-    publicKey: crypto.KeyLike,
+    publicKey: KeyLike,
     blockSize: number,
     padding: number,
     paddingAlgorithm?: PaddingAlgorithm
@@ -274,7 +283,7 @@ export function publicEncrypt_long(
 
 export function privateDecrypt_long(
     buffer: Buffer,
-    privateKey: crypto.KeyLike,
+    privateKey: KeyLike,
     blockSize: number,
     paddingAlgorithm?: number
 ): Buffer {
@@ -307,14 +316,14 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof crypto.KeyObject) {
+    if (publicKey instanceof KeyObject) {
         return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;
 }
 export function coerceRsaPublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof crypto.KeyObject) {
+    if (publicKey instanceof KeyObject) {
         return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
@@ -323,14 +332,14 @@ export function coerceRsaPublicKeyPem(publicKey: PublicKey | PublicKeyPEM): Publ
 
 export function coercePrivateKey(privateKey: PrivateKey | PrivateKeyPEM): PrivateKey {
     if (typeof privateKey === "string") {
-        return crypto.createPrivateKey(privateKey);
+        return createPrivateKey(privateKey);
     }
     return privateKey;
 }
 
 export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): PrivateKeyPEM {
     if (privateKey instanceof Buffer) {
-        const o = crypto.createPrivateKey({ key: privateKey, format: "der", type: "pkcs1" });
+        const o = createPrivateKey({ key: privateKey, format: "der", type: "pkcs1" });
 
         const e = o.export({ format: "der", type: "pkcs1" });
         privateKey = toPem(e, "RSA PRIVATE KEY");
