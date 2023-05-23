@@ -1,9 +1,77 @@
-<head>
-	<script src="./bundle.js" type="module"/>
-</head>
-<body>
-<script>
-
-	helloWorld();
-</script>
-</body>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="./bundle.js" type="module"></script>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ"
+            crossorigin="anonymous"
+        />
+        <title>OPCUA Certificate Maker</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                    <form>
+                        <div class="mb-3">
+                            <label for="keySize" class="form-label">Key size</label>
+                            <select class="form-select" aria-label="Default select example"  id="keySize" aria-describedby="keyizeHelp" >
+                              <option value="1024">1024</option>
+                              <option selected value="2048">2048</option>
+                              <option value="3072">3072</option>
+                              <option value="4096">4096</option>
+                            </select>
+                           <div id="keySizeHelp" class="form-text">
+                                the key-size in bits defines the strength of the public/private key pair.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subjet" class="form-label">Subject</label>
+                            <input type="string" class="form-control" id="subject" aria-describedby="subjectHelp" value="CN=NodeOPCUA/C=France/L=ORLEANS/O=Sterfive SAS"/>
+                            <div id="subjectHelp" class="form-text">Enter the concatenated Subject string</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="applicationUri" class="form-label">Application URI</label>
+                            <input type="string" class="form-control" id="applicationUri" aria-describedby="applicationUriHelp" value="urn:HOSTNAME:ServerDescription"/>
+                            <div id="applicationUriHelp" class="form-text"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dns" class="form-label" aria-describedby="dnsHelp">DNS names</label>
+                            <input type="string" class="form-control" id="dns" />
+                            <div id="dnsHelp" class="form-text">enter a list of dns name, separated with semi-columns (;)</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ip" class="form-label" aria-describedby="ipHelp">IP Address list</label>
+                            <input type="string" class="form-control" id="ip" />
+                            <div id="applicationUriHelp" class="form-text">enter a list of ip addresses  i.e. 123.456.789.012, separated with semi-columns (;)</div></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="generate">Generate Private key and Self-Signed Certificate</button>
+                    </form>
+            </div>
+            <div class="row">
+                <div class="col col-4">
+                    <h2>PrivateKey</h2>
+                    <div id="privateKey"></div>
+                </div>
+                <div class="col col-4">
+                    <h2>Certificate</h2>
+                    <div id="certificate"></div>
+                </div>
+                <div class="col col-4" >
+                    <h2>Info</h2>
+                    <pre id="info"></pre>
+                </div>
+            </div>
+        </div>
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+            crossorigin="anonymous"
+        ></script>
+        <script>
+        </script>
+    </body>
+</html>
