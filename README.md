@@ -3,6 +3,7 @@
 NodeOPCUA Crypto is a powerful JavaScript module for handling security and cryptography for OPCUA. It's written in TypeScript and runs smoothly on Node.js and in the browser.
 
 [![NPM download](https://img.shields.io/npm/dm/node-opcua-crypto.svg)](https://www.npmtrends.com/node-opcua-crypto)
+[![NPM version](https://img.shields.io/npm/v/node-opcua-crypto)](https://www.npmjs.com/package/node-opcua-crypto?activeTab=versions)
 [![Build Status](https://github.com/node-opcua/node-opcua-crypto/actions/workflows/main.yml/badge.svg)](https://github.com/node-opcua/node-opcua-crypto/actions/workflows/main.yml)
 [![Code Climate](https://codeclimate.com/github/node-opcua/node-opcua-crypto/badges/gpa.svg)](https://codeclimate.com/github/node-opcua/node-opcua-crypto)
 [![Coverage Status](https://coveralls.io/repos/github/node-opcua/node-opcua-crypto/badge.svg?branch=master)](https://coveralls.io/github/node-opcua/node-opcua-crypto?branch=master)
