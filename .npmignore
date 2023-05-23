@@ -25,4 +25,4 @@ node.exe
 .nyc_output/
 .vscode/
 *.tsbuildinfo
-
+web
