@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import assert from "node:assert";
+import assert from "assert";
 import {
     createHmac,
     createCipheriv,
@@ -31,9 +31,9 @@ import {
     getDiffieHellman,
     publicEncrypt as publicEncrypt_fromCrypto,
     randomBytes,
-} from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
+} from "crypto";
+import fs from "fs";
+import path from "path";
 import should from "should";
 import * as loremIpsum1 from "lorem-ipsum";
 import "mocha";
@@ -50,12 +50,16 @@ import {
     PublicKeyPEM,
     RSA_PKCS1_OAEP_PADDING,
     RSA_PKCS1_PADDING,
-    rsaLengthPrivateKey,
-    rsaLengthPublicKey,
     toPem,
     verifyMessageChunkSignature,
+} from "..";
+
+import {
+    rsaLengthPrivateKey,
+    rsaLengthPublicKey,
     rsaLengthRsaPublicKey,
 } from "..";
+
 import { readCertificate, readPrivateKey, readPrivateRsaKey, readPublicKey, setCertificateStore, readPublicRsaKey } from "..";
 
 const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });

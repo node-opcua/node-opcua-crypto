@@ -21,9 +21,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import path from "node:path";
-import { SignPrivateKeyInput, constants, createSign } from "node:crypto";
-import { verifyCertificateSignature, Certificate, PrivateKey, toPem } from "..";
+import path from "path";
+import { SignPrivateKeyInput, constants, createSign } from "crypto";
+import { verifyCertificateSignature, Certificate, PrivateKey, toPem, toPem2 } from "..";
 import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "..";
 import { readCertificate, readPrivateKey } from "..";
 
@@ -50,7 +50,7 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
         sign.end();
 
         const signOption: SignPrivateKeyInput = {
-            key: toPem(caPrivateKey!, "RSA PRIVATE KEY"),
+            key: toPem2(caPrivateKey!, "RSA PRIVATE KEY"),
             padding,
         };
         // the following circumvolution is needed to make it work with node< 12

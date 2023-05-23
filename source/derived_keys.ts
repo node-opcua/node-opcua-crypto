@@ -24,8 +24,8 @@
 /**
  * @module node_opcua_crypto
  */
-import assert from "node:assert";
-import { createCipheriv, createDecipheriv, createHmac} from "node:crypto";
+import assert from "assert";
+import { createCipheriv, createDecipheriv, createHmac } from "crypto";
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import { Nonce } from "./common.js";
@@ -259,7 +259,7 @@ export function encryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     const cipher = createCipheriv(algorithm, key, initVector);
 
     cipher.setAutoPadding(false);
-    const encrypted_chunks = [];
+    const encrypted_chunks: Buffer[] = [];
     encrypted_chunks.push(cipher.update(buffer));
     encrypted_chunks.push(cipher.final());
     return Buffer.concat(encrypted_chunks);
@@ -273,7 +273,7 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
 
     cipher.setAutoPadding(false);
 
-    const decrypted_chunks = [];
+    const decrypted_chunks: Buffer[] = [];
     decrypted_chunks.push(cipher.update(buffer));
     decrypted_chunks.push(cipher.final());
 
@@ -303,8 +303,8 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
  * @return
  */
 export function verifyChunkSignatureWithDerivedKeys(chunk: Buffer, derivedKeys: DerivedKeys): boolean {
-    const message = chunk.slice(0, chunk.length - derivedKeys.signatureLength);
-    const signature = chunk.slice(chunk.length - derivedKeys.signatureLength);
-    const verif = makeMessageChunkSignatureWithDerivedKeys(message, derivedKeys);
-    return verif.toString("hex") === signature.toString("hex");
+    const message = chunk.subarray(0, chunk.length - derivedKeys.signatureLength);
+    const expectedSignature = chunk.subarray(chunk.length - derivedKeys.signatureLength);
+    const computedSignature = makeMessageChunkSignatureWithDerivedKeys(message, derivedKeys);
+    return computedSignature.toString("hex") === expectedSignature.toString("hex");
 }
