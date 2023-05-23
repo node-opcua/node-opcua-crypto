@@ -28,7 +28,7 @@
 // (in this case SHA-384). In order to do that, we need to extract just the body of
 // the signed certificate. Which, in our case, is everything but the signature.
 // The start of the body is always the first digit of the second line of the following command:
-import { createVerify } from "node:crypto";
+import { createVerify } from "crypto";
 
 import { Certificate, PrivateKey } from "./common.js";
 import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";

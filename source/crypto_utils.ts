@@ -25,8 +25,8 @@
 /**
  * @module node_opcua_crypto
  */
-import constants from "node:constants";
-import assert from "node:assert";
+import constants from "constants";
+import assert from "assert";
 import {
     createHash,
     createSign,
@@ -34,9 +34,7 @@ import {
     publicEncrypt as publicEncrypt1,
     privateDecrypt as privateDecrypt1,
     KeyLike,
-    KeyObject,
-    createPrivateKey,
-} from "node:crypto";
+} from "crypto";
 
 const { hexy } = require("hexy");
 
@@ -65,6 +63,28 @@ export function identifyPemType(rawKey: Buffer | string): undefined | string {
     return !match ? undefined : match[2];
 }
 
+
+export function toPem(raw_key: Buffer | string, pem: string): string {
+    assert(raw_key, "expecting a key");
+    assert(typeof pem === "string");
+    let pemType = identifyPemType(raw_key);
+    if (pemType) {
+        return raw_key instanceof Buffer ? raw_key.toString("utf8") : raw_key;
+    } else {
+        pemType = pem;
+        assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
+        let b = (raw_key as Buffer).toString("base64");
+        let str = "-----BEGIN " + pemType + "-----\n";
+        while (b.length) {
+            str += b.substr(0, 64) + "\n";
+            b = b.substr(64);
+        }
+        str += "-----END " + pemType + "-----";
+        str += "\n";
+        return str;
+    }
+}
+
 export function convertPEMtoDER(raw_key: PEM): DER {
     let match: any;
     let pemType;
@@ -82,44 +102,6 @@ export function convertPEMtoDER(raw_key: PEM): DER {
         parts.push(Buffer.from(base64str, "base64"));
     }
     return combine_der(parts);
-}
-
-/**
- * @method toPem
- * @param raw_key
- * @param pem
- * @return
- */
-export function toPem(raw_key: Buffer | string | KeyObject, pem: string): string {
-    assert(raw_key, "expecting a key");
-    assert(typeof pem === "string");
-
-    if (raw_key instanceof KeyObject) {
-        if (pem === "RSA PRIVATE KEY") {
-            return raw_key.export({ format: "pem", type: "pkcs1" }).toString();
-        } else if (pem === "PRIVATE KEY") {
-            return raw_key.export({ format: "pem", type: "pkcs8" }).toString();
-        } else {
-            throw new Error("Unsupported case!");
-        }
-    }
-
-    let pemType = identifyPemType(raw_key);
-    if (pemType) {
-        return raw_key instanceof Buffer ? raw_key.toString("utf8") : raw_key;
-    } else {
-        pemType = pem;
-        assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
-        let b = (raw_key as Buffer).toString("base64");
-        let str = "-----BEGIN " + pemType + "-----\n";
-        while (b.length) {
-            str += b.substr(0, 64) + "\n";
-            b = b.substr(64);
-        }
-        str += "-----END " + pemType + "-----";
-        str += "\n";
-        return str;
-    }
 }
 
 // istanbul ignore next
@@ -313,69 +295,6 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
     }
     assert(typeof certificate === "string");
     return certificate;
-}
-
-export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof KeyObject) {
-        return publicKey.export({ format: "pem", type: "spki" }).toString();
-    }
-    assert(typeof publicKey === "string");
-    return publicKey;
-}
-export function coerceRsaPublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof KeyObject) {
-        return publicKey.export({ format: "pem", type: "spki" }).toString();
-    }
-    assert(typeof publicKey === "string");
-    return publicKey;
-}
-
-export function coercePrivateKey(privateKey: PrivateKey | PrivateKeyPEM): PrivateKey {
-    if (typeof privateKey === "string") {
-        return createPrivateKey(privateKey);
-    }
-    return privateKey;
-}
-
-export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): PrivateKeyPEM {
-    if (privateKey instanceof Buffer) {
-        const o = createPrivateKey({ key: privateKey, format: "der", type: "pkcs1" });
-
-        const e = o.export({ format: "der", type: "pkcs1" });
-        privateKey = toPem(e, "RSA PRIVATE KEY");
-    }
-    assert(typeof privateKey === "string");
-    return privateKey;
-}
-
-/***
- * @method rsaLengthPrivateKey
- * A very expensive way to determine the rsa key length ( i.e 2048bits or 1024bits)
- * @param key  a PEM public key or a PEM rsa private key
- * @return the key length in bytes.
- */
-export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
-    key = coercePrivateKey(key);
-
-    // in node 16 and above :
-    // return o.asymmetricKeyDetails.modulusLength/8
-    // in node <16 :
-    const key2 = key.export({ type: "pkcs1", format: "pem" }).toString();
-    const a = jsrsasign.KEYUTIL.getKey(key2);
-    return a.n.toString(16).length / 2;
-}
-
-export function rsaLengthPublicKey(key: PublicKeyPEM | PublicKey): number {
-    key = coercePublicKeyPem(key);
-    assert(typeof key === "string");
-    const a = jsrsasign.KEYUTIL.getKey(key);
-    return a.n.toString(16).length / 2;
-}
-export function rsaLengthRsaPublicKey(key: PublicKeyPEM | PublicKey): number {
-    key = coerceRsaPublicKeyPem(key);
-    assert(typeof key === "string");
-    const a = jsrsasign.KEYUTIL.getKey(key);
-    return a.n.toString(16).length / 2;
 }
 
 export function extractPublicKeyFromCertificateSync(certificate: Certificate | CertificatePEM): PublicKeyPEM {

@@ -28,6 +28,7 @@ export * from "./common.js";
 export * from "./derived_keys.js";
 export * from "./explore_certificate.js";
 export * from "./crypto_utils.js";
+export * from "./crypto_utils2.js";
 export * from "./crypto_explore_certificate.js";
 export * from "./verify_certificate_signature.js";
 export * from "./explore_certificate_revocation_list.js";
