@@ -22,10 +22,24 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "fs";
+import path from "path";
 import util from "util";
 
 import x509 from "@peculiar/x509";
-import { readCertificate, readPrivateKey , CertificatePurpose, convertPEMtoDER, exploreCertificate, explorePrivateKey, generateKeyPair, pemToPrivateKey, privateKeyToPEM ,  createSelfSignedCertificate } from "..";
+import {
+    readCertificate,
+    readPrivateKey,
+    CertificatePurpose,
+    convertPEMtoDER,
+    exploreCertificate,
+    explorePrivateKey,
+    generateKeyPair,
+    pemToPrivateKey,
+    privateKeyToPEM,
+    createSelfSignedCertificate,
+} from "..";
+
+const tmpTestFolder = path.join(__dirname, "../tmp");
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
 describe("creating X509 self-signed certificates", function () {
@@ -39,7 +53,7 @@ describe("creating X509 self-signed certificates", function () {
         });
 
         console.log(cert); // Certificate in PEM format}
-        const tmpCertificatePemFile = "_tmp_certificate.pem";
+        const tmpCertificatePemFile = path.join(tmpTestFolder, "_tmp_certificate.pem");
         await fs.promises.writeFile(tmpCertificatePemFile, cert);
 
         // openssl asn1parse -in _tmp_certificate.pem -inform pem -i
@@ -68,7 +82,7 @@ describe("creating X509 self-signed certificates", function () {
         });
     });
     it("should create a certificate with alternative names - (reloading private key) ", async () => {
-        const tmpPrivateKeyFilename = "_tmp_privatekey.pem";
+        const tmpPrivateKeyFilename = path.join(tmpTestFolder, "_tmp_privatekey.pem");
         {
             const { privateKey } = await generateKeyPair();
             const { privPem } = await privateKeyToPEM(privateKey);

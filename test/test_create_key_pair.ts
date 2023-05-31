@@ -22,7 +22,10 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "fs";
-import { readPrivateKey, explorePrivateKey ,derToPrivateKey, generateKeyPair, generatePrivateKey, privateKeyToPEM } from "..";
+import path from "path";
+import { readPrivateKey, explorePrivateKey, derToPrivateKey, generateKeyPair, generatePrivateKey, privateKeyToPEM } from "..";
+
+const tmpTestFolder = path.join(__dirname, "../tmp");
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
 describe("creating X509 key pair", function () {
@@ -36,10 +39,10 @@ describe("creating X509 key pair", function () {
         //  const privPem = x509.PemConverter.encode(data);
         //  keys.publicKeys
         console.log(privPem);
-        const tmpPrivateKey = "_tmp_privatekey.pem";
+        const tmpPrivateKey = path.join(tmpTestFolder, "_tmp_privatekey.pem");
         await fs.promises.writeFile(tmpPrivateKey, privPem);
 
-        const tmpPrivateKeyDER = "_tmp_privatekey.der";
+        const tmpPrivateKeyDER = path.join(tmpTestFolder, "_tmp_privatekey.der");
         await fs.promises.writeFile(tmpPrivateKeyDER, Buffer.from(privDer));
 
         const p = readPrivateKey(tmpPrivateKey);

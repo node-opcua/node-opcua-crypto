@@ -45,10 +45,8 @@ export async function createCertificateSigningRequest({
     applicationUri,
     purpose,
 }: CreateCertificateSigningRequestOptions) {
-
-
     const crypto = getCrypto();
-    
+
     const modulusLength = 2048;
 
     const alg = {
@@ -76,15 +74,18 @@ export async function createCertificateSigningRequest({
     const s1 = s.toStringInternal(", ");
     const name = s1;
 
-    const csr = await x509.Pkcs10CertificateRequestGenerator.create({
-        name,
-        keys,
-        signingAlgorithm: alg,
-        extensions: [
-            basicConstraints,
-            new x509.KeyUsagesExtension(usages, true),
-            new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
-        ],
-    }, crypto);
+    const csr = await x509.Pkcs10CertificateRequestGenerator.create(
+        {
+            name,
+            keys,
+            signingAlgorithm: alg,
+            extensions: [
+                basicConstraints,
+                new x509.KeyUsagesExtension(usages, true),
+                new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
+            ],
+        },
+        crypto
+    );
     return { csr: csr.toString("pem"), der: csr };
 }

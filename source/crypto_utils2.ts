@@ -27,11 +27,6 @@
  */
 import assert from "assert";
 
-
-// import {
-//      KeyObject,
-//      createPrivateKey,
-//  } from "crypto";
 import  * as crypto from "crypto";
 const { createPrivateKey } = crypto;
 

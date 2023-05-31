@@ -32,7 +32,7 @@
     "makedoc": "npx typedoc -out doc",
     "cost-of-modules": "npx cost-of-modules --no-install",
     "release-it": "npx release-it",
-    "prettier-format": "prettier --config .prettierrc.js lib/**/*.ts test/**/*.ts --write",
+    "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
     "ncu": "npx npm-check-updates -u -x env-paths,chalk"
   },
   "keywords": [

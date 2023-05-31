@@ -23,10 +23,13 @@
 
 // tslint:disable-next-line:ban-types
 export function inlineText(f: (() => void) | string): string {
-    let k = typeof f === "function" ?  f
-        .toString()
-        .replace(/^[^/]+\/\*!?/, "")
-        .replace(/\*\/[^/]+$/, "") : f as string;
+    let k =
+        typeof f === "function"
+            ? f
+                  .toString()
+                  .replace(/^[^/]+\/\*!?/, "")
+                  .replace(/\*\/[^/]+$/, "")
+            : (f as string);
     k = k
         .split("\n")
         .map((t) => t.trim())
@@ -72,6 +75,6 @@ export function hexString(str: string): string {
 }
 
 // tslint:disable-next-line:ban-types
-export function makebuffer_from_trace(func: (() => void )| string): Buffer {
+export function makebuffer_from_trace(func: (() => void) | string): Buffer {
     return makeBuffer(hexString(inlineText(func)));
 }

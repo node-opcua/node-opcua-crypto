@@ -34,7 +34,7 @@ export * from "./verify_certificate_signature.js";
 export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
 export * from "./explore_private_key.js";
-export * from "./public_private_match.js";
+export { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "./public_private_match.js";
 export * from "./x509/create_key_pair.js";
 export * from "./x509/create_certificate_signing_request.js";
 export * from "./x509/create_self_signed_certificate.js";

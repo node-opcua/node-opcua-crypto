@@ -30,7 +30,7 @@
 // The start of the body is always the first digit of the second line of the following command:
 import { createVerify } from "crypto";
 
-import { Certificate, PrivateKey } from "./common.js";
+import { Certificate } from "./common.js";
 import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";
 import { toPem } from "./crypto_utils.js";
 import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _readStruct, _getBlock } from "./asn1.js";

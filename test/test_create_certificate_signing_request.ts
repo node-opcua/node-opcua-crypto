@@ -22,6 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "fs";
+import path from "path";
 import "should";
 import "mocha";
 import { readCertificate } from "..";
@@ -29,6 +30,8 @@ import { generateKeyPair } from "..";
 import { createCertificateSigningRequest } from "..";
 import { exploreCertificateSigningRequest } from "..";
 import { CertificatePurpose } from "..";
+
+const tmpTestFolder = path.join(__dirname,"../tmp");
 
 describe("creating X509 certificate signing requests", function () {
     this.timeout(100000);
@@ -47,7 +50,7 @@ describe("creating X509 certificate signing requests", function () {
         });
 
         console.log(csr); // Certificate in PEM format}
-        const tmpCSRPemFile = "_tmp_csr.pem";
+        const tmpCSRPemFile = path.join(tmpTestFolder,"_tmp_csr.pem");
         await fs.promises.writeFile(tmpCSRPemFile, csr);
 
         // openssl asn1parse -in _tmp_certificate.pem -inform pem -i

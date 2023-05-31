@@ -49,7 +49,6 @@ export async function createSelfSignedCertificate({
     applicationUri,
     purpose,
 }: CreateSelfSignCertificateOptions) {
-
     const crypto = getCrypto();
 
     const publicKey = await buildPublicKey(privateKey);
@@ -80,26 +79,29 @@ export async function createSelfSignedCertificate({
     const s1 = s.toStringInternal(", ");
     const name = s1;
 
-    const cert = await x509.X509CertificateGenerator.createSelfSigned({
-        serialNumber: Date.now().toString(),
-        name,
-        notBefore,
-        notAfter,
+    const cert = await x509.X509CertificateGenerator.createSelfSigned(
+        {
+            serialNumber: Date.now().toString(),
+            name,
+            notBefore,
+            notAfter,
 
-        signingAlgorithm: { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } },
+            signingAlgorithm: { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } },
 
-        keys,
+            keys,
 
-        extensions: [
-            new x509.Extension(ID_NETSCAPE_COMMENT, false, Buffer.from(nsComment, "ascii")),
-            // new x509.BasicConstraintsExtension(true, 2, true),
-            basicConstraints,
-            new x509.ExtendedKeyUsageExtension(keyUsageExtension, true),
-            new x509.KeyUsagesExtension(usages, true),
-            await x509.SubjectKeyIdentifierExtension.create(keys.publicKey),
-            new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
-        ],
-    }, crypto);
+            extensions: [
+                new x509.Extension(ID_NETSCAPE_COMMENT, false, Buffer.from(nsComment, "ascii")),
+                // new x509.BasicConstraintsExtension(true, 2, true),
+                basicConstraints,
+                new x509.ExtendedKeyUsageExtension(keyUsageExtension, true),
+                new x509.KeyUsagesExtension(usages, true),
+                await x509.SubjectKeyIdentifierExtension.create(keys.publicKey),
+                new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
+            ],
+        },
+        crypto
+    );
 
     return { cert: cert.toString("pem"), der: cert };
 }

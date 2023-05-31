@@ -44,8 +44,8 @@ export async function buildPublicKey(privateKey: CryptoKey): Promise<CryptoKey> 
     // import public key
     // const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "RSA-OAEP", hash: { name: "SHA-256" } }, true, [
     const publicKey = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } }, true, [
-     //   "encrypt",
-   //     "sign",
+        //   "encrypt",
+        //     "sign",
         // "wrapKey",
     ]);
 

@@ -13,10 +13,10 @@ NodeOPCUA Crypto is a powerful JavaScript module for handling security and crypt
 
 ## Features
 
-* Comprehensive set of cryptographic functionalities.
-* Supports both Node.js and browser environments.
-* Compatible with TypeScript for robust, type-safe coding.
-* Implements advanced security standards for OPCUA.
+* a comprehensive set of cryptographic functionalities.
+* supports both Node.js and browser environments.
+* compatible with TypeScript for robust, type-safe coding.
+* implements advanced security standards for OPCUA.
 
 ## Getting Started
 
