@@ -23,6 +23,8 @@
 
 import fs from "fs";
 import path from "path";
+import os from "os";
+
 import "should";
 import "mocha";
 import { readCertificate } from "..";
@@ -31,7 +33,7 @@ import { createCertificateSigningRequest } from "..";
 import { exploreCertificateSigningRequest } from "..";
 import { CertificatePurpose } from "..";
 
-const tmpTestFolder = path.join(__dirname,"../tmp");
+const tmpTestFolder = os.tmpdir();
 
 describe("creating X509 certificate signing requests", function () {
     this.timeout(100000);

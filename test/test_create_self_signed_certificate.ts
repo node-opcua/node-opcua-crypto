@@ -23,23 +23,22 @@
 
 import fs from "fs";
 import path from "path";
+import os from "os";
 import util from "util";
 
 import x509 from "@peculiar/x509";
 import {
     readCertificate,
-    readPrivateKey,
     CertificatePurpose,
     convertPEMtoDER,
     exploreCertificate,
-    explorePrivateKey,
     generateKeyPair,
     pemToPrivateKey,
     privateKeyToPEM,
     createSelfSignedCertificate,
 } from "..";
 
-const tmpTestFolder = path.join(__dirname, "../tmp");
+const tmpTestFolder = os.tmpdir();
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
 describe("creating X509 self-signed certificates", function () {

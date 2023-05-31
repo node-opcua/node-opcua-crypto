@@ -23,9 +23,10 @@
 
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { readPrivateKey, explorePrivateKey, derToPrivateKey, generateKeyPair, generatePrivateKey, privateKeyToPEM } from "..";
 
-const tmpTestFolder = path.join(__dirname, "../tmp");
+const tmpTestFolder = os.tmpdir();
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
 describe("creating X509 key pair", function () {
