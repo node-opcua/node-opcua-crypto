@@ -82,7 +82,7 @@ import {
     _findBlockAtIndex,
     _readDirectoryName,
 } from "./asn1.js";
-import { Certificate, PrivateKey } from "./common.js";
+import { Certificate } from "./common.js";
 import { PublicKeyLength } from "./explore_certificate.js";
 import { makeSHA1Thumbprint } from "./crypto_utils.js";
 

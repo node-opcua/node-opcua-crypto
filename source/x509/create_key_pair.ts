@@ -43,7 +43,6 @@ export async function generatePrivateKey(modulusLength: 1024 | 2048 | 3072 | 409
 
 export async function privateKeyToPEM(privateKey: CryptoKey) {
     const crypto = getCrypto();
-
     const privDer = await crypto.subtle.exportKey("pkcs8", privateKey);
     const privPem = x509.PemConverter.encode(privDer, "PRIVATE KEY");
     return { privPem, privDer };

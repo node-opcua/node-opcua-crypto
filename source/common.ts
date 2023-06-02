@@ -20,10 +20,11 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import crypto from "crypto";
+import { KeyObject } from "crypto";
 
-export type PrivateKey = crypto.KeyObject;
-export type PublicKey = crypto.KeyObject;
+// CryptoKey => KeyObject
+export type PrivateKey = KeyObject;
+export type PublicKey = KeyObject;
 
 export type Nonce = Buffer;
 export type PEM = string;

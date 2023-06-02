@@ -39,7 +39,7 @@ import {
 const { hexy } = require("hexy");
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
-import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM, Signature } from "./common.js";
+import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKeyPEM, Signature } from "./common.js";
 import { combine_der } from "./crypto_explore_certificate.js";
 
 const jsrsasign = require("jsrsasign");
@@ -76,8 +76,8 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
         let b = (raw_key as Buffer).toString("base64");
         let str = "-----BEGIN " + pemType + "-----\n";
         while (b.length) {
-            str += b.substr(0, 64) + "\n";
-            b = b.substr(64);
+            str += b.substring(0, 64) + "\n";
+            b = b.substring(64);
         }
         str += "-----END " + pemType + "-----";
         str += "\n";

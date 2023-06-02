@@ -21,13 +21,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-
 import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { createPrivateKey, createPublicKey } from "crypto";
-import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM } from "../source/common.js";
-import { convertPEMtoDER, identifyPemType } from "../source/crypto_utils.js";
+import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKey, PublicKeyPEM, PrivateKeyPEM } from "../source/common.js";
+import { convertPEMtoDER } from "../source/crypto_utils.js";
 
 const sshpk = require("sshpk");
 

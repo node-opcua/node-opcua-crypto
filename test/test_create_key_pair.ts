@@ -24,7 +24,17 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { readPrivateKey, explorePrivateKey, derToPrivateKey, generateKeyPair, generatePrivateKey, privateKeyToPEM } from "..";
+import {
+    readPrivateKey,
+    explorePrivateKey,
+    derToPrivateKey,
+    generateKeyPair,
+    generatePrivateKey,
+    privateKeyToPEM,
+    pemToPrivateKey,
+    coercePrivateKeyPem,
+    coercePrivateKey,
+} from "..";
 
 const tmpTestFolder = os.tmpdir();
 
@@ -58,8 +68,14 @@ describe("creating X509 key pair", function () {
 
         const { privPem, privDer } = await privateKeyToPEM(privateKey);
         const privateKey2 = await derToPrivateKey(privDer);
+
         const { privPem: privPem2 } = await privateKeyToPEM(privateKey2);
         console.log(privPem2);
         privPem2.should.eql(privPem);
+
+        const privateKeyFromKey = await pemToPrivateKey(privPem);
+        const { privPem: privPem3 } = await privateKeyToPEM(privateKeyFromKey);
+        console.log(privPem3);
+        privPem3.should.eql(privPem);
     });
 });

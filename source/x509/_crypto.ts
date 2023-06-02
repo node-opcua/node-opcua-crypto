@@ -20,7 +20,10 @@ if (typeof window === "undefined") {
     _crypto = crypto;
     x509.cryptoProvider.set(crypto);
 }
-export function getCrypto() {
+
+interface CryptoInterface {
+}
+export function getCrypto():  Crypto {
     return _crypto || crypto || require("crypto");
 }
 export * as x509 from "@peculiar/x509";

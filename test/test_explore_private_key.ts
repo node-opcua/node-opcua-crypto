@@ -22,8 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import  path from "path";
-import { convertPEMtoDER, explorePrivateKey } from "..";
-import { readPrivateRsaKey, readPrivateKeyPEM, readPrivateKey } from "..";
+import { explorePrivateKey } from "..";
+import { readPrivateRsaKey, readPrivateKey } from "..";
 import "should";
 
 describe(" exploring Private Key", function () {

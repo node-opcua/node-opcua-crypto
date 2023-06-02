@@ -31,7 +31,7 @@ import  * as crypto from "crypto";
 const { createPrivateKey } = crypto;
 
 
-import { PrivateKey, PrivateKeyPEM, PublicKey, PublicKeyPEM } from "./common.js";
+import { PrivateKey, PublicKey, PublicKeyPEM, PrivateKeyPEM } from "./common.js";
 import { toPem } from "./crypto_utils.js";
 
 const jsrsasign = require("jsrsasign");
@@ -71,12 +71,17 @@ export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
 }
 
 /**
- * @method toPem
+ * @method toPem2
  * @param raw_key
  * @param pem
- * @return
+ * 
+ * 
+ * @return a PEM string containing the Private Key
+ * 
+ * Note:  a Pem key can be converted back to a PrivateKey object using coercePrivateKey
+ * 
  */
-export function toPem2(raw_key: Buffer | string|  crypto.KeyObject, pem: string): string {
+export function toPem2(raw_key: Buffer | string | crypto.KeyObject, pem: string): string {
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
 
@@ -90,7 +95,6 @@ export function toPem2(raw_key: Buffer | string|  crypto.KeyObject, pem: string)
         }
     }
     return toPem(raw_key, pem);
-
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
@@ -120,4 +124,3 @@ export function rsaLengthRsaPublicKey(key: PublicKeyPEM | PublicKey): number {
     const a = jsrsasign.KEYUTIL.getKey(key);
     return a.n.toString(16).length / 2;
 }
-
