@@ -78,4 +78,13 @@ describe("creating X509 key pair", function () {
         console.log(privPem3);
         privPem3.should.eql(privPem);
     });
+    it("coercePrivateKey", async()=>{
+        const privateKey = await generatePrivateKey();
+
+        const { privPem, privDer } = await privateKeyToPEM(privateKey);
+        const privateKey2 = await derToPrivateKey(privDer);
+
+        const privateKey1 = await coercePrivateKey(privPem);
+
+    });
 });

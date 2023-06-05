@@ -38,5 +38,6 @@ export { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "./p
 export * from "./x509/create_key_pair.js";
 export * from "./x509/create_certificate_signing_request.js";
 export * from "./x509/create_self_signed_certificate.js";
+export * from "./x509/coerce_private_key.js";
 export * from "./subject.js";
 export * from "./asn1.js";

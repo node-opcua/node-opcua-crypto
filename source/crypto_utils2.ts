@@ -33,15 +33,9 @@ const { createPrivateKey } = crypto;
 
 import { PrivateKey, PublicKey, PublicKeyPEM, PrivateKeyPEM } from "./common.js";
 import { toPem } from "./crypto_utils.js";
+import { coercePrivateKey } from "./x509/coerce_private_key.js";
 
 const jsrsasign = require("jsrsasign");
-
-export function coercePrivateKey(privateKey: PrivateKey | PrivateKeyPEM): PrivateKey {
-    if (typeof privateKey === "string") {
-        return createPrivateKey(privateKey);
-    }
-    return privateKey;
-}
 
 export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): PrivateKeyPEM {
     if (privateKey instanceof Buffer) {
