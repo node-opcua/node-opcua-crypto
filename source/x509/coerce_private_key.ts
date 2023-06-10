@@ -5,11 +5,9 @@ import { PrivateKey } from "../common";
 import { createPrivateKey as createPrivateKeyFromNode } from "crypto";
 const crypto = getCrypto();
 
+const doDebug = false;
 
 export function coercePrivateKey(privateKey: PrivateKey | PrivateKeyPEM): PrivateKey {
-
-    console.log("TAZEAZEAZEAZEZEa",privateKey);
-
     if (typeof privateKey === "string") {
         return createPrivateKeyFromNode(privateKey);
     }
@@ -27,7 +25,7 @@ export async function _coercePrivateKey(privateKey: any): Promise<PrivateKey> {
             const privateKey1 = await pemToPrivateKey(privateKey);
             return KeyObject.from(privateKey1);
         } catch (err) {
-            console.log(privateKey);
+            doDebug && console.log(privateKey);
             throw err;
         }
     } else if (privateKey instanceof KeyObject) {
@@ -35,4 +33,3 @@ export async function _coercePrivateKey(privateKey: any): Promise<PrivateKey> {
     }
     throw new Error("Invalid privateKey");
 }
-

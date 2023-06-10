@@ -24,7 +24,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-// portion of this code has been ported from : 
+// portion of this code has been ported from :
 //
 // ASN.1 JavaScript decoder Copyright (c) 2008-2014 Lapo Luchini lapo@lapo.it
 // Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby
@@ -239,9 +239,6 @@ function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicCo
     const block_info = readTag(buffer, 0);
     const inner_blocks = _readStruct(buffer, block_info);
     const cA = inner_blocks.length > 0 ? _readBooleanValue(buffer, inner_blocks[0]) : false;
-
-    //    console.log("buffer[block_info.position] = ", buffer[block_info.position]);
-    // const cA = buffer[block_info.position] ? true : false;
 
     let pathLengthConstraint = 0;
     if (inner_blocks.length > 1) {
@@ -459,7 +456,7 @@ export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: 
 
     const identifier = _readObjectIdentifier(buffer, inner_blocks[0]);
     const buf = _getBlock(buffer, inner_blocks[1]);
-    let value: string|null | any = null;
+    let value: string | null | any = null;
     switch (identifier.name) {
         case "subjectKeyIdentifier":
             /* from https://tools.ietf.org/html/rfc3280#section-4.1 :
@@ -576,14 +573,14 @@ function _readSubjectECCPublicKeyInfo(buffer: Buffer, block: BlockInfo): Subject
     // the public key is already in bit format, we just need to read it
     const subjectPublicKey = _readBitString(buffer, inner_blocks[1]);
 
-    // take out the data which is the entirity of our public key 
+    // take out the data which is the entirity of our public key
     const data = subjectPublicKey.data;
     return {
         algorithm: algorithm.identifier,
         keyLength: (data.length - 1) as PublicKeyLength,
         subjectPublicKey: {
-            modulus: data
-        }
+            modulus: data,
+        },
     };
 }
 
@@ -660,8 +657,8 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
         subject = _readName(buffer, blocks[5]);
         subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[5])));
 
-        const inner_block = _readStruct(buffer, blocks[6])
-        const what_type = _readAlgorithmIdentifier(buffer, inner_block[0]).identifier
+        const inner_block = _readStruct(buffer, blocks[6]);
+        const what_type = _readAlgorithmIdentifier(buffer, inner_block[0]).identifier;
 
         switch (what_type) {
             case "rsaEncryption": {
@@ -678,7 +675,7 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
         const extensionBlock = _findBlockAtIndex(blocks, 3);
         if (!extensionBlock) {
             // tslint:disable-next-line: no-console
-            console.log("X509 certificate is invalid : cannot find extension block version =" + version_block);
+            doDebug && console.log("X509 certificate is invalid : cannot find extension block version =" + version_block);
             extensions = null;
         } else {
             extensions = _readExtensions(buffer, extensionBlock);

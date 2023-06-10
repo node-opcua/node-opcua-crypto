@@ -10,9 +10,9 @@ if (typeof window === "undefined") {
     _crypto = require("crypto");
     if (!_crypto?.subtle) {
         _crypto = new Crypto();
-        console.log("using @peculiar/webcrypto");
+        //xx  console.warn("using @peculiar/webcrypto");
     } else {
-        console.log("using nodejs crypto (native)");
+        //xx console.warn("using nodejs crypto (native)");
     }
     x509.cryptoProvider.set(_crypto);
 } else {
@@ -21,9 +21,8 @@ if (typeof window === "undefined") {
     x509.cryptoProvider.set(crypto);
 }
 
-interface CryptoInterface {
-}
-export function getCrypto():  Crypto {
+interface CryptoInterface {}
+export function getCrypto(): Crypto {
     return _crypto || crypto || require("crypto");
 }
 export * as x509 from "@peculiar/x509";
