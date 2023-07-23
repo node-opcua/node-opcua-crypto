@@ -22,8 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 import { KeyObject } from "crypto";
 
-// CryptoKey => KeyObject
-export type PrivateKey = KeyObject;
+export type PrivateKey = { hidden: string } | {hidden: KeyObject};
 export type PublicKey = KeyObject;
 
 export type Nonce = Buffer;

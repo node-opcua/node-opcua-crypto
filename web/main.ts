@@ -9,6 +9,17 @@ import {
     exploreCertificateInfo,
     convertPEMtoDER,
     exploreCertificate,
+    makePrivateKeyFromPem,
+    rsaLengthPrivateKey,
+    makeMessageChunkSignature,
+    PrivateKey,
+    toPem,
+    Signature,
+    Certificate,
+    verifyMessageChunkSignature,
+    publicEncrypt_native,
+    privateDecrypt_native,
+    extractPublicKeyFromCertificateSync,
 } from "..";
 
 let privateKey: CryptoKey | undefined;
@@ -87,4 +98,55 @@ async function generate(event) {
     (subjectPublicKey as any).modulus = subjectPublicKey.modulus.toString("hex");
 
     document.getElementById("info").innerHTML = `<pre>${JSON.stringify(info, null, " ")}</pre>`;
+
+    const logTest = testEncryptionDecryption(privPem, selfSignedCertificate);
+
+    document.getElementById("info2").innerHTML = `<pre>${logTest}</pre>`;
+}
+
+if (!crypto.subtle) {
+    alert("Your browser does not support crypto.subtle : are you running in an unsecure context ? use http://localhost:3000");
+}
+
+const algorithm = "RSA-SHA1";
+function sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
+    const params = {
+        algorithm,
+        privateKey,
+        signatureLength: rsaLengthPrivateKey(privateKey),
+    };
+    return makeMessageChunkSignature(buffer, params);
+}
+
+function verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
+    const publicKey = toPem(certificate, "CERTIFICATE");
+    const options = {
+        algorithm,
+        publicKey,
+        signatureLength: 0,
+    };
+    return verifyMessageChunkSignature(buffer, signature, options);
+}
+
+// test encryption decryption in the browse
+function testEncryptionDecryption(privPem: string, certificate: string) {
+    try {
+        const privateKey = makePrivateKeyFromPem(privPem);
+        const publicKey = extractPublicKeyFromCertificateSync(certificate);
+
+        const data = Buffer.from("Hello World");
+        console.log("originalData = ", data.toString("hex"));
+        const encryptedData = publicEncrypt_native(data, publicKey);
+        console.log("encryptedData = ", encryptedData.toString("hex"));
+
+        const decryptedData = privateDecrypt_native(encryptedData, privateKey);
+        console.log("decrypted = ", decryptedData.toString("hex"));
+
+        const signature = sign(data, privateKey);
+        const isSignatureValid = verify(data, signature, convertPEMtoDER(certificate));
+        return isSignatureValid ? "OK" : "Bad";
+    } catch (err) {
+        console.log(err);
+        return err.message;
+    }
 }

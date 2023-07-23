@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import { explorePrivateKey } from "./explore_private_key.js";
-import { Certificate, CertificatePEM, PrivateKey, PrivateKeyPEM } from "./common.js";
+import { Certificate, CertificatePEM, PrivateKey } from "./common.js";
 import { privateDecrypt_long, publicEncrypt_long, toPem } from "./crypto_utils.js";
 import { exploreCertificate } from "./crypto_explore_certificate.js";
 

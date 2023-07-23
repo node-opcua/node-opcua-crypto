@@ -25,8 +25,18 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { createPrivateKey, createPublicKey } from "crypto";
-import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKey, PublicKeyPEM, PrivateKeyPEM } from "../source/common.js";
-import { convertPEMtoDER } from "../source/crypto_utils.js";
+import {
+    Certificate,
+    CertificatePEM,
+    DER,
+    PEM,
+    PublicKey,
+    PublicKeyPEM,
+    PrivateKeyPEM,
+    PrivateKey,
+} from "../source/common.js";
+import { convertPEMtoDER, identifyPemType, makeSHA1Thumbprint, toPem } from "../source/crypto_utils.js";
+import { toPem2 } from "../source/crypto_utils2.js";
 
 const sshpk = require("sshpk");
 
@@ -63,14 +73,41 @@ export function readPublicKey(filename: string): PublicKey {
     }
 }
 
-function myCreatePrivateKey(rawKey: string | Buffer) {
+// console.log("createPrivateKey", (crypto as any).createPrivateKey, process.env.NO_CREATE_PRIVATEKEY);
+
+
+function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
+    if (!createPrivateKey || process.env.NO_CREATE_PRIVATEKEY) {
+        // we are not running nodejs or createPrivateKey is not supported in the environment
+        if (rawKey instanceof Buffer) {
+            const pemKey = toPem(rawKey, "RSA PRIVATE KEY");
+            assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(pemKey) as string) >= 0);
+            return { hidden: pemKey };
+        }
+        return { hidden: rawKey };
+    }
     // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
     const backup = process.env.OPENSSL_CONF;
     process.env.OPENSSL_CONF = "/dev/null";
     const retValue = createPrivateKey(rawKey);
     process.env.OPENSSL_CONF = backup;
-    return retValue;
+    return { hidden: retValue };
 }
+
+
+export function makePrivateKeyThumbPrint(privateKey: PrivateKey): Buffer {
+    //   // .export({ format: "der", type: "pkcs1" });
+    //   if (typeof privateKey === "string") {
+    //
+    //   } else {
+    //    return makeSHA1Thumbprint(privateKey.hidden);
+    //   }
+    // to do 
+    return Buffer.alloc(0);
+}
+
+
+
 /**
  * read a DER or PEM certificate from file
  */
@@ -91,10 +128,14 @@ export function readCertificatePEM(filename: string): CertificatePEM {
 export function readPublicKeyPEM(filename: string): PublicKeyPEM {
     return _readPemFile(filename);
 }
-
+/**
+ * 
+ * @deprecated
+ */
 export function readPrivateKeyPEM(filename: string): PrivateKeyPEM {
     return _readPemFile(filename);
 }
+
 let __certificate_store = path.join(__dirname, "../../certificates/");
 
 export function setCertificateStore(store: string): string {
@@ -108,13 +149,17 @@ export function setCertificateStore(store: string): string {
  * @param filename
  */
 export function readPrivateRsaKey(filename: string): PrivateKey {
+    if (!createPrivateKey) {
+        throw new Error("createPrivateKey is not supported in this environment");
+    }
     if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
     const content = fs.readFileSync(filename, "ascii");
     const sshKey = sshpk.parsePrivateKey(content, "auto");
     const key = sshKey.toString("pkcs1") as PEM;
-    return createPrivateKey({ format: "pem", type: "pkcs1", key });
+    const hidden = createPrivateKey({ format: "pem", type: "pkcs1", key });
+    return { hidden };
 }
 
 export function readPublicRsaKey(filename: string): PublicKey {

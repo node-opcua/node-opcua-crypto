@@ -23,25 +23,22 @@
 
 import path from "path";
 import { SignPrivateKeyInput, constants, createSign } from "crypto";
-import { verifyCertificateSignature, Certificate, PrivateKey, toPem, toPem2 } from "..";
+import { verifyCertificateSignature, Certificate, toPem2, PrivateKey } from "..";
 import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "..";
 import { readCertificate, readPrivateKey } from "..";
 
-function ellipsis(str: string): string {
-    return str.substr(0, 16) + "[...]" + str.substr(-16);
-}
 export function investigateCertificateSignature(certificate: Certificate, caPrivateKey?: PrivateKey): void {
     const block_info = readTag(certificate, 0);
     const blocks = _readStruct(certificate, block_info);
 
     //  console.log(block_info, blocks[0], blocks[1], blocks[2]);
-    const bufferTbsCertificate = certificate.slice(block_info.position, block_info.position + 4 + blocks[0].length);
+    const bufferTbsCertificate = certificate.subarray(block_info.position, block_info.position + 4 + blocks[0].length);
 
     // console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
     const signatureAlgorithm = _readAlgorithmIdentifier(certificate, blocks[1]);
 
     const signatureValue = _readSignatureValueBin(certificate, blocks[2]);
-    // console.log("SIGV", ellipsis(signatureValue.toString("hex")), signatureValue.length);
+    // console.log("", ellipsis(signatureValue.toString("hex")), signatureValue.length);
 
     function testPadding(padding: number, saltLength?: number): boolean {
         const sign = createSign(signatureAlgorithm.identifier);
@@ -50,7 +47,7 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
         sign.end();
 
         const signOption: SignPrivateKeyInput = {
-            key: toPem2(caPrivateKey!, "RSA PRIVATE KEY"),
+            key: toPem2(caPrivateKey!.hidden, "RSA PRIVATE KEY"),
             padding,
         };
         // the following circumvolution is needed to make it work with node< 12
