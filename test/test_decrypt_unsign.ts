@@ -20,13 +20,14 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
+/* cspell: disable */
 
 import "should";
 import { privateDecrypt_long, toPem, verifyChunkSignature } from "..";
 import { makebuffer_from_trace } from "./helpers/makebuffer_from_trace";
 
 const buffer = makebuffer_from_trace(
-`
+    `
 00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
 00000020: 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 42 61 73 69 63    tion.org/UA/SecurityPolicy#Basic
 00000040: 31 32 38 52 73 61 31 35 75 04 00 00 30 82 04 71 30 82 03 59 a0 03 02 01 02 02 04 53 a3 ca d0 30    128Rsa15u...0..q0..Y.......S#JP0
@@ -78,10 +79,10 @@ const buffer = makebuffer_from_trace(
 00000600: 5f 1e 1e 58 bd 7b 33 7f fd 98 fd 20 9d 71 30 3a 3c 84 1e 87 b8 1b 2d 51 2b 55 62 41 e4 b9 a5 29    _..X={3.}.}..q0:<...8.-Q+UbAd9%)
 00000620: 24 2a 91 b6 06 05 01 df 80 dd b1 04 2e 05 aa 17 ef 6a 53 46 05 78 0c c7 5c 9c 7f cf e4 37 80 de    $*.6..._.]1...*.ojSF.x.G\..Od7.^
 00000640: bf 31 de 11 13 70 f4 93 fe 0c a2 4f ef 58 b9 c8 a8 3a 5e 76 20 0c 87 f0 ef                         ?1^..pt.~."OoX9H(:^v...po
-`);
+`
+);
 
-const privateKey = 
-`-----BEGIN RSA PRIVATE KEY-----
+const privateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQDVTV+bramiaPZc24RhmoFdL3ztiXS7QEoW3qvCfDqx4tAJKSZW
 trLfWnl92RhUUFXBhNhSuTccMzioWew+8lsQAL3lOUACMRvlxbRefH1PWcx6wi95
 sFLe74PLgIcI5h9/a5Rj8N6bnAcj/8GpsMW2Vwna4lN8xkEgDK3GWW5tcQIDAQAB
@@ -100,7 +101,6 @@ g9s5xs14gqCBGGf2CTN+xnJehplg562CQG6f70heivC7
 
 describe("testing message decryption", () => {
     it("should decrypt an OPN packet and verify that the signature is correct", () => {
-        
         // extract the client certificate from the unencrypted part
         const senderCertificate = buffer.subarray(0x4c, 0x475 + 0x4c);
 
@@ -109,12 +109,12 @@ describe("testing message decryption", () => {
         const encrypted_part = buffer.subarray(start);
 
         // decrypt the encrypted part
-        const decrypted_part = privateDecrypt_long(encrypted_part, privateKey, 128);
+        const decrypted_part = privateDecrypt_long(encrypted_part, { hidden: privateKey }, 128);
 
         // recompose the buffer
         decrypted_part.copy(buffer, start);
 
-        const my_buffer = buffer.slice(0, start + decrypted_part.length);
+        const my_buffer = buffer.subarray(0, start + decrypted_part.length);
         my_buffer.length.should.equal(start + 3 * (128 - 11));
 
         // verify signature

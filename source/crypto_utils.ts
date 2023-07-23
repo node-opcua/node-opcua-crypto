@@ -39,7 +39,7 @@ import {
 const { hexy } = require("hexy");
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
-import { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKeyPEM, Signature } from "./common.js";
+import { Certificate, CertificatePEM, DER, PEM, PublicKeyPEM, Signature, PrivateKey } from "./common.js";
 import { combine_der } from "./crypto_explore_certificate.js";
 
 const jsrsasign = require("jsrsasign");
@@ -80,7 +80,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
             b = b.substring(64);
         }
         str += "-----END " + pemType + "-----";
-        str += "\n";
+        // str += "\n";
         return str;
     }
 }
@@ -127,7 +127,7 @@ export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChu
     // signature length = 128 bytes
     const signer = createSign(options.algorithm);
     signer.update(chunk);
-    const signature = signer.sign(options.privateKey);
+    const signature = signer.sign(options.privateKey.hidden);
     assert(!options.signatureLength || signature.length === options.signatureLength);
     return signature;
 }
@@ -159,10 +159,11 @@ export function verifyMessageChunkSignature(
     signature: Signature,
     options: VerifyMessageChunkSignatureOptions
 ): boolean {
-    assert(blockToVerify instanceof Buffer);
-    assert(signature instanceof Buffer);
-    assert(typeof options.publicKey === "string");
-    assert(identifyPemType(options.publicKey));
+    // Note those assets are failing in web browse
+    // assert(blockToVerify instanceof Buffer || blockToVerify instanceof Uint8Array);
+    // assert(signature instanceof Buffer || blockToVerify instanceof Uint8Array);
+    // assert(typeof options.publicKey === "string");
+    // assert(identifyPemType(options.publicKey));
 
     const verify = createVerify(options.algorithm);
     verify.update(blockToVerify);
@@ -199,9 +200,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorit
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
-    assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
-    assert(buffer instanceof Buffer, "Expecting a buffer");
-    return publicEncrypt1(
+     return publicEncrypt1(
         {
             key: publicKey,
             padding: algorithm,
@@ -210,17 +209,15 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorit
     );
 }
 
-export function privateDecrypt_native(buffer: Buffer, privateKey: KeyLike, algorithm?: PaddingAlgorithm): Buffer {
+export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKey, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
 
-    assert(algorithm === RSA_PKCS1_PADDING || algorithm === RSA_PKCS1_OAEP_PADDING);
-    assert(buffer instanceof Buffer, "Expecting a buffer");
     try {
         return privateDecrypt1(
             {
-                key: privateKey,
+                key: privateKey.hidden,
                 padding: algorithm,
             },
             buffer
@@ -265,7 +262,7 @@ export function publicEncrypt_long(
 
 export function privateDecrypt_long(
     buffer: Buffer,
-    privateKey: KeyLike,
+    privateKey: PrivateKey,
     blockSize: number,
     paddingAlgorithm?: number
 ): Buffer {

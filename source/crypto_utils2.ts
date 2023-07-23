@@ -27,40 +27,27 @@
  */
 import assert from "assert";
 
-import  * as crypto from "crypto";
-const { createPrivateKey } = crypto;
+// be careful: createPrivateKey is not polyfilled in crypto-browserify
+import { createPrivateKey as createPrivateKeyFromNodeJSCrypto, KeyObject } from "crypto";
 
-
-import { PrivateKey, PublicKey, PublicKeyPEM, PrivateKeyPEM } from "./common.js";
+import { PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "./common.js";
 import { toPem } from "./crypto_utils.js";
-import { coercePrivateKey } from "./x509/coerce_private_key.js";
+import { type } from "os";
 
 const jsrsasign = require("jsrsasign");
 
-export function coercePrivateKeyPem(privateKey: PrivateKey | PrivateKeyPEM): PrivateKeyPEM {
-    if (privateKey instanceof Buffer) {
-        const o = createPrivateKey({ key: privateKey, format: "der", type: "pkcs1" });
-
-        const e = o.export({ format: "der", type: "pkcs1" });
-        privateKey = toPem(e, "RSA PRIVATE KEY");
-    }
-    assert(typeof privateKey === "string");
-    return privateKey;
-}
 /***
  * @method rsaLengthPrivateKey
  * A very expensive way to determine the rsa key length ( i.e 2048bits or 1024bits)
  * @param key  a PEM public key or a PEM rsa private key
  * @return the key length in bytes.
  */
-export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
-    key = coercePrivateKey(key);
-
+export function rsaLengthPrivateKey(key: PrivateKey): number {
+    const keyPem = typeof key.hidden === "string" ? key.hidden : key.hidden.export({ type: "pkcs1", format: "pem" }).toString();
     // in node 16 and above :
     // return o.asymmetricKeyDetails.modulusLength/8
     // in node <16 :
-    const key2 = key.export({ type: "pkcs1", format: "pem" }).toString();
-    const a = jsrsasign.KEYUTIL.getKey(key2);
+    const a = jsrsasign.KEYUTIL.getKey(keyPem);
     return a.n.toString(16).length / 2;
 }
 
@@ -68,18 +55,21 @@ export function rsaLengthPrivateKey(key: PrivateKeyPEM | PrivateKey): number {
  * @method toPem2
  * @param raw_key
  * @param pem
- * 
- * 
+ *
+ *
  * @return a PEM string containing the Private Key
- * 
- * Note:  a Pem key can be converted back to a PrivateKey object using coercePrivateKey
- * 
+ *
+ * Note:  a Pem key can be converted back to a private key object using coercePrivateKey
+ *
  */
-export function toPem2(raw_key: Buffer | string | crypto.KeyObject, pem: string): string {
+export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: string): string {
+    if ((raw_key as PrivateKey).hidden) {
+        return toPem2((raw_key as PrivateKey).hidden, pem);
+    }
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
 
-    if (raw_key instanceof crypto.KeyObject) {
+    if (raw_key instanceof KeyObject) {
         if (pem === "RSA PRIVATE KEY") {
             return raw_key.export({ format: "pem", type: "pkcs1" }).toString();
         } else if (pem === "PRIVATE KEY") {
@@ -88,18 +78,35 @@ export function toPem2(raw_key: Buffer | string | crypto.KeyObject, pem: string)
             throw new Error("Unsupported case!");
         }
     }
-    return toPem(raw_key, pem);
+    return toPem(raw_key as (Buffer | string), pem);
+}
+
+export function coercePrivateKeyPem(privateKey: PrivateKey): PrivateKeyPEM {
+    return toPem2(privateKey, "RSA PRIVATE KEY");
+    /*
+    if (privateKey.hidden instanceof Buffer) {
+        const o = createPrivateKeyFromNodeJSCrypto({ key: privateKey.hidden, format: "der", type: "pkcs1" });
+        const e = o.export({ format: "der", type: "pkcs1" });
+        return toPem(e, "RSA PRIVATE KEY");
+    } else if (privateKey.hidden instanceof KeyObject) {
+        const o = privateKey.hidden.export({ format: "pem", type: "pkcs1" });
+        return o.toString();
+    } else if (typeof privateKey.hidden === "string") {
+        return privateKey.hidden;
+    }
+    throw new Error("Invalid privateKey");
+    */
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof crypto.KeyObject) {
+    if (publicKey instanceof KeyObject) {
         return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;
 }
 export function coerceRsaPublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof crypto.KeyObject) {
+    if (publicKey instanceof KeyObject) {
         return publicKey.export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");

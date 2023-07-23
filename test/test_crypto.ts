@@ -40,23 +40,16 @@ import "mocha";
 
 import {
     convertPEMtoDER,
-    DER,
     extractPublicKeyFromCertificate,
     makeMessageChunkSignature,
     privateDecrypt_long,
     publicEncrypt_long,
     publicEncrypt,
-    PublicKey,
     PublicKeyPEM,
     RSA_PKCS1_OAEP_PADDING,
     RSA_PKCS1_PADDING,
     toPem,
     verifyMessageChunkSignature,
-} from "..";
-
-import {
-    rsaLengthPrivateKey,
-    rsaLengthPublicKey,
     rsaLengthRsaPublicKey,
 } from "..";
 
@@ -340,7 +333,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             const alice_private_key = readPrivateRsaKey("alice_id_rsa");
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
 
-            const signature = createSign("RSA-SHA256").update(message).sign(alice_private_key);
+            const signature = createSign("RSA-SHA256").update(message).sign(alice_private_key.hidden);
             debugLog("signature = ", signature.toString("hex"));
             debugLog("signature length = ", signature.length);
 

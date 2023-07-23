@@ -23,6 +23,7 @@
 
 import { BlockInfo, readTag, TagType, _readIntegerAsByteString, _readStruct } from "./asn1.js";
 import { PrivateKey } from "./common.js";
+import { convertPEMtoDER } from "./crypto_utils.js";
 
 // tslint:disable:no-empty-interface
 export interface PrivateKeyInternals {
@@ -56,8 +57,11 @@ const doDebug = !!process.env.DEBUG;
  *  otherPrimeInfos   OtherPrimeInfos OPTIONAL
 }
  */
-export function explorePrivateKey(privateKey1: PrivateKey): PrivateKeyInternals {
-    const privateKey = privateKey1.export({ format: "der", type: "pkcs1" });
+export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals {
+
+    const privateKey1 = privateKey2 .hidden;
+    const privateKey = typeof privateKey1 === "string" ? convertPEMtoDER(privateKey1) : privateKey1.export({ format: "der", type: "pkcs1" });
+
     const block_info = readTag(privateKey, 0);
     const blocks = _readStruct(privateKey, block_info);
 

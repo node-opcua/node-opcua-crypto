@@ -24,6 +24,8 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
+import should from "should";
+
 import {
     readPrivateKey,
     explorePrivateKey,
@@ -32,8 +34,7 @@ import {
     generatePrivateKey,
     privateKeyToPEM,
     pemToPrivateKey,
-    coercePrivateKeyPem,
-    coercePrivateKey,
+    coercePEMorDerToPrivateKey,
 } from "..";
 
 const tmpTestFolder = os.tmpdir();
@@ -78,13 +79,13 @@ describe("creating X509 key pair", function () {
         console.log(privPem3);
         privPem3.should.eql(privPem);
     });
-    it("coercePrivateKey", async()=>{
+    it("coercePEMorDerToPrivateKey", async () => {
         const privateKey = await generatePrivateKey();
-
         const { privPem, privDer } = await privateKeyToPEM(privateKey);
+
         const privateKey2 = await derToPrivateKey(privDer);
 
-        const privateKey1 = await coercePrivateKey(privPem);
-
+        const privateKey1 = await coercePEMorDerToPrivateKey(privPem);
+        should.exist(privateKey1.hidden);
     });
 });

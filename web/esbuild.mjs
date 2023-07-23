@@ -11,9 +11,13 @@ build({
     plugins: [
         polyfillNode({
             polyfills: {
-                crypto: true, // 'rollup-plugin-node-polyfills/polyfills/crypto-browserify'
-            // Options (optional)
+                crypto: true
+                // 'rollup-plugin-node-polyfills/polyfills/crypto-browserify'
+                // Options (optional)
             }
         }),
     ],
 });
+
+
+console.log("done");

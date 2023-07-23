@@ -38,3 +38,6 @@ _tmp*
 dist-*/
 **/*.tsbuildinfo
 *.tsbuildinfo
+
+
+test/tmp*
