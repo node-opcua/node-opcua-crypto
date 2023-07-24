@@ -69,7 +69,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
     assert(typeof pem === "string");
     let pemType = identifyPemType(raw_key);
     if (pemType) {
-        return raw_key instanceof Buffer ? raw_key.toString("utf8") : raw_key;
+        return raw_key instanceof Buffer ? raw_key.toString("utf8").replace(/(\r|\n)+$/gm, "") : raw_key.replace(/(\r|\n)+$/gm, "");
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);

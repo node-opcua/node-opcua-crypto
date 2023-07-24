@@ -80,7 +80,7 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     if (!createPrivateKey || process.env.NO_CREATE_PRIVATEKEY) {
         // we are not running nodejs or createPrivateKey is not supported in the environment
         if (rawKey instanceof Buffer) {
-            const pemKey = toPem(rawKey, "RSA PRIVATE KEY");
+            const pemKey = toPem(rawKey, "PRIVATE KEY");
             assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(pemKey) as string) >= 0);
             return { hidden: pemKey };
         }
