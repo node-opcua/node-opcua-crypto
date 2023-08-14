@@ -10,9 +10,9 @@ if (typeof window === "undefined") {
     _crypto = require("crypto");
     if (!_crypto?.subtle) {
         _crypto = new Crypto();
-        //xx  console.warn("using @peculiar/webcrypto");
+        console.warn("using @peculiar/webcrypto");
     } else {
-        //xx console.warn("using nodejs crypto (native)");
+        console.warn("using nodejs crypto (native)");
     }
     x509.cryptoProvider.set(_crypto);
 } else {

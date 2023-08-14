@@ -36,6 +36,7 @@ import {
     pemToPrivateKey,
     privateKeyToPEM,
     createSelfSignedCertificate,
+    removeTrailingLF,
 } from "..";
 
 const tmpTestFolder = os.tmpdir();
@@ -88,7 +89,7 @@ describe("creating X509 self-signed certificates", function () {
             await fs.promises.writeFile(tmpPrivateKeyFilename, privPem);
         }
 
-        const privateKeyPem = await fs.promises.readFile(tmpPrivateKeyFilename, "utf-8");
+        const privateKeyPem = removeTrailingLF(await fs.promises.readFile(tmpPrivateKeyFilename, "utf-8"));
         const privateKey = await pemToPrivateKey(privateKeyPem);
 
         const { cert } = await createSelfSignedCertificate({
@@ -107,6 +108,29 @@ describe("creating X509 self-signed certificates", function () {
             dNSName: ["DNS1", "DNS2"],
             iPAddress: ["c0a80101"],
             uniformResourceIdentifier: ["urn:HOSTNAME:ServerDescription"],
+        });
+    });
+
+    it("ZZ1 - should create self-signed certificate with those parameters ", async () => {
+        const tmpPrivateKeyFilename = path.join(tmpTestFolder, "_tmp_privatekey.pem");
+        {
+            const { privateKey } = await generateKeyPair();
+            const { privPem } = await privateKeyToPEM(privateKey);
+            await fs.promises.writeFile(tmpPrivateKeyFilename, privPem);
+        }
+
+        const privateKeyPem = removeTrailingLF(await fs.promises.readFile(tmpPrivateKeyFilename, "utf-8"));
+        const privateKey = await pemToPrivateKey(privateKeyPem);
+
+        const { cert } = await createSelfSignedCertificate({
+            privateKey,
+            notAfter: new Date(2020, 1, 1),
+            notBefore: new Date(2019, 1, 1),
+            subject: "/CN=OPCUA-Server/O=COMPANY/L=CITY/ST=REGION/C=FR/DC=company.com",
+            dns: ["DNS1", "DNS2"],
+            ip: ["192.168.1.1"],
+            applicationUri: "urn:HOSTNAME:ServerDescription",
+            purpose: CertificatePurpose.ForApplication,
         });
     });
 });

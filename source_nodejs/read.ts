@@ -25,24 +25,14 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { createPrivateKey, createPublicKey } from "crypto";
-import {
-    Certificate,
-    CertificatePEM,
-    DER,
-    PEM,
-    PublicKey,
-    PublicKeyPEM,
-    PrivateKeyPEM,
-    PrivateKey,
-} from "../source/common.js";
-import { convertPEMtoDER, identifyPemType, makeSHA1Thumbprint, toPem } from "../source/crypto_utils.js";
-import { toPem2 } from "../source/crypto_utils2.js";
+import { Certificate, CertificatePEM, DER, PEM, PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "../source/common.js";
+import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 
 const sshpk = require("sshpk");
 
 function _readPemFile(filename: string): PEM {
     assert(typeof filename === "string");
-    return fs.readFileSync(filename, "ascii");
+    return removeTrailingLF(fs.readFileSync(filename, "utf-8"));
 }
 
 function _readPemOrDerFileAsDER(filename: string): DER {
@@ -75,7 +65,6 @@ export function readPublicKey(filename: string): PublicKey {
 
 // console.log("createPrivateKey", (crypto as any).createPrivateKey, process.env.NO_CREATE_PRIVATEKEY);
 
-
 function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     if (!createPrivateKey || process.env.NO_CREATE_PRIVATEKEY) {
         // we are not running nodejs or createPrivateKey is not supported in the environment
@@ -84,7 +73,7 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
             assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(pemKey) as string) >= 0);
             return { hidden: pemKey };
         }
-        return { hidden: rawKey };
+        return { hidden: ensureTrailingLF(rawKey) };
     }
     // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
     const backup = process.env.OPENSSL_CONF;
@@ -94,7 +83,6 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     return { hidden: retValue };
 }
 
-
 export function makePrivateKeyThumbPrint(privateKey: PrivateKey): Buffer {
     //   // .export({ format: "der", type: "pkcs1" });
     //   if (typeof privateKey === "string") {
@@ -102,18 +90,19 @@ export function makePrivateKeyThumbPrint(privateKey: PrivateKey): Buffer {
     //   } else {
     //    return makeSHA1Thumbprint(privateKey.hidden);
     //   }
-    // to do 
+    // to do
     return Buffer.alloc(0);
 }
 
-
-
+function ensureTrailingLF(str: string): string {
+    return str.match(/\n$/) ? str : str + "\n";
+}
 /**
  * read a DER or PEM certificate from file
  */
 export function readPrivateKey(filename: string): PrivateKey {
     if (filename.match(/.*\.der/)) {
-        const der = fs.readFileSync(filename) as Buffer;
+        const der: Buffer = fs.readFileSync(filename);
         return myCreatePrivateKey(der);
     } else {
         const raw_key: string = _readPemFile(filename);
@@ -129,7 +118,7 @@ export function readPublicKeyPEM(filename: string): PublicKeyPEM {
     return _readPemFile(filename);
 }
 /**
- * 
+ *
  * @deprecated
  */
 export function readPrivateKeyPEM(filename: string): PrivateKeyPEM {
@@ -155,7 +144,7 @@ export function readPrivateRsaKey(filename: string): PrivateKey {
     if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
-    const content = fs.readFileSync(filename, "ascii");
+    const content = fs.readFileSync(filename, "utf8");
     const sshKey = sshpk.parsePrivateKey(content, "auto");
     const key = sshKey.toString("pkcs1") as PEM;
     const hidden = createPrivateKey({ format: "pem", type: "pkcs1", key });
@@ -166,7 +155,7 @@ export function readPublicRsaKey(filename: string): PublicKey {
     if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
         filename = __certificate_store + filename;
     }
-    const content = fs.readFileSync(filename, "ascii");
+    const content = fs.readFileSync(filename, "utf-8");
     const sshKey = sshpk.parseKey(content, "ssh");
     const key = sshKey.toString("pkcs1") as PEM;
     return createPublicKey({ format: "pem", type: "pkcs1", key });

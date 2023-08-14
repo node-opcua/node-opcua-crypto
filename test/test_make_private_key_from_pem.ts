@@ -24,7 +24,7 @@ describe("makePrivateKeyFromPem", () => {
 
         const privateKey2 = makePrivateKeyFromPem(pem);
         const pem2 = coercePrivateKeyPem(privateKey2);
-        pem2.should.eql(pem);
+        pem2.trimEnd().should.eql(pem.trimEnd());
 
         rsaLengthPrivateKey(privateKey).should.eql(2048 / 8);
     });
