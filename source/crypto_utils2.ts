@@ -31,8 +31,7 @@ import assert from "assert";
 import { createPrivateKey as createPrivateKeyFromNodeJSCrypto, KeyObject } from "crypto";
 
 import { PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "./common.js";
-import { toPem } from "./crypto_utils.js";
-import { type } from "os";
+import { removeTrailingLF, toPem } from "./crypto_utils.js";
 
 const jsrsasign = require("jsrsasign");
 
@@ -71,9 +70,9 @@ export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: s
 
     if (raw_key instanceof KeyObject) {
         if (pem === "RSA PRIVATE KEY") {
-            return raw_key.export({ format: "pem", type: "pkcs1" }).toString();
+            return removeTrailingLF(raw_key.export({ format: "pem", type: "pkcs1" }).toString());
         } else if (pem === "PRIVATE KEY") {
-            return raw_key.export({ format: "pem", type: "pkcs8" }).toString();
+            return removeTrailingLF(raw_key.export({ format: "pem", type: "pkcs8" }).toString());
         } else {
             throw new Error("Unsupported case!");
         }

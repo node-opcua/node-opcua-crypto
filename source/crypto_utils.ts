@@ -63,13 +63,17 @@ export function identifyPemType(rawKey: Buffer | string): undefined | string {
     return !match ? undefined : match[2];
 }
 
+export function removeTrailingLF(str: string): string {
+    const tmp = str.replace(/(\r|\n)+$/m, "").replace(/\r\n/gm, "\n");
+    return tmp;
+}
 
 export function toPem(raw_key: Buffer | string, pem: string): string {
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
     let pemType = identifyPemType(raw_key);
     if (pemType) {
-        return raw_key instanceof Buffer ? raw_key.toString("utf8").replace(/(\r|\n)+$/gm, "") : raw_key.replace(/(\r|\n)+$/gm, "");
+        return raw_key instanceof Buffer ? removeTrailingLF(raw_key.toString("utf8")) : removeTrailingLF(raw_key);
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
@@ -80,7 +84,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
             b = b.substring(64);
         }
         str += "-----END " + pemType + "-----";
-        // str += "\n";
+        // no leading \n
         return str;
     }
 }
@@ -200,7 +204,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorit
     if (algorithm === undefined) {
         algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
     }
-     return publicEncrypt1(
+    return publicEncrypt1(
         {
             key: publicKey,
             padding: algorithm,
@@ -260,12 +264,7 @@ export function publicEncrypt_long(
     return outputBuffer;
 }
 
-export function privateDecrypt_long(
-    buffer: Buffer,
-    privateKey: PrivateKey,
-    blockSize: number,
-    paddingAlgorithm?: number
-): Buffer {
+export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKey, blockSize: number, paddingAlgorithm?: number): Buffer {
     paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_PADDING;
     // istanbul ignore next
     if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {

@@ -29,7 +29,7 @@ import  * as loremIpsum from "lorem-ipsum";
 import "should";
 import "mocha";
 
-import { exploreCertificateInfo, makeSHA1Thumbprint, split_der, toPem } from "..";
+import { exploreCertificateInfo, makeSHA1Thumbprint, readCertificatePEM, removeTrailingLF, split_der, toPem } from "..";
 import { readCertificate } from "..";
 
 
@@ -106,15 +106,15 @@ describe("Crypto utils", function () {
     });
 
     it("toPem should return a string if provided certificate is a buffer containing a PEM string", () => {
-        const certificate = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"), null);
+        const certificate = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"), "binary");
         const pemCertificate = toPem(certificate, "CERTIFICATE");
         pemCertificate.should.be.type('string');
     });
 
     it("toPem should return a certificate directly if provided certificate is PEM string", () => {
-        const certificate = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"), 'ascii');
+        const certificate = readCertificatePEM(path.join(__dirname, "../test-fixtures/certs/cert1.pem"));
         const pemCertificate = toPem(certificate, "CERTIFICATE");
-        pemCertificate.should.eql(certificate);
+        pemCertificate.should.eql(removeTrailingLF(certificate));
     });
 });
 
