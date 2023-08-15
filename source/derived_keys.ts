@@ -101,7 +101,7 @@ export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: nu
         p_hash = plus(p_hash, HMAC_HASH(sha1or256, secret, plus(a[index], seed)));
         index += 1;
     }
-    return p_hash.slice(0, minLength);
+    return p_hash.subarray(0, minLength);
 }
 
 export interface ComputeDerivedKeysOptions {
@@ -154,9 +154,9 @@ export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeD
         algorithm: options.algorithm,
         sha1or256: options.sha1or256,
 
-        signingKey: buf.slice(0, offset1),
-        encryptingKey: buf.slice(offset1, offset2),
-        initializationVector: buf.slice(offset2, minLength),
+        signingKey: buf.subarray(0, offset1),
+        encryptingKey: buf.subarray(offset1, offset2),
+        initializationVector: buf.subarray(offset2, minLength),
     };
 }
 
@@ -167,7 +167,7 @@ export function computeDerivedKeys(secret: Nonce, seed: Nonce, options: ComputeD
  * @return buffer
  */
 export function reduceLength(buffer: Buffer, byteToRemove: number): Buffer {
-    return buffer.slice(0, buffer.length - byteToRemove);
+    return buffer.subarray(0, buffer.length - byteToRemove);
 }
 
 /**
@@ -207,8 +207,8 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
         const cert = exploreCertificateInfo(options.publicKey);
         signatureLength = cert.publicKeyLength || 0; // 1024 bits = 128Bytes or 2048=256Bytes
     }
-    const block_to_verify = chunk.slice(0, chunk.length - signatureLength);
-    const signature = chunk.slice(chunk.length - signatureLength);
+    const block_to_verify = chunk.subarray(0, chunk.length - signatureLength);
+    const signature = chunk.subarray(chunk.length - signatureLength);
     return verifyMessageChunkSignature(block_to_verify, signature, options);
 }
 

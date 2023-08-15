@@ -274,9 +274,9 @@ function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
     function _readFromType(buffer: Buffer, block: BlockInfo, type: string) {
         switch (type) {
             case "IA5String":
-                return buffer.slice(block.position, block.position + block.length).toString("ascii");
+                return buffer.subarray(block.position, block.position + block.length).toString("ascii");
             default:
-                return buffer.slice(block.position, block.position + block.length).toString("hex");
+                return buffer.subarray(block.position, block.position + block.length).toString("hex");
         }
     }
 
@@ -433,7 +433,7 @@ function _readSubjectPublicKey(buffer: Buffer): SubjectPublicKey {
     const blocks = _readStruct(buffer, block_info);
 
     return {
-        modulus: buffer.slice(blocks[0].position + 1, blocks[0].position + blocks[0].length),
+        modulus: buffer.subarray(blocks[0].position + 1, blocks[0].position + blocks[0].length),
     };
 }
 /*
@@ -731,9 +731,9 @@ export function split_der(certificateChain: Certificate): Certificate[] {
     do {
         const block_info = readTag(certificateChain, 0);
         const length = block_info.position + block_info.length;
-        const der_certificate = certificateChain.slice(0, length);
+        const der_certificate = certificateChain.subarray(0, length);
         certificate_chain.push(der_certificate);
-        certificateChain = certificateChain.slice(length);
+        certificateChain = certificateChain.subarray(length);
     } while (certificateChain.length > 0);
     return certificate_chain;
 }

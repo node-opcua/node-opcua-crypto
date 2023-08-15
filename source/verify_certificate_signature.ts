@@ -38,7 +38,7 @@ import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _re
 export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);
     const blocks = _readStruct(certificateOrCrl, block_info);
-    const bufferToBeSigned = certificateOrCrl.slice(block_info.position, blocks[1].position - 2);
+    const bufferToBeSigned = certificateOrCrl.subarray(block_info.position, blocks[1].position - 2);
 
     //xx console.log("bufferToBeSigned  = ", bufferToBeSigned.length, bufferToBeSigned.toString("hex").substr(0, 50), bufferToBeSigned.toString("hex").substr(-10));
     const signatureAlgorithm = _readAlgorithmIdentifier(certificateOrCrl, blocks[1]);
