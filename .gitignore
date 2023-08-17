@@ -41,3 +41,6 @@ dist-*/
 
 
 test/tmp*
+
+*.tar.gz
+*.tgz
