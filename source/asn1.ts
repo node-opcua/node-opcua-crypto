@@ -109,8 +109,8 @@ export function _readBitString(buffer: Buffer, block: BlockInfo): BitString {
     return {
         lengthInBits: data.length * 8 - ignore_bits,
         lengthInBytes: data.length - 1,
-        data: data.slice(1),
-        debug: parseBitString(buffer, block.position, block.length + block.position, 5000),
+        data: data.subarray(1),
+        debug: parseBitString(buffer, block.position, block.length + block.position, 4*16*1024),
     };
 }
 
@@ -133,14 +133,14 @@ export function _readOctetString(buffer: Buffer, block: BlockInfo): Buffer {
 
     const nbBytes = tag.length;
     const pos = tag.position;
-    const b = buffer.slice(pos, pos + nbBytes);
+    const b = buffer.subarray(pos, pos + nbBytes);
     return b;
 }
 
 export function _getBlock(buffer: Buffer, block: BlockInfo): Buffer {
     const start = block.position;
     const end = block.position + block.length;
-    return buffer.slice(start, end);
+    return buffer.subarray(start, end);
 }
 
 export interface AlgorithmIdentifier {
@@ -228,7 +228,7 @@ export function _readLongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer 
     assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     const pos = block.position;
     const nbBytes = block.length;
-    const buf = buffer.slice(pos, pos + nbBytes);
+    const buf = buffer.subarray(pos, pos + nbBytes);
     return buf;
 }
 
