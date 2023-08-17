@@ -31,3 +31,18 @@ export async function generatePrivateKeyFile(privateKeyFilename: string, modulus
     privateKeyPem.privPem = "";
     privateKeyPem.privDer = new Uint8Array(0);
 }
+
+/**
+ * alternate function to generate PrivateKeyFile, using jsrsasign.
+ * 
+ * This function is slower than generatePrivateKeyFile
+ */
+export async function generatePrivateKeyFileAlternate(privateKeyFilename: string, modulusLength: 2048 | 3072 | 4096) {
+    const rs = require("jsrsasign");
+    const kp = rs.KEYUTIL.generateKeypair("RSA", modulusLength);
+    const prv = kp.prvKeyObj;
+    const pub = kp.pubKeyObj;
+    const prvpem = rs.KEYUTIL.getPEM(prv, "PKCS8PRV");
+    const pubpem = rs.KEYUTIL.getPEM(pub, "PKCS8PUB");
+    await fs.promises.writeFile(privateKeyFilename, prvpem, "utf-8");
+}

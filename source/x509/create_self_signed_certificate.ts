@@ -25,7 +25,8 @@ import { CertificatePurpose } from "../common.js";
 import { getCrypto, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
 import { buildPublicKey } from "./_build_public_key.js";
-
+import { AsnConvert, AsnUtf8StringConverter } from "@peculiar/asn1-schema";
+    
 export interface CreateSelfSignCertificateOptions {
     privateKey: CryptoKey;
     notBefore?: Date;
@@ -75,6 +76,7 @@ export async function createSelfSignedCertificate({
     // https://opensource.apple.com/source/OpenSSH/OpenSSH-186/osslshim/heimdal-asn1/rfc2459.asn1.auto.html
     const ID_NETSCAPE_COMMENT = "2.16.840.1.113730.1.13";
 
+    
     const s = new Subject(subject || "");
     const s1 = s.toStringInternal(", ");
     const name = s1;
@@ -91,7 +93,7 @@ export async function createSelfSignedCertificate({
             keys,
 
             extensions: [
-                new x509.Extension(ID_NETSCAPE_COMMENT, false, Buffer.from(nsComment, "ascii")),
+                new x509.Extension(ID_NETSCAPE_COMMENT, false, AsnConvert.serialize(AsnUtf8StringConverter.toASN(nsComment))),
                 // new x509.BasicConstraintsExtension(true, 2, true),
                 basicConstraints,
                 new x509.ExtendedKeyUsageExtension(keyUsageExtension, true),
