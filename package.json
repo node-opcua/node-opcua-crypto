@@ -76,7 +76,6 @@
     "assert": "^2.0.0",
     "better-assert": "^1.0.2",
     "chalk": "^4.1.2",
-    "crypto": "^1.0.1",
     "hexy": "0.3.5",
     "jsrsasign": "^10.8.6",
     "sshpk": "^1.17.0"
