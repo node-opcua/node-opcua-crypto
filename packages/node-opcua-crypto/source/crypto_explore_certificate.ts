@@ -237,13 +237,27 @@ extKeyUsage
 
 function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicConstraints {
     const block_info = readTag(buffer, 0);
-    const inner_blocks = _readStruct(buffer, block_info);
-    const cA = inner_blocks.length > 0 ? _readBooleanValue(buffer, inner_blocks[0]) : false;
-
+    const inner_blocks = _readStruct(buffer, block_info).slice(0, 2);
+    let cA = false;
     let pathLengthConstraint = 0;
-    if (inner_blocks.length > 1) {
-        pathLengthConstraint = _readIntegerValue(buffer, inner_blocks[1]);
+    let breakControl = 0;
+    
+    for (const inner_block of inner_blocks) {
+        switch(inner_block.tag) {
+            case TagType.BOOLEAN:
+                cA = _readBooleanValue(buffer, inner_block);
+                break;
+            case TagType.INTEGER:
+                pathLengthConstraint = _readIntegerValue(buffer, inner_block);
+                breakControl = 1;
+                break;
+        }
+        
+        if (breakControl) {
+            break;
+        } 
     }
+
     return { critical: true, cA, pathLengthConstraint };
 }
 
