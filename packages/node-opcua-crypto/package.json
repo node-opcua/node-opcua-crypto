@@ -1,0 +1,86 @@
+{
+    "name": "node-opcua-crypto",
+    "version": "4.2.0",
+    "description": "Crypto tools for Node-OPCUA",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            }
+        }
+    },
+    "usunused": {
+        "main": "./index.js",
+        "types": "./index.d.ts",
+        "browser": "./index_web.js",
+        "import": {
+            "types": "./dist-esm/source/index.d.mts",
+            "default": "./dist-esm/source/index.js"
+        },
+        "require": {
+            "types": "./dist-cjs/source/index.d.ts",
+            "default": "./dist-cjs/source/index.js"
+        }
+    },
+    "scripts": {
+        "build:tsup": "tsup  --shims ./index.ts   --shims ./source/index.ts  --shims ./source_nodejs/index.ts --shims --format esm,cjs  --sourcemap --clean  --dts",
+        "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json",
+        "build:demo": "node web/esbuild.mjs",
+        "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
+        "build:old": "npm run build:clean && npm run compile && node ../../scripts/prepare-package-json.mjs",
+        "build": "npm run build:tsup",
+        "prepare": "npm run build",
+        "tslint": "tslint --project . --fix",
+        "lint": "eslint . --ext .ts",
+        "makedoc": "npx typedoc -out doc",
+        "cost-of-modules": "npx cost-of-modules --no-install",
+        "release-it": "npx release-it",
+        "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
+        "ncu": "npx npm-check-updates -u -x env-paths,chalk",
+        "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "engine": {
+        "node": ">15.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.5.0",
+        "lorem-ipsum": "^2.0.8",
+        "mocha": "^10.2.0",
+        "should": "^13.2.3",
+        "source-map-support": "^0.5.21"
+    },
+    "dependencies": {
+        "@peculiar/webcrypto": "^1.4.3",
+        "@peculiar/x509": "^1.9.3",
+        "@types/jsrsasign": "^10.5.8",
+        "@types/sshpk": "^1.17.1",
+        "assert": "^2.0.0",
+        "better-assert": "^1.0.2",
+        "chalk": "^4.1.2",
+        "hexy": "0.3.5",
+        "jsrsasign": "^10.8.6",
+        "sshpk": "^1.17.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua-crypto.git"
+    },
+    "bugs": {
+        "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+    }
+}

@@ -1,0 +1,70 @@
+{
+    "name": "node-opcua-crypto-test",
+    "private": true,
+    "version": "4.2.0",
+    "description": "Test suite for Crypto tools for Node-OPCUA",
+    "scripts": {
+        "build:tsup:esm": "tsup  ./test/test_*.ts  --shims --format esm --out-dir dist-esm --sourcemap --clean --dts",
+        "build:tsup:cjs": "tsup  ./test/test_*.ts  --shims --format cjs --out-dir dist-cjs --sourcemap --clean --dts",
+        "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
+        "build": "npm run build:tsup:esm && npm run build:tsup:cjs",
+        "tslint": "tslint --project . --fix",
+        "lint": "eslint . --ext .ts",
+        "test:esm": "mocha dist-esm/test_*.mjs  --recursive --timeout 200000 --bail",
+        "test:cjs": "mocha dist-cjs --recursive --timeout 200000 --bail",
+        "test:esm:no": "cross-env NO_CREATE_PRIVATEKEY=1  npm run test:esm",
+        "test:cjs:no": "cross-env NO_CREATE_PRIVATEKEY=1  npm run test:cjs",
+        "test": "npm run test:esm && npm run test:cjs && npm run test:esm:no && npm run test:cjs:no",
+        "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "engine": {
+        "node": ">15.0"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.1",
+        "@types/node": "^20.5.0",
+        "@typescript-eslint/eslint-plugin": "^6.4.0",
+        "@typescript-eslint/parser": "^6.4.0",
+        "cross-env": "^7.0.3",
+        "esbuild-plugin-polyfill-node": "^0.3.0",
+        "eslint": "^8.47.0",
+        "eslint-config-prettier": "^9.0.0",
+        "eslint-plugin-prettier": "^5.0.0",
+        "lorem-ipsum": "^2.0.8",
+        "mocha": "^10.2.0",
+        "prettier": "^3.0.1",
+        "should": "^13.2.3",
+        "source-map-support": "^0.5.21",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.1.6"
+    },
+    "dependencies": {
+        "node-opcua-crypto": "4.2.0",
+        "@peculiar/webcrypto": "^1.4.3",
+        "@peculiar/x509": "^1.9.3",
+        "@types/jsrsasign": "^10.5.8",
+        "assert": "^2.0.0",
+        "better-assert": "^1.0.2",
+        "chalk": "^4.1.2",
+        "hexy": "0.3.5",
+        "jsrsasign": "^10.8.6",
+        "sshpk": "^1.17.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua-crypto.git"
+    },
+    "bugs": {
+        "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+    }
+}

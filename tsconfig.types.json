@@ -1,9 +1,0 @@
-{
-    "extends": "./tsconfig.common.json",
-    "compilerOptions": {
-        "outDir": "./dist-types",
-        "declaration": true,
-        "removeComments": false,
-        "emitDeclarationOnly": true
-    }
-}
