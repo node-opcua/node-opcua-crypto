@@ -6,7 +6,7 @@ name: CI
 on:
     # Triggers the workflow on push or pull request events but only for the master branch
     push:
-        branches: [master]  
+        branches: [master]
     pull_request:
         branches: [master]
 
@@ -15,15 +15,63 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-    # This workflow contains a single job called "build"
-    build-new:
-        # The type of runner that the job will run on
+    prepare:
+        strategy:
+            matrix:
+                node-version: [20.x]
+                os: [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - run: npm install
+            - name: Cache dependencies
+              uses: actions/cache/save@v3
+              with:
+                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  path: |
+                      node_modules
+
+    build:
+        needs: prepare
+        strategy:
+            matrix:
+                node-version: [20.x]
+                os: [ubuntu-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: Cache dependencies
+              uses: actions/cache/restore@v3
+              with:
+                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  path: node_modules
+            - run: npm install
+            - run: npm run build
+            - name: Cache build artifacts
+              uses: actions/cache/save@v3
+              with:
+                  enableCrossOsArchive: true
+                  key: dist-${{ github.sha }}
+                  path: |
+                      ./packages/node-opcua-crypto/dist
+                      ./packages/node-opcua-crypto-test/dist-cjs
+                      ./packages/node-opcua-crypto-test/dist-esm
+
+    test-new:
+        needs: build
         strategy:
             matrix:
                 node-version: [19.x, 20.x]
                 os: [ubuntu-20.04, ubuntu-latest, macos-latest, windows-latest]
         runs-on: ${{ matrix.os }}
-        # Steps represent a sequence of tasks that will be executed as part of the job
         steps:
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: checkout
@@ -34,27 +82,33 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
-            - name: openssl
-              run: openssl version
-            - name: nodejs
-              run: node --version
+            - name: Restore dependencies
+              uses: actions/cache/restore@v3
+              with:
+                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  path: node_modules
 
-            # Runs a set of commands using the runners shell
-            - name: build
-              run: |
-                  npm install typescript mocha ts-node @types/node@18 npm -g
-                  npm install 
-                  npm run test
-    build:
-        # The type of runner that the job will run on
+            - name: Restore build artifacts
+              uses: actions/cache/restore@v3
+              with:
+                  enableCrossOsArchive: true
+                  key: dist-${{ github.sha }}
+                  path: |
+                      ./packages/node-opcua-crypto/dist
+                      ./packages/node-opcua-crypto-test/dist-cjs
+                      ./packages/node-opcua-crypto-test/dist-esm
+
+            - name: Run test
+              run: npm test
+
+    test:
+        needs: build
         strategy:
             matrix:
-                node-version: [ 16.x, 18.x]
+                node-version: [16.x, 18.x]
                 os: [ubuntu-20.04, ubuntu-latest, macos-latest, windows-latest]
         runs-on: ${{ matrix.os }}
-        # Steps represent a sequence of tasks that will be executed as part of the job
         steps:
-            # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: checkout
               uses: actions/checkout@v3
 
@@ -63,31 +117,42 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
-            - name: openssl
-              run: openssl version
             - name: nodejs
               run: node --version
 
-            # Runs a set of commands using the runners shell
-            - name: build
-              run: |
-                  npm install npm@9 -g
-                  npm install typescript mocha ts-node @types/node@${{ matrix.node-version }} -g
-                  npm install 
-                  npm run test
-    build-legacy:
-        # The type of runner that the job will run on
+            - name: Restore dependencies
+              uses: actions/cache/restore@v3
+              with:
+                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  path: node_modules
+
+            - name: Restore build artifacts
+              uses: actions/cache/restore@v3
+              with:
+                  enableCrossOsArchive: true
+                  key: dist-${{ github.sha }}
+                  path: |
+                      ./packages/node-opcua-crypto/dist
+                      ./packages/node-opcua-crypto-test/dist-cjs
+                      ./packages/node-opcua-crypto-test/dist-esm
+                  
+            - name: Run test
+              run: npm test
+
+    test-legacy:
+        needs: build
         strategy:
             matrix:
-                node-version: [ 14.x]
+                node-version: [14.x]
                 os: [
-                  # ubuntu-18.04, 
-                  ubuntu-20.04, ubuntu-latest, macos-latest, windows-latest
-                ]
+                        # ubuntu-18.04,
+                        ubuntu-20.04,
+                        ubuntu-latest,
+                        macos-latest,
+                        windows-latest,
+                    ]
         runs-on: ${{ matrix.os }}
-        # Steps represent a sequence of tasks that will be executed as part of the job
         steps:
-            # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: checkout
               uses: actions/checkout@v3
 
@@ -96,14 +161,27 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
-            - name: openssl
-              run: openssl version
             - name: nodejs
               run: node --version
 
-            # Runs a set of commands using the runners shell
-            - name: build
-              run: |
-                  npm install typescript mocha ts-node @types/node@${{ matrix.node-version }} npm@8 -g
-                  npm install 
-                  npm run test
+            - name: nodejs
+              run: node --version
+
+            - name: Restore dependencies
+              uses: actions/cache/restore@v3
+              with:
+                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  path: node_modules
+
+            - name: Restore build artifacts
+              uses: actions/cache/restore@v3
+              with:
+                  enableCrossOsArchive: true
+                  key: dist-${{ github.sha }}
+                  path: |
+                      ./packages/node-opcua-crypto/dist
+                      ./packages/node-opcua-crypto-test/dist-cjs
+                      ./packages/node-opcua-crypto-test/dist-esm
+
+            - name: Run test
+              run: npm test
