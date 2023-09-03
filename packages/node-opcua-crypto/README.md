@@ -107,13 +107,8 @@ Thank you for considering NodeOPCUA Crypto for your OPCUA cryptography needs. We
 
 
 
-## :heart: Supporting the development effort - Sponsors & Backers</span>
+##  Supporting the development effort - Sponsors & Backers
 
-If you like node-opcua-pki and if you are relying on it in one of your projects, please consider becoming a backer and [sponsoring us](https://github.com/sponsors/node-opcua), this will help us to maintain a high-quality stack and constant evolution of this module.
+If you like `node-opcua-pki` and if you are relying on it in one of your projects, please consider becoming a backer and [sponsoring us](https://github.com/sponsors/node-opcua), this will help us to maintain a high-quality stack and constant evolution of this module.
 
-If your company would like to participate and influence the development of future versions of node-opcua please contact [sterfive](mailto:contact@sterfive.com).
-
-<!--
-https://app.fossa.com/reports/489947c3-2e83-48e5-8351-192f553ded57
-https://linuxctl.com/2017/02/x509-certificate-manual-signature-verification/
--->
+If your company would like to participate and influence the development of future versions of `node-opcua` please contact [sterfive](mailto:contact@sterfive.com).

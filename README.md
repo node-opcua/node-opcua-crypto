@@ -19,3 +19,53 @@ NodeOPCUA Crypto is a powerful JavaScript module for handling security and crypt
 * implements advanced security standards for OPCUA.
 
 [more details](./packages/node-opcua-crypto/README.md)
+
+
+
+
+
+## Support
+
+For any inquiries or issues related to NodeOPCUA Crypto, you can contact us at contact@sterfive.com. Please note that priority support is available to NodeOPCUA Support Subscription members.
+
+### Getting professional support
+
+NodeOPCUA PKI is developed and maintained by sterfive.com.
+
+To get professional support, consider subscribing to the node-opcua membership community:
+
+[![Professional Support]or contact Sterfive for dedicated consulting and more advanced support.
+
+## Contributing
+
+We appreciate contributions from the community. To contribute:
+
+* Fork the repository.
+* Create a new branch.
+* Commit your changes.
+* Submit a pull request.
+* Sign the CLA (Contributor Licence Agreement) form
+ 
+For more detailed instructions, refer to the CONTRIBUTING.md file.
+
+## License
+
+NodeOPCUA Crypto is MIT licensed. See the LICENSE file for full license details. 
+
+Copyright © 2023 Sterfive.com.
+
+## Disclaimer
+
+NodeOPCUA Crypto is provided as-is, and while we strive to ensure its quality and security, Sterfive.com cannot be held liable for any damage caused directly or indirectly by the usage of this module.
+
+Please report any issues or vulnerabilities you find via the issue tracker.
+
+Thank you for considering NodeOPCUA Crypto for your OPCUA cryptography needs. We look forward to seeing what you build with i
+
+
+
+##  Supporting the development effort - Sponsors & Backers
+
+If you like `node-opcua-pki` and if you are relying on it in one of your projects, please consider becoming a backer and [sponsoring us](https://github.com/sponsors/node-opcua), this will help us to maintain a high-quality stack and constant evolution of this module.
+
+If your company would like to participate and influence the development of future versions of `node-opcua` please contact [sterfive](mailto:contact@sterfive.com).
