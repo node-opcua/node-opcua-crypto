@@ -1,4 +1,4 @@
-import x509 from "@peculiar/x509";
+import * as x509 from "@peculiar/x509";
 
 import { Crypto as PeculiarWebCrypto } from "@peculiar/webcrypto";
 import nativeCrypto from "crypto";

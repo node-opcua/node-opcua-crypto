@@ -20,7 +20,7 @@ import {
     publicEncrypt_native,
     privateDecrypt_native,
     extractPublicKeyFromCertificateSync,
-} from "..";
+} from "node-opcua-crypto/web";
 
 let privateKey: CryptoKey | undefined;
 export async function makeSelfSignedCertificate({

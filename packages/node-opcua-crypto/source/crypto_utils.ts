@@ -34,6 +34,7 @@ import {
     publicEncrypt as publicEncrypt1,
     privateDecrypt as privateDecrypt1,
     KeyLike,
+    KeyObject,
 } from "crypto";
 
 import pkg_hexy from "hexy";
@@ -131,7 +132,7 @@ export function makeMessageChunkSignature(chunk: Buffer, options: MakeMessageChu
     // signature length = 128 bytes
     const signer = createSign(options.algorithm);
     signer.update(chunk);
-    const signature = signer.sign(options.privateKey.hidden);
+    const signature = signer.sign(options.privateKey.hidden as KeyObject);
     assert(!options.signatureLength || signature.length === options.signatureLength);
     return signature;
 }
@@ -221,7 +222,7 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKey, al
     try {
         return privateDecrypt1(
             {
-                key: privateKey.hidden,
+                key: privateKey.hidden as KeyObject,
                 padding: algorithm,
             },
             buffer

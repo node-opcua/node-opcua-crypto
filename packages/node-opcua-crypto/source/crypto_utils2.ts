@@ -27,13 +27,15 @@
  */
 import assert from "assert";
 
-// be careful: createPrivateKey is not polyfilled in crypto-browserify
-import { createPrivateKey as createPrivateKeyFromNodeJSCrypto, KeyObject } from "crypto";
+import { KeyObject, isKeyObject } from "./common.js";
 
 import { PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "./common.js";
 import { removeTrailingLF, toPem } from "./crypto_utils.js";
 
 import  jsrsasign from "jsrsasign";
+
+
+
 
 /***
  * @method rsaLengthPrivateKey
@@ -68,11 +70,12 @@ export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: s
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
 
-    if (raw_key instanceof KeyObject) {
+    if (isKeyObject(raw_key)) {
+        const _raw_key = raw_key as KeyObject;
         if (pem === "RSA PRIVATE KEY") {
-            return removeTrailingLF(raw_key.export({ format: "pem", type: "pkcs1" }).toString());
+            return removeTrailingLF(_raw_key.export({ format: "pem", type: "pkcs1" }).toString());
         } else if (pem === "PRIVATE KEY") {
-            return removeTrailingLF(raw_key.export({ format: "pem", type: "pkcs8" }).toString());
+            return removeTrailingLF(_raw_key.export({ format: "pem", type: "pkcs8" }).toString());
         } else {
             throw new Error("Unsupported case!");
         }
@@ -98,15 +101,15 @@ export function coercePrivateKeyPem(privateKey: PrivateKey): PrivateKeyPEM {
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof KeyObject) {
-        return publicKey.export({ format: "pem", type: "spki" }).toString();
+    if (isKeyObject(publicKey)) {
+        return (publicKey as KeyObject).export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;
 }
-export function coerceRsaPublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
-    if (publicKey instanceof KeyObject) {
-        return publicKey.export({ format: "pem", type: "spki" }).toString();
+export function coerceRsaPublicKeyPem(publicKey: PublicKey | KeyObject | PublicKeyPEM): PublicKeyPEM {
+    if (isKeyObject(publicKey)) {
+       return (publicKey as KeyObject).export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;

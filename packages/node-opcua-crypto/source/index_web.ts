@@ -20,52 +20,25 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import { KeyObject as KeyObjectOrig } from "crypto";
-import __crypto from "crypto";
 
-export const { createPrivateKey: createPrivateKeyFromNodeJSCrypto } = __crypto;
-
-type KeyFormat = "pem" | "der" | "jwk";
-type KeyObjectType = "secret" | "public" | "private";
-interface KeyExportOptions<T extends KeyFormat> {
-    type: "pkcs1" | "spki" | "pkcs8" | "sec1";
-    format: T;
-    cipher?: string | undefined;
-    passphrase?: string | Buffer | undefined;
-}
-interface JwkKeyExportOptions {
-    format: "jwk";
-}
-export interface KeyObject {
-    export(options: KeyExportOptions<"pem">): string | Buffer;
-    export(options: KeyExportOptions<"der">): Buffer;
-    export(options: JwkKeyExportOptions): JsonWebKey;
-
-    type: KeyObjectType;
-}
-export function isKeyObject(mayBeKeyObject: any): boolean {
-    if (KeyObjectOrig) {
-        return mayBeKeyObject instanceof KeyObjectOrig;
-    } 
-    return typeof mayBeKeyObject === "object" && typeof (mayBeKeyObject as any).type === "string"; /// .constructor?.name === "KeyObject";
-}
-export type PrivateKey = { hidden: string } | { hidden: KeyObject };
-export type PublicKey = KeyObject;
-
-export type Nonce = Buffer;
-export type PEM = string;
-export type DER = Buffer;
-export type Certificate = DER;
-export type CertificatePEM = PEM; // certificate as a PEM string
-export type PrivateKeyPEM = PEM;
-export type PublicKeyPEM = PEM;
-
-export type Signature = Buffer;
-export type CertificateRevocationList = Buffer;
-
-export enum CertificatePurpose {
-    NotSpecified = 0,
-    ForCertificateAuthority = 1,
-    ForApplication = 2,
-    ForUserAuthentication = 3, // X509
-}
+/**
+ * @module node_opcua_crypto
+ */
+export * from "./common.js";
+export * from "./derived_keys.js";
+export * from "./explore_certificate.js";
+export * from "./crypto_utils.js";
+export * from "./crypto_utils2.js";
+export * from "./crypto_explore_certificate.js";
+export * from "./verify_certificate_signature.js";
+export * from "./explore_certificate_revocation_list.js";
+export * from "./explore_certificate_signing_request.js";
+export * from "./explore_private_key.js";
+export { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "./public_private_match.js";
+export * from "./x509/create_key_pair.js";
+export * from "./x509/create_certificate_signing_request.js";
+export * from "./x509/create_self_signed_certificate.js";
+export * from "./x509/coerce_private_key.js";
+export * from "./subject.js";
+export * from "./asn1.js";
+export * from "./make_private_key_from_pem.js";
