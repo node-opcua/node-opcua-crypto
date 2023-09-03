@@ -11,3 +11,4 @@ source*/
 !dist/source/
 !dist/source_nodejs/
 *.global.js
+doc
