@@ -32,9 +32,8 @@ jobs:
             - name: Cache dependencies
               uses: actions/cache/save@v3
               with:
-                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-                  path: |
-                      node_modules
+                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
+                  path: node_modules
 
     build:
         needs: prepare
@@ -51,7 +50,7 @@ jobs:
             - name: Cache dependencies
               uses: actions/cache/restore@v3
               with:
-                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
             - run: npm install
             - run: npm run build
@@ -61,9 +60,8 @@ jobs:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
                   path: |
-                      ./packages/node-opcua-crypto/dist
-                      ./packages/node-opcua-crypto-test/dist-cjs
-                      ./packages/node-opcua-crypto-test/dist-esm
+                      ./packages/node-opcua-crypto/dist*
+                      ./packages/node-opcua-crypto-test/dist*
 
     test-new:
         needs: build
@@ -85,7 +83,7 @@ jobs:
             - name: Restore dependencies
               uses: actions/cache/restore@v3
               with:
-                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
@@ -94,9 +92,8 @@ jobs:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
                   path: |
-                      ./packages/node-opcua-crypto/dist
-                      ./packages/node-opcua-crypto-test/dist-cjs
-                      ./packages/node-opcua-crypto-test/dist-esm
+                      ./packages/node-opcua-crypto/dist*
+                      ./packages/node-opcua-crypto-test/dist*
 
             - name: Run test
               run: npm test
@@ -123,7 +120,7 @@ jobs:
             - name: Restore dependencies
               uses: actions/cache/restore@v3
               with:
-                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
@@ -132,10 +129,9 @@ jobs:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
                   path: |
-                      ./packages/node-opcua-crypto/dist
-                      ./packages/node-opcua-crypto-test/dist-cjs
-                      ./packages/node-opcua-crypto-test/dist-esm
-                  
+                      ./packages/node-opcua-crypto/dist*
+                      ./packages/node-opcua-crypto-test/dist*
+              
             - name: Run test
               run: npm test
 
@@ -164,13 +160,11 @@ jobs:
             - name: nodejs
               run: node --version
 
-            - name: nodejs
-              run: node --version
 
             - name: Restore dependencies
               uses: actions/cache/restore@v3
               with:
-                  key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
@@ -179,9 +173,8 @@ jobs:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
                   path: |
-                      ./packages/node-opcua-crypto/dist
-                      ./packages/node-opcua-crypto-test/dist-cjs
-                      ./packages/node-opcua-crypto-test/dist-esm
-
+                      ./packages/node-opcua-crypto/dist*
+                      ./packages/node-opcua-crypto-test/dist*
+              
             - name: Run test
               run: npm test
