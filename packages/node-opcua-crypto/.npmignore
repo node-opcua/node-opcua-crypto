@@ -1,8 +1,13 @@
-!dist
+
 !LICENSE
 !README.md
 index.ts
 ## for minimalistic package without debug support
 *.map
-source*
 tsconfig*
+source*/
+!dist
+!dist-types/*
+!dist/source/
+!dist/source_nodejs/
+*.global.js

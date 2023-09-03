@@ -2,30 +2,33 @@
     "name": "node-opcua-crypto",
     "version": "4.2.0",
     "description": "Crypto tools for Node-OPCUA",
+    "types": "./dist-types/index.d.ts",
+    "main": "./dist/index.js",
     "exports": {
         ".": {
             "import": {
-                "types": "./dist/index.d.ts",
+                "types": "./dist-types/index.d.ts",
                 "default": "./dist/index.mjs"
             },
             "require": {
-                "types": "./dist/index.d.ts",
+                "types": "./dist-types/index.d.ts",
                 "default": "./dist/index.js"
             }
         },
         "./web": {
             "import": {
-                "types": "./dist/source/index.d.ts",
+                "types": "./dist-types/source/index.d.ts",
                 "default": "./dist/source/index.mjs"
             },
             "require": {
-                "types": "./dist/source/index.d.ts",
+                "types": "./dist-types/source/index.d.ts",
                 "default": "./dist/source/index.js"
             }
         }
     },
     "scripts": {
-        "build:tsup": "tsup  ./index.ts  ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs,iife  --sourcemap --clean  --dts",
+        "build:tsup": "tsup  ./index.ts  ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs,iife  --sourcemap --clean",
+        "build:types": "tsc -p tsconfig.types.json",
         "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
@@ -55,15 +58,12 @@
         "node": ">15.0"
     },
     "devDependencies": {
-        "@types/node": "^20.5.0",
-        "lorem-ipsum": "^2.0.8",
-        "mocha": "^10.2.0",
-        "should": "^13.2.3",
-        "source-map-support": "^0.5.21"
+        "@types/node": "^20.5.9",
+        "lorem-ipsum": "^2.0.8"
     },
     "dependencies": {
         "@peculiar/webcrypto": "^1.4.3",
-        "@peculiar/x509": "^1.9.3",
+        "@peculiar/x509": "^1.9.5",
         "@types/jsrsasign": "^10.5.8",
         "@types/sshpk": "^1.17.1",
         "assert": "^2.0.0",

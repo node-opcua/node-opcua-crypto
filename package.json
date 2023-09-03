@@ -9,7 +9,7 @@
         "build": "npm run build:crypto && npm run build:test",
         "test": "cd packages/node-opcua-crypto-test && npm run test",
         "lint": "eslint . --ext .ts",
-        "makedoc": "cd packages/node-opcua-crypto && npm run makedoc",  
+        "makedoc": "cd packages/node-opcua-crypto && npm run makedoc",
         "cost-of-modules": "npx cost-of-modules --no-install",
         "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
         "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk",
@@ -41,18 +41,20 @@
         "packages/node-opcua-crypto",
         "packages/node-opcua-crypto-web"
     ],
-    "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^6.4.0",
-        "@typescript-eslint/parser": "^6.4.0",
+    "dependencies": {
+        "@typescript-eslint/eslint-plugin": "^6.5.0",
+        "@typescript-eslint/parser": "^6.5.0",
         "cross-env": "^7.0.3",
         "esbuild-plugin-polyfill-node": "^0.3.0",
-        "eslint": "^8.47.0",
+        "eslint": "^8.48.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^5.0.0",
         "lerna": "^7.2.0",
-        "prettier": "^3.0.1",
+        "mocha": "^10.2.0",
+        "should": "^13.2.3",
+        "source-map-support": "^0.5.21",
         "ts-node": "^10.9.1",
         "tsup": "^7.2.0",
-        "typescript": "^5.1.6"
+        "typescript": "^5.2.2"
     }
 }
