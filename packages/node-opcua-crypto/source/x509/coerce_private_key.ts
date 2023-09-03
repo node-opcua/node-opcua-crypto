@@ -19,6 +19,10 @@ export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string| Buffer 
     // return privateKey.hidden;
 }
 
+/**
+ * 
+ * @private
+ */
 export async function _coercePrivateKey(privateKey: any): Promise<KeyObject> {
     const KeyObject = (crypto as any).KeyObject;
     if (privateKey instanceof Buffer) {

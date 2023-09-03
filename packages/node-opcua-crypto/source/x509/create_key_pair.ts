@@ -37,10 +37,16 @@ export async function generateKeyPair(modulusLength: 1024 | 2048 | 3072 | 4096 =
     return keys;
 }
 
+/**
+ *  generate a pair of private/public keys of length 1024,2048, 3072, or 4096 bits
+ */
 export async function generatePrivateKey(modulusLength: 1024 | 2048 | 3072 | 4096 = 2048): Promise<CryptoKey> {
     return (await generateKeyPair(modulusLength)).privateKey;
 }
 
+/**
+ *  convert  a CryptoKey to a PEM string
+ */
 export async function privateKeyToPEM(privateKey: CryptoKey) {
     const crypto = getCrypto();
     const privDer = await crypto.subtle.exportKey("pkcs8", privateKey);
