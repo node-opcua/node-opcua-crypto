@@ -125,9 +125,6 @@ export function readPrivateKeyPEM(filename: string): PrivateKeyPEM {
     return _readPemFile(filename);
 }
 
-console.log("__dirname", __dirname);
-console.log("__filename", __filename);
-
 let _g_certificate_store: string = "";
 
 export function setCertificateStore(store: string): string {

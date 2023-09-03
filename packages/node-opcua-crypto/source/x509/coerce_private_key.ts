@@ -1,6 +1,6 @@
 
-import { KeyObject, createPrivateKey as createPrivateKeyFromNodeJSCrypto } from "crypto";
-import { PrivateKey } from "../common.js";
+
+import { PrivateKey, KeyObject, createPrivateKeyFromNodeJSCrypto } from "../common.js";
 import { getCrypto } from "./_crypto.js";
 import { derToPrivateKey, pemToPrivateKey } from "./create_key_pair.js";
 

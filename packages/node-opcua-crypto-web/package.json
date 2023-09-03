@@ -5,7 +5,7 @@
   "description": "Crypto tools for Node-OPCUA",
 
   "scripts": {
-    "build:demo": "node web/esbuild.mjs",
+    "build": "tsup  --config tsup.config.mjs web/main.ts  web/bundle.js",
     "tslint": "tslint --project . --fix",
     "lint": "eslint . --ext .ts",
     "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write"

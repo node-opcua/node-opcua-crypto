@@ -12,23 +12,20 @@
                 "types": "./dist/index.d.ts",
                 "default": "./dist/index.js"
             }
-        }
-    },
-    "usunused": {
-        "main": "./index.js",
-        "types": "./index.d.ts",
-        "browser": "./index_web.js",
-        "import": {
-            "types": "./dist-esm/source/index.d.mts",
-            "default": "./dist-esm/source/index.js"
         },
-        "require": {
-            "types": "./dist-cjs/source/index.d.ts",
-            "default": "./dist-cjs/source/index.js"
+        "./web": {
+            "import": {
+                "types": "./dist/source/index.d.ts",
+                "default": "./dist/source/index.mjs"
+            },
+            "require": {
+                "types": "./dist/source/index.d.ts",
+                "default": "./dist/source/index.js"
+            }
         }
     },
     "scripts": {
-        "build:tsup": "tsup  --shims ./index.ts   --shims ./source/index.ts  --shims ./source_nodejs/index.ts --shims --format esm,cjs  --sourcemap --clean  --dts",
+        "build:tsup": "tsup  ./index.ts  ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs,iife  --sourcemap --clean  --dts",
         "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
