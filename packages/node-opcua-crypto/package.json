@@ -34,9 +34,8 @@
         "prepare": "npm run build",
         "tslint": "tslint --project . --fix",
         "lint": "eslint . --ext .ts",
-        "makedoc": "npx typedoc -out doc",
+        "makedoc": "npx typedoc  index.ts --excludeNotDocumented --exclude \"_*\" --excludePrivate --excludeProtected --excludeExternals -out doc",
         "cost-of-modules": "npx cost-of-modules --no-install",
-        "release-it": "npx release-it",
         "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
         "ncu": "npx npm-check-updates -u -x env-paths,chalk",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
@@ -49,6 +48,7 @@
         "opc ua",
         "internet of things"
     ],
+    "makedoc": "npx typedoc packages/node-opcua-crypto/index.ts -out doc",
     "author": "Etienne Rossignon",
     "license": "MIT",
     "engine": {

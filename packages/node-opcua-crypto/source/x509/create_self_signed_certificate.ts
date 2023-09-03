@@ -39,6 +39,11 @@ export interface CreateSelfSignCertificateOptions {
     applicationUri?: string;
     purpose: CertificatePurpose;
 }
+
+/**
+ * 
+ * construct a self-signed certificate
+ */
 export async function createSelfSignedCertificate({
     privateKey,
     notAfter,

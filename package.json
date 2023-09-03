@@ -6,15 +6,15 @@
     "scripts": {
         "build:crypto": "cd packages/node-opcua-crypto && npm run build",
         "build:test": "cd packages/node-opcua-crypto-test && npm run build",
-        "build":"npm run build:crypto && npm run build:test", 
+        "build": "npm run build:crypto && npm run build:test",
         "test": "cd packages/node-opcua-crypto-test && npm run test",
-        "tslint": "tslint --project . --fix",
         "lint": "eslint . --ext .ts",
-        "makedoc": "npx typedoc -out doc",
+        "makedoc": "cd packages/node-opcua-crypto && npm run makedoc",  
         "cost-of-modules": "npx cost-of-modules --no-install",
         "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
         "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk",
-        "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
+        "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext",
+        "publish": "lerna publish"
     },
     "keywords": [
         "OPCUA",
@@ -49,10 +49,10 @@
         "eslint": "^8.47.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^5.0.0",
+        "lerna": "^7.2.0",
         "prettier": "^3.0.1",
-        "tsup": "^7.2.0",
         "ts-node": "^10.9.1",
+        "tsup": "^7.2.0",
         "typescript": "^5.1.6"
-    },
-    "dependencies": {}
+    }
 }
