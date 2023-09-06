@@ -104,6 +104,7 @@ export async function createSelfSignedCertificate({
                 new x509.ExtendedKeyUsageExtension(keyUsageExtension, true),
                 new x509.KeyUsagesExtension(usages, true),
                 await x509.SubjectKeyIdentifierExtension.create(keys.publicKey),
+                await x509.AuthorityKeyIdentifierExtension.create(keys.publicKey),
                 new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
             ],
         },

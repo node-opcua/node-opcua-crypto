@@ -25,7 +25,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import util from "util";
-
+import should from "should";
 import x509 from "@peculiar/x509";
 import {
     readCertificate,
@@ -45,7 +45,7 @@ const tmpTestFolder = os.tmpdir();
 describe("creating X509 self-signed certificates", function () {
     this.timeout(100000);
 
-    it("should create a certificate", async () => {
+    it("should create a self-signed certificate", async () => {
         const { privateKey } = await generateKeyPair();
         const { cert } = await createSelfSignedCertificate({
             privateKey,
@@ -67,6 +67,12 @@ describe("creating X509 self-signed certificates", function () {
         info.tbsCertificate.extensions!.keyUsage!.dataEncipherment.should.eql(true);
         info.tbsCertificate.extensions!.keyUsage!.digitalSignature.should.eql(true);
         info.tbsCertificate.extensions!.keyUsage!.cRLSign.should.eql(false);
+
+        should.exist(info.tbsCertificate.extensions!.subjectKeyIdentifier);
+        should.exist(info.tbsCertificate.extensions!.authorityKeyIdentifier);
+        info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier!.should.eql(
+            info.tbsCertificate.extensions?.subjectKeyIdentifier
+        );
     });
     it("should create a certificate with alternative names", async () => {
         const { privateKey } = await generateKeyPair();
