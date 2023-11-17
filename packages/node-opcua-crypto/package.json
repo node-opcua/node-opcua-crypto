@@ -3,37 +3,28 @@
     "version": "4.5.0",
     "description": "Crypto tools for Node-OPCUA",
     "types": "./dist-types/index.d.ts",
-    "main": "./dist/index.js",
+    "main": "./dist-esm/index.js",
     "exports": {
         ".": {
-            "import": {
-                "types": "./dist-types/index.d.ts",
-                "default": "./dist/index.mjs"
-            },
-            "require": {
-                "types": "./dist-types/index.d.ts",
-                "default": "./dist/index.js"
-            }
+            "types": "./dist-types/index.d.ts",
+            "import": "./dist-esm/index.mjs",
+            "require": "./dist-cjs/index.js"
         },
         "./web": {
-            "import": {
-                "types": "./dist-types/source/index.d.ts",
-                "default": "./dist/source/index.mjs"
-            },
-            "require": {
-                "types": "./dist-types/source/index.d.ts",
-                "default": "./dist/source/index.js"
-            }
+            "types": "./dist-types/source/index.d.ts",
+            "import": "./dist/source/index.mjs",
+            "require": "./dist/source/index.js"
         }
     },
     "scripts": {
-        "build:tsup": "tsup  ./index.ts  ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs,iife  --sourcemap --clean",
+        "build:tsup:esm": "tsup  ./index.ts ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm --out-dir dist-esm  --sourcemap  --clean --dts ",
+        "build:tsup:cjs": "tsup  ./index.ts  ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format cjs --out-dir dist-cjs --sourcemap --clean --dts",
         "build:types": "tsc -p tsconfig.types.json",
         "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:old": "npm run build:clean && npm run compile && node ../../scripts/prepare-package-json.mjs",
-        "build": "npm run build:tsup",
+        "build": "npm run build:tsup:esm && npm run build:tsup:cjs",
         "prepare": "npm run build",
         "tslint": "tslint --project . --fix",
         "lint": "eslint . --ext .ts",
@@ -58,20 +49,20 @@
         "node": ">15.0"
     },
     "devDependencies": {
-        "@types/node": "^20.5.9",
+        "@types/node": "^20.9.1",
         "lorem-ipsum": "^2.0.8"
     },
     "dependencies": {
         "@peculiar/webcrypto": "^1.4.3",
         "@peculiar/x509": "^1.9.5",
-        "@types/jsrsasign": "^10.5.8",
-        "@types/sshpk": "^1.17.1",
-        "assert": "^2.0.0",
+        "@types/jsrsasign": "^10.5.12",
+        "@types/sshpk": "^1.17.4",
+        "assert": "^2.1.0",
         "better-assert": "^1.0.2",
         "chalk": "^4.1.2",
         "hexy": "0.3.5",
         "jsrsasign": "^10.8.6",
-        "sshpk": "^1.17.0"
+        "sshpk": "^1.18.0"
     },
     "repository": {
         "type": "git",

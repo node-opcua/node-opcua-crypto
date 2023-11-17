@@ -11,6 +11,7 @@
         "tslint": "tslint --project . --fix",
         "lint": "eslint . --ext .ts",
         "test:esm": "mocha dist-esm/test_*.mjs  --recursive --timeout 200000 --bail",
+        "test:esm2": "node test-esm/test_esm.mjs",
         "test:cjs": "mocha dist-cjs --recursive --timeout 200000 --bail",
         "test:esm:no": "cross-env NO_CREATE_PRIVATEKEY=1  npm run test:esm",
         "test:cjs:no": "cross-env NO_CREATE_PRIVATEKEY=1  npm run test:cjs",
@@ -33,9 +34,9 @@
     "dependencies": {
         "@peculiar/webcrypto": "^1.4.3",
         "@peculiar/x509": "^1.9.5",
-        "@types/jsrsasign": "^10.5.8",
-        "@types/mocha": "^10.0.1",
-        "@types/node": "^20.5.9",
+        "@types/jsrsasign": "^10.5.12",
+        "@types/mocha": "^10.0.4",
+        "@types/node": "^20.9.1",
         "cross-env": "^7.0.3",
         "jsrsasign": "^10.8.6",
         "lorem-ipsum": "^2.0.8",
@@ -43,7 +44,7 @@
         "node-opcua-crypto": "^4.5.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",
-        "sshpk": "^1.17.0"
+        "sshpk": "^1.18.0"
     },
     "repository": {
         "type": "git",
