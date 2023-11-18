@@ -14,7 +14,7 @@
         "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
         "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext",
-        "publish": "lerna publish",
+        "publish": "npx -y lerna publish",
         "esm:test": "cd packages/node-opcua-crypto-test && npm run test:esm2"
     },
     "keywords": [
@@ -50,7 +50,6 @@
         "eslint": "^8.54.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^5.0.1",
-        "lerna": "^7.4.2",
         "mocha": "^10.2.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",
