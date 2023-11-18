@@ -6,10 +6,8 @@ index.ts
 *.map
 tsconfig*
 source*/
-!dist
-!dist-types/*
-!dist/source/
-!dist/source_nodejs/
+!dist-cjs
+!dist-esm
 *.global.js
 doc
 *.tar.gz
