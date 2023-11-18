@@ -7,3 +7,4 @@ try {
 } catch (err) {
     console.log(err.message);
 }
+console.log("OK");
