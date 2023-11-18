@@ -12,3 +12,4 @@ source*/
 !dist/source_nodejs/
 *.global.js
 doc
+*.tar.gz
