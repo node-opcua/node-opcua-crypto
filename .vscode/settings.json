@@ -8,6 +8,8 @@
         "jsrsasign",
         "KEYUTIL",
         "KJUR",
+        "makedoc",
+        "nodenext",
         "notafter",
         "notbefore",
         "prvpem",
