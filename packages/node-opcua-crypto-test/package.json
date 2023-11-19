@@ -15,7 +15,10 @@
         "test:cjs": "mocha dist-cjs --recursive --timeout 200000 --bail",
         "test:esm:no": "cross-env NO_CREATE_PRIVATEKEY=1  npm run test:esm",
         "test:cjs:no": "cross-env NO_CREATE_PRIVATEKEY=1  npm run test:cjs",
-        "test": "npm run test:esm && npm run test:cjs && npm run test:esm:no && npm run test:cjs:no",
+        "test": "npm run test:esm && npm run test:cjs && npm run test:esm:no && npm run test:cjs:no && npm run test:direct",
+        "test:direct:cjs": "node test-cjs/test_cjs.js",
+        "test:direct:esm": "node test-esm/test_esm.mjs",
+        "test:direct": "npm run test:direct:cjs && npm run test:direct:esm",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
     },
     "keywords": [

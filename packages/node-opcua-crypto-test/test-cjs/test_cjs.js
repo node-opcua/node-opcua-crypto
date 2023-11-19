@@ -8,3 +8,4 @@ try {
     console.log(err.message);
 }
 console.log("OK");
+process.exit(0);

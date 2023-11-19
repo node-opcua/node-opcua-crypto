@@ -56,12 +56,12 @@ console.log("Hello World! Let's  create a Private key in PKCS8 PEM Format and a 
 declare const window: any;
 declare const document: any;
 
-window.addEventListener("load", (event) => {
+window.addEventListener("load", (event: any) => {
     console.log("page is fully loaded");
     document.getElementById("generate").addEventListener("click", generate);
 });
 
-async function generate(event) {
+async function generate(event: any) {
     event.preventDefault();
     const keySize = document.getElementById("keySize").value;
     const applicationUri = document.getElementById("applicationUri").value;
@@ -147,6 +147,6 @@ function testEncryptionDecryption(privPem: string, certificate: string) {
         return isSignatureValid ? "OK" : "Bad";
     } catch (err) {
         console.log(err);
-        return err.message;
+        return (err as Error).message;
     }
 }

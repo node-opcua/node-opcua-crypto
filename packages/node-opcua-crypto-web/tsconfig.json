@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "esModuleInterop": true,
+        "skipLibCheck": false,
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "strict": true,
+        "listFiles": false,
+        "traceResolution": false,
+        "types": ["node", "mocha", "should"],
+        "rootDir": "."
+    },
+    "include": ["./web/main.ts"]
+}

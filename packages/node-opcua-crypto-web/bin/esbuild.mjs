@@ -12,7 +12,8 @@ build({
     plugins: [
         polyfillNode({
             polyfills: {
-                crypto: true
+                crypto: true,
+                constants: true,
             }
         }),
     ],

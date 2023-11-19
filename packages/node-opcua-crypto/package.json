@@ -2,29 +2,26 @@
     "name": "node-opcua-crypto",
     "version": "4.6.1",
     "description": "Crypto tools for Node-OPCUA",
-    "types": "./dist-cjs/index.d.ts",
-    "main": "./dist-cjs/index.js",
+    "types": "./dist/index.d.ts",
+    "main": "./dist/index.js",
     "exports": {
         ".": {
-            "types": "./dist-types/index.d.ts",
-            "import": "./dist-esm/index.mjs",
-            "require": "./dist-cjs/index.js"
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
         },
         "./web": {
-            "types": "./dist-types/source/index.d.ts",
-            "import": "./dist/source/index.mjs",
-            "require": "./dist/source/index.js"
+            "types": "./dist/source/index_web.d.ts",
+            "import": "./dist/source/index_web.mjs",
+            "require": "./dist/source/index_web.js"
         }
     },
     "scripts": {
-        "build:tsup:esm": "tsup  ./index.ts ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm --out-dir dist-esm  --sourcemap  --clean --dts ",
-        "build:tsup:cjs": "tsup  ./index.ts  ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format cjs --out-dir dist-cjs --sourcemap --clean --dts",
+        "build:tsup": "tsup  ./index.ts ./index_web.ts ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs --out-dir dist  --sourcemap  --clean --dts ",
         "build:types": "tsc -p tsconfig.types.json",
-        "compile": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
-        "build:old": "npm run build:clean && npm run compile && node ../../scripts/prepare-package-json.mjs",
-        "build": "npm run build:tsup:esm && npm run build:tsup:cjs",
+        "build": "npm run build:tsup",
         "prepare": "npm run build",
         "tslint": "tslint --project . --fix",
         "lint": "eslint . --ext .ts",

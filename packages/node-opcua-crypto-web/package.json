@@ -4,10 +4,12 @@
   "version": "4.6.1",
   "description": "Crypto tools for Node-OPCUA",
   "scripts": {
-    "build": "tsup  --config tsup.config.mjs web/main.ts  web/bundle.js",
+    "build:tsup": "tsup  --config tsup.config.mjs --clean",
+    "build": "node bin/esbuild.mjs",
     "tslint": "tslint --project . --fix",
     "lint": "eslint . --ext .ts",
-    "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write"
+    "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
+    "demo": "npx http-server ."
   },
   "keywords": [
     "OPCUA",
