@@ -1,5 +1,5 @@
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 import { tmpdir } from "os";
 import { Crypto as PeculiarWebCrypto } from "@peculiar/webcrypto";
 import * as x509 from "@peculiar/x509";
