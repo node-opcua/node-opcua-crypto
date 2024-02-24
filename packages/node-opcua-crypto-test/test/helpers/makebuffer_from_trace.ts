@@ -59,19 +59,19 @@ export function makeBuffer(listOfBytes: string): Buffer {
 }
 
 export function hexString(str: string): string {
-    let hexline = "";
+    let hexLine = "";
     const lines = str.split("\n");
     lines.forEach(function (line) {
         line = line.trim();
         if (line.length > 80) {
-            line = line.substr(10, 98).trim();
-            hexline = hexline ? hexline + " " + line : line;
+            line = line.substring(10, 98).trim();
+            hexLine = hexLine ? hexLine + " " + line : line;
         } else if (line.length > 60) {
-            line = line.substr(7, 48).trim();
-            hexline = hexline ? hexline + " " + line : line;
+            line = line.substring(7, 48).trim();
+            hexLine = hexLine ? hexLine + " " + line : line;
         }
     });
-    return hexline;
+    return hexLine;
 }
 
 // tslint:disable-next-line:ban-types
