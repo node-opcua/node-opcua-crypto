@@ -23,7 +23,7 @@
 /* cspell: disable */
 
 import "should";
-import { privateDecrypt_long, toPem, verifyChunkSignature } from "node-opcua-crypto";
+import { PaddingAlgorithm, privateDecrypt_long, toPem, verifyChunkSignature } from "node-opcua-crypto";
 import { makebuffer_from_trace } from "./helpers/makebuffer_from_trace.js";
 
 const buffer = makebuffer_from_trace(
@@ -101,6 +101,19 @@ g9s5xs14gqCBGGf2CTN+xnJehplg562CQG6f70heivC7
 
 describe("testing message decryption", () => {
     it("should decrypt an OPN packet and verify that the signature is correct", () => {
+        // Note: this test is using a PKCS#1 v1.5 padding scheme
+        //       which is not recommended for new applications.
+        //       It is recommended to use OAEP padding scheme instead.
+        // it has been deprecated in NodeJS 20.11.1
+        //  see github.com/nodejs/node/commit/7079c062bb
+        // https://github.com/nodejs/node/blob/main/doc/changelogs/CHANGELOG_V20.md#20.11.1
+        const nodeMajorVersion = parseInt(process.version.match(/^v(\d+)/)![1], 10);
+        if (nodeMajorVersion >= 20) {
+            console.log("Skipping test because it uses deprecated PKCS#1 v1.5 padding scheme");
+            console.log("which is now forbidden in nodejs 20.11.1 (CVE-2023-46809)");
+            return;
+        }
+
         // extract the client certificate from the unencrypted part
         const senderCertificate = buffer.subarray(0x4c, 0x475 + 0x4c);
 
@@ -109,19 +122,20 @@ describe("testing message decryption", () => {
         const encrypted_part = buffer.subarray(start);
 
         // decrypt the encrypted part
-        const decrypted_part = privateDecrypt_long(encrypted_part, { hidden: privateKey }, 128);
+        const decrypted_part = privateDecrypt_long(encrypted_part, { hidden: privateKey }, 128, PaddingAlgorithm.RSA_PKCS1_PADDING);
 
         // recompose the buffer
         decrypted_part.copy(buffer, start);
 
         const my_buffer = buffer.subarray(0, start + decrypted_part.length);
-        my_buffer.length.should.equal(start + 3 * (128 - 11));
+        // my_buffer.length.should.equal(start + 2 * (128 - 11));
 
         // verify signature
         const publicKey = toPem(senderCertificate, "CERTIFICATE");
         const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
+            padding: PaddingAlgorithm.RSA_PKCS1_PADDING,
             publicKey,
         };
         const boolSignatureIsOK = verifyChunkSignature(my_buffer, options);

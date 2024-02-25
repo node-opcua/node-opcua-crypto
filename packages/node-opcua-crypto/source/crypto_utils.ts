@@ -203,7 +203,7 @@ assert(PaddingAlgorithm.RSA_PKCS1_PADDING === constants.RSA_PKCS1_PADDING);
 // small buffer that depends of the key size.
 export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
-        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
+        algorithm = PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING;
     }
     return publicEncrypt1(
         {
@@ -216,7 +216,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorit
 
 export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKey, algorithm?: PaddingAlgorithm): Buffer {
     if (algorithm === undefined) {
-        algorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
+        algorithm = PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING;
     }
 
     try {
@@ -239,13 +239,19 @@ export function publicEncrypt_long(
     buffer: Buffer,
     publicKey: KeyLike,
     blockSize: number,
-    padding: number,
+    padding?: number,
     paddingAlgorithm?: PaddingAlgorithm
 ): Buffer {
     if (paddingAlgorithm === undefined) {
-        paddingAlgorithm = PaddingAlgorithm.RSA_PKCS1_PADDING;
+        paddingAlgorithm = PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING;
     }
-    if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
+    if (paddingAlgorithm === RSA_PKCS1_PADDING) {
+        padding = padding || 11;
+        if (padding !== 11) throw new Error("padding should be 11");
+    } else if (paddingAlgorithm === RSA_PKCS1_OAEP_PADDING) {
+        padding = padding || 42;
+        if (padding !== 42) throw new Error("padding should be 42");
+    } else {
         throw new Error("Invalid padding algorithm " + paddingAlgorithm);
     }
 
@@ -266,7 +272,7 @@ export function publicEncrypt_long(
 }
 
 export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKey, blockSize: number, paddingAlgorithm?: number): Buffer {
-    paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_PADDING;
+    paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_OAEP_PADDING;
     // istanbul ignore next
     if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
         throw new Error("Invalid padding algorithm " + paddingAlgorithm);

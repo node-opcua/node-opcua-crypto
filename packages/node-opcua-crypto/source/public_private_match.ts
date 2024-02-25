@@ -46,7 +46,7 @@ export function publicKeyAndPrivateKeyMatches(certificate: Certificate, privateK
  */
 function certificateMatchesPrivateKeyPEM(certificate: CertificatePEM, privateKey: PrivateKey, blockSize: number): boolean {
     const initialBuffer = Buffer.from("Lorem Ipsum");
-    const encryptedBuffer = publicEncrypt_long(initialBuffer, certificate, blockSize, 11);
+    const encryptedBuffer = publicEncrypt_long(initialBuffer, certificate, blockSize);
     const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKey, blockSize);
     const finalString = decryptedBuffer.toString("utf-8");
     return initialBuffer.toString("utf-8") === finalString;
