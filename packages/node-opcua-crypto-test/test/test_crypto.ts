@@ -54,9 +54,8 @@ import {
 } from "node-opcua-crypto";
 
 import { readCertificate, readPrivateKey, readPrivateRsaKey, readPublicKey, setCertificateStore, readPublicRsaKey } from "node-opcua-crypto";
-import { Key } from "sshpk";
 
-const loremIpsum = (loremIpsum1 as any).loremIpsum({ count: 100 });
+const loremIpsum: string = (loremIpsum1 as any).loremIpsum({ count: 100 });
 
 // see https://github.com/nodejs/node/issues/22815
 
@@ -280,9 +279,9 @@ describe("testing and exploring the NodeJS crypto api", function () {
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject; // 2048bit long key
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
 
-            const initialBuffer = Buffer.from(loremIpsum.substr(0, 25));
-            const encryptedBuffer1 = publicEncrypt_long(initialBuffer, bob_public_key, 256, 11);
-            const encryptedBuffer2 = publicEncrypt_long(initialBuffer, bob_public_key, 256, 11);
+            const initialBuffer = Buffer.from(loremIpsum.substring(0, 25));
+            const encryptedBuffer1 = publicEncrypt_long(initialBuffer, bob_public_key, 256);
+            const encryptedBuffer2 = publicEncrypt_long(initialBuffer, bob_public_key, 256);
 
             encryptedBuffer1.toString("hex").should.not.equal(encryptedBuffer2.toString("hex"));
 
@@ -295,8 +294,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
         it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes", function () {
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject; // 2048bit long key
 
-            const initialBuffer = Buffer.from(loremIpsum.substr(0, 256));
-            const encryptedBuffer = publicEncrypt_long(initialBuffer, bob_public_key, 256, 11);
+            const initialBuffer = Buffer.from(loremIpsum.substring(0, 256));
+            const encryptedBuffer = publicEncrypt_long(initialBuffer, bob_public_key, 256);
             encryptedBuffer.length.should.eql(256 * 2);
 
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
@@ -307,8 +306,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
         it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 1280 bytes", function () {
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject;
 
-            const initialBuffer = Buffer.from(loremIpsum.substr(0, 1024));
-            const encryptedBuffer = publicEncrypt_long(initialBuffer, bob_public_key, 256, 11);
+            const initialBuffer = Buffer.from(loremIpsum.substring(0, 1024));
+            const encryptedBuffer = publicEncrypt_long(initialBuffer, bob_public_key, 256);
             encryptedBuffer.length.should.eql(256 * 5);
 
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
@@ -340,7 +339,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
             debugLog(bob_public_key);
 
-            const encryptedMessage = publicEncrypt_long(Buffer.from(message), bob_public_key, 256, 42);
+            const encryptedMessage = publicEncrypt_long(Buffer.from(message), bob_public_key, 256);
 
             debugLog("encrypted message=", encryptedMessage.toString("hex"));
 
