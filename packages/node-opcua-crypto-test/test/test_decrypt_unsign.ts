@@ -108,9 +108,9 @@ describe("testing message decryption", () => {
         //  see github.com/nodejs/node/commit/7079c062bb
         // https://github.com/nodejs/node/blob/main/doc/changelogs/CHANGELOG_V20.md#20.11.1
         const nodeMajorVersion = parseInt(process.version.match(/^v(\d+)/)![1], 10);
-        if (nodeMajorVersion >= 20) {
+        if (nodeMajorVersion >= 10) {
             console.log("Skipping test because it uses deprecated PKCS#1 v1.5 padding scheme");
-            console.log("which is now forbidden in nodejs 20.11.1 (CVE-2023-46809)");
+            console.log("which is now forbidden in nodejs 20.11.1 (CVE-2023-46809) and older versions of NodeJS that have been patched");
             return;
         }
 
@@ -135,7 +135,6 @@ describe("testing message decryption", () => {
         const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
-            padding: PaddingAlgorithm.RSA_PKCS1_PADDING,
             publicKey,
         };
         const boolSignatureIsOK = verifyChunkSignature(my_buffer, options);
