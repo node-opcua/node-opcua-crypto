@@ -46,13 +46,13 @@
         "node": ">15.0"
     },
     "devDependencies": {
-        "@types/node": "^20.11.20",
+        "@types/node": "^20.14.10",
         "lorem-ipsum": "^2.0.8"
     },
     "dependencies": {
-        "@peculiar/webcrypto": "^1.4.5",
-        "@peculiar/x509": "^1.9.7",
-        "@types/jsrsasign": "^10.5.12",
+        "@peculiar/webcrypto": "^1.5.0",
+        "@peculiar/x509": "^1.11.0",
+        "@types/jsrsasign": "^10.5.14",
         "@types/sshpk": "^1.17.4",
         "assert": "^2.1.0",
         "chalk": "^4.1.2",
