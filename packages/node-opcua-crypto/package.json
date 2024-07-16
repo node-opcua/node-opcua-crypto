@@ -66,5 +66,6 @@
     },
     "bugs": {
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
-    }
+    },
+    "gitHead": "32e5c2e92f1ab76caf6166a6049736e2ac77a9f4"
 }
