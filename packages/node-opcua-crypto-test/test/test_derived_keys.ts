@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import  should from "should";
+import should from "should";
 import * as loremIpsum1 from "lorem-ipsum";
 import {
     computeDerivedKeys,

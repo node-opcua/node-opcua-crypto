@@ -241,9 +241,9 @@ function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicCo
     let cA = false;
     let pathLengthConstraint = 0;
     let breakControl = 0;
-    
+
     for (const inner_block of inner_blocks) {
-        switch(inner_block.tag) {
+        switch (inner_block.tag) {
             case TagType.BOOLEAN:
                 cA = _readBooleanValue(buffer, inner_block);
                 break;
@@ -252,10 +252,10 @@ function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicCo
                 breakControl = 1;
                 break;
         }
-        
+
         if (breakControl) {
             break;
-        } 
+        }
     }
 
     return { critical: true, cA, pathLengthConstraint };

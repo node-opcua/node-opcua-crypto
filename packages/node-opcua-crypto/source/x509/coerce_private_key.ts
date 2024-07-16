@@ -1,18 +1,15 @@
-
-
 import { PrivateKey, KeyObject, createPrivateKeyFromNodeJSCrypto } from "../common.js";
 import { getCrypto } from "./_crypto.js";
 import { derToPrivateKey, pemToPrivateKey } from "./create_key_pair.js";
-
 
 const crypto = getCrypto();
 
 const doDebug = false;
 
-export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string| Buffer ): PrivateKey {
+export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string | Buffer): PrivateKey {
     if (typeof privateKeyInDerOrPem === "string") {
         const hidden = createPrivateKeyFromNodeJSCrypto(privateKeyInDerOrPem);
-        return { hidden};
+        return { hidden };
     }
     //istanbul ignore next
     throw new Error("not implemented");
@@ -20,7 +17,7 @@ export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string| Buffer 
 }
 
 /**
- * 
+ *
  * @private
  */
 export async function _coercePrivateKey(privateKey: any): Promise<KeyObject> {

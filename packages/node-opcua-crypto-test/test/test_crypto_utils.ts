@@ -25,12 +25,18 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-import  * as loremIpsum from "lorem-ipsum";
+import * as loremIpsum from "lorem-ipsum";
 import "should";
 
-import { exploreCertificateInfo, makeSHA1Thumbprint, readCertificatePEM, removeTrailingLF, split_der, toPem } from "node-opcua-crypto";
+import {
+    exploreCertificateInfo,
+    makeSHA1Thumbprint,
+    readCertificatePEM,
+    removeTrailingLF,
+    split_der,
+    toPem,
+} from "node-opcua-crypto";
 import { readCertificate } from "node-opcua-crypto";
-
 
 // tslint:disable:no-var-requires
 const loremIpsumTxt = (loremIpsum as any).loremIpsum({ units: "words", count: 100 });
@@ -107,7 +113,7 @@ describe("Crypto utils", function () {
     it("toPem should return a string if provided certificate is a buffer containing a PEM string", () => {
         const certificate = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"), "binary");
         const pemCertificate = toPem(certificate, "CERTIFICATE");
-        pemCertificate.should.be.type('string');
+        pemCertificate.should.be.type("string");
     });
 
     it("toPem should return a certificate directly if provided certificate is PEM string", () => {

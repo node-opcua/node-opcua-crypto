@@ -31,7 +31,7 @@ describe("testing X509 certificate creating with jsrsasign", () => {
         });
 
         // you can modify any fields until the certificate is signed.
-   // ????? w     x.params!.subject = { str: "/CN=User2" };
+        // ????? w     x.params!.subject = { str: "/CN=User2" };
 
         // STEP3. show PEM strings of keys and a certificate
         console.log(prvpem);

@@ -30,7 +30,6 @@ import { exploreCertificate, SubjectPublicKey } from "./crypto_explore_certifica
 import { DirectoryName } from "./asn1.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
 
-
 export type PublicKeyLength = 64 | 96 | 128 | 256 | 384 | 512;
 
 /**

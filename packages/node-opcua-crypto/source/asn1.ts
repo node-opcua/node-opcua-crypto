@@ -25,7 +25,7 @@ export enum TagType {
     SEQUENCE = 0x30,
     SET = 0x31,
 
-    A3 = 0xA3
+    A3 = 0xa3,
 }
 
 export interface BlockInfo {
@@ -110,7 +110,7 @@ export function _readBitString(buffer: Buffer, block: BlockInfo): BitString {
         lengthInBits: data.length * 8 - ignore_bits,
         lengthInBytes: data.length - 1,
         data: data.subarray(1),
-        debug: parseBitString(buffer, block.position, block.length + block.position, 4*16*1024),
+        debug: parseBitString(buffer, block.position, block.length + block.position, 4 * 16 * 1024),
     };
 }
 
@@ -204,15 +204,15 @@ export function _readAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): Algo
     const inner_blocks = _readStruct(buffer, block);
     return {
         identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
-    }
-};
+    };
+}
 
 export function _readECCAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
     const inner_blocks = _readStruct(buffer, block);
     return {
         identifier: _readObjectIdentifier(buffer, inner_blocks[1]).name, // difference with RSA as algorithm is second element of nested block
-    }
-};
+    };
+}
 
 export type SignatureValue = string;
 

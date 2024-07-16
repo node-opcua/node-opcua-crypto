@@ -58,9 +58,9 @@ const doDebug = !!process.env.DEBUG;
 }
  */
 export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals {
-
-    const privateKey1 = privateKey2 .hidden;
-    const privateKey = typeof privateKey1 === "string" ? convertPEMtoDER(privateKey1) : privateKey1.export({ format: "der", type: "pkcs1" });
+    const privateKey1 = privateKey2.hidden;
+    const privateKey =
+        typeof privateKey1 === "string" ? convertPEMtoDER(privateKey1) : privateKey1.export({ format: "der", type: "pkcs1" });
 
     const block_info = readTag(privateKey, 0);
     const blocks = _readStruct(privateKey, block_info);

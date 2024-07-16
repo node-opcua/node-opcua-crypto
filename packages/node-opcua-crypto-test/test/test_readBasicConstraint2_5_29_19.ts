@@ -1,9 +1,4 @@
-import {
-  coerceCertificate,
-  readTag,
-  _readStruct,
-  readTbsCertificate
-} from "node-opcua-crypto";
+import { coerceCertificate, readTag, _readStruct, readTbsCertificate } from "node-opcua-crypto";
 import assert from "assert";
 
 /*
@@ -139,49 +134,45 @@ nPgNSo9ViIrAO7PVmvJ8ikE7Bi9io4fFSA0Jzok+tx9WFpta
 -----END CERTIFICATE-----`;
 
 function extractBasicConstraintsExtension(certificate: string | Buffer) {
-  certificate = coerceCertificate(certificate);
-  const block_info = readTag(certificate, 0);
-  const blocks = _readStruct(certificate, block_info);
-  const { extensions } = readTbsCertificate(certificate, blocks[0]);
-  return extensions?.basicConstraints;
+    certificate = coerceCertificate(certificate);
+    const block_info = readTag(certificate, 0);
+    const blocks = _readStruct(certificate, block_info);
+    const { extensions } = readTbsCertificate(certificate, blocks[0]);
+    return extensions?.basicConstraints;
 }
 
 describe("Testing basicConstraint field", function (this) {
-  it("Should parse if only CA:false is specified", async function () {
-    const basicConstraints = extractBasicConstraintsExtension(CERT_1);
+    it("Should parse if only CA:false is specified", async function () {
+        const basicConstraints = extractBasicConstraintsExtension(CERT_1);
 
-    if (basicConstraints) {
-      assert(basicConstraints.cA === false);
-    }
-  });
+        if (basicConstraints) {
+            assert(basicConstraints.cA === false);
+        }
+    });
 
-  it("Should parse if only pathlen:0 is specified", async function () {
-    const basicConstraints = extractBasicConstraintsExtension(CERT_2);
+    it("Should parse if only pathlen:0 is specified", async function () {
+        const basicConstraints = extractBasicConstraintsExtension(CERT_2);
 
-    if (basicConstraints) {
-      assert(basicConstraints.pathLengthConstraint === 0);
-    }
-  });
+        if (basicConstraints) {
+            assert(basicConstraints.pathLengthConstraint === 0);
+        }
+    });
 
-  it("Should parse if both CA:false and pathlen:0 are specified", async function () {
-    const basicConstraints = extractBasicConstraintsExtension(CERT_3)
+    it("Should parse if both CA:false and pathlen:0 are specified", async function () {
+        const basicConstraints = extractBasicConstraintsExtension(CERT_3);
 
-    if (basicConstraints) {
-      assert(basicConstraints.cA === false);
-      assert(basicConstraints.pathLengthConstraint === 0);
-    }
-  });
+        if (basicConstraints) {
+            assert(basicConstraints.cA === false);
+            assert(basicConstraints.pathLengthConstraint === 0);
+        }
+    });
 
-  it("Should parse if both CA:true and pathlen:0 are specified", async function () {
-    const basicConstraints = extractBasicConstraintsExtension(CERT_4);
+    it("Should parse if both CA:true and pathlen:0 are specified", async function () {
+        const basicConstraints = extractBasicConstraintsExtension(CERT_4);
 
-    if (basicConstraints) {
-      assert(basicConstraints.cA === true);
-      assert(basicConstraints.pathLengthConstraint === 0);
-    }
-  });
+        if (basicConstraints) {
+            assert(basicConstraints.cA === true);
+            assert(basicConstraints.pathLengthConstraint === 0);
+        }
+    });
 });
-
-
-
-

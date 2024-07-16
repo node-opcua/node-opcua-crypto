@@ -110,7 +110,9 @@ describe("testing message decryption", () => {
         const nodeMajorVersion = parseInt(process.version.match(/^v(\d+)/)![1], 10);
         if (nodeMajorVersion >= 10) {
             console.log("Skipping test because it uses deprecated PKCS#1 v1.5 padding scheme");
-            console.log("which is now forbidden in nodejs 20.11.1 (CVE-2023-46809) and older versions of NodeJS that have been patched");
+            console.log(
+                "which is now forbidden in nodejs 20.11.1 (CVE-2023-46809) and older versions of NodeJS that have been patched"
+            );
             return;
         }
 

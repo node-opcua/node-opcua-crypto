@@ -32,10 +32,7 @@ import { KeyObject, isKeyObject } from "./common.js";
 import { PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "./common.js";
 import { removeTrailingLF, toPem } from "./crypto_utils.js";
 
-import  jsrsasign from "jsrsasign";
-
-
-
+import jsrsasign from "jsrsasign";
 
 /***
  * @method rsaLengthPrivateKey
@@ -80,7 +77,7 @@ export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: s
             throw new Error("Unsupported case!");
         }
     }
-    return toPem(raw_key as (Buffer | string), pem);
+    return toPem(raw_key as Buffer | string, pem);
 }
 
 export function coercePrivateKeyPem(privateKey: PrivateKey): PrivateKeyPEM {
@@ -109,7 +106,7 @@ export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicK
 }
 export function coerceRsaPublicKeyPem(publicKey: PublicKey | KeyObject | PublicKeyPEM): PublicKeyPEM {
     if (isKeyObject(publicKey)) {
-       return (publicKey as KeyObject).export({ format: "pem", type: "spki" }).toString();
+        return (publicKey as KeyObject).export({ format: "pem", type: "spki" }).toString();
     }
     assert(typeof publicKey === "string");
     return publicKey;

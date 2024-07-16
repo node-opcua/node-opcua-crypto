@@ -12,7 +12,7 @@ const ignoreCrypto = process.env.IGNORE_SUBTLE_FROM_CRYPTO;
 
 if (typeof window === "undefined") {
     _crypto = nativeCrypto as any;
-    
+
     if (!_crypto?.subtle || ignoreCrypto) {
         _crypto = new PeculiarWebCrypto();
         console.warn("using @peculiar/webcrypto");

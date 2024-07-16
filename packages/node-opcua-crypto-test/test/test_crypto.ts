@@ -53,7 +53,14 @@ import {
     rsaLengthRsaPublicKey,
 } from "node-opcua-crypto";
 
-import { readCertificate, readPrivateKey, readPrivateRsaKey, readPublicKey, setCertificateStore, readPublicRsaKey } from "node-opcua-crypto";
+import {
+    readCertificate,
+    readPrivateKey,
+    readPrivateRsaKey,
+    readPublicKey,
+    setCertificateStore,
+    readPublicRsaKey,
+} from "node-opcua-crypto";
 
 const loremIpsum: string = (loremIpsum1 as any).loremIpsum({ count: 100 });
 
@@ -196,7 +203,11 @@ describe("testing and exploring the NodeJS crypto api", function () {
             encryptedBuffer.length.should.eql(128);
 
             should(function () {
-                encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(128 - 42 + 1), john_public_key as KeyObject, RSA_PKCS1_OAEP_PADDING);
+                encryptedBuffer = publicEncrypt(
+                    Buffer.allocUnsafe(128 - 42 + 1),
+                    john_public_key as KeyObject,
+                    RSA_PKCS1_OAEP_PADDING
+                );
                 debugLog(" C encryptedBuffer length = ", encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
@@ -333,7 +344,9 @@ describe("testing and exploring the NodeJS crypto api", function () {
             const alice_private_key = readPrivateRsaKey("alice_id_rsa");
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject;
 
-            const signature = createSign("RSA-SHA256").update(message).sign(alice_private_key.hidden as KeyObject);
+            const signature = createSign("RSA-SHA256")
+                .update(message)
+                .sign(alice_private_key.hidden as KeyObject);
             debugLog("signature = ", signature.toString("hex"));
             debugLog("signature length = ", signature.length);
 
@@ -351,7 +364,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             // Bob must first decipher the message using its own private key
 
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
-            const alice_public_key = readPublicRsaKey("alice_id_rsa.pub") as KeyObject; 
+            const alice_public_key = readPublicRsaKey("alice_id_rsa.pub") as KeyObject;
 
             //xx encryptedMessage += "q";
 

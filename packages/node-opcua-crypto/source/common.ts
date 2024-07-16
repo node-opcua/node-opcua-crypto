@@ -46,7 +46,7 @@ export interface KeyObject {
 export function isKeyObject(mayBeKeyObject: any): boolean {
     if (KeyObjectOrig) {
         return mayBeKeyObject instanceof KeyObjectOrig;
-    } 
+    }
     return typeof mayBeKeyObject === "object" && typeof (mayBeKeyObject as any).type === "string"; /// .constructor?.name === "KeyObject";
 }
 export type PrivateKey = { hidden: string } | { hidden: KeyObject };

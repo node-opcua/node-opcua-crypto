@@ -23,7 +23,7 @@
 
 import path from "path";
 import { exploreCertificate, explorePrivateKey } from "node-opcua-crypto";
-import { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "node-opcua-crypto"
+import { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "node-opcua-crypto";
 import { readCertificate, readPrivateKey } from "node-opcua-crypto";
 
 const useCases = [1024, 2048];
