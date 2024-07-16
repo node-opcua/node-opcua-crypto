@@ -8,6 +8,7 @@ tsconfig*
 source*/
 !dist-cjs
 !dist-esm
+!dist/**
 !dist
 *.global.js
 doc
