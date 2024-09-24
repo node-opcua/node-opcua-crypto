@@ -23,20 +23,27 @@ export enum TagType {
     BMPString = 0x1e,
 
     SEQUENCE = 0x30,
+
     SET = 0x31,
 
-    A3 = 0xa3,
+    CONTEXT_SPECIFIC0 = 0xa0,
+    CONTEXT_SPECIFIC1 = 0xa1,
+    CONTEXT_SPECIFIC2 = 0xa2,
+    CONTEXT_SPECIFIC3 = 0xa3,
+    A4 = 0xa4
 }
 
 export interface BlockInfo {
     tag: TagType | number;
     position: number;
     length: number;
+    start: number;
 }
 
 export function readTag(buf: Buffer, pos: number): BlockInfo {
-    assert(buf instanceof Buffer);
-    assert(Number.isFinite(pos) && pos >= 0);
+
+
+    const start = pos;
     // istanbul ignore next
     if (buf.length <= pos) {
         throw new Error("Invalid position : buf.length=" + buf.length + " pos =" + pos);
@@ -56,7 +63,7 @@ export function readTag(buf: Buffer, pos: number): BlockInfo {
             pos += 1;
         }
     }
-    return { tag, position: pos, length };
+    return { start, tag, position: pos, length };
 }
 
 export function _readStruct(buf: Buffer, blockInfo: BlockInfo): BlockInfo[] {
@@ -154,8 +161,8 @@ export function _readIntegerAsByteString(buffer: Buffer, block: BlockInfo): Buff
 export function _readListOfInteger(buffer: Buffer): Buffer[] {
     const block = readTag(buffer, 0);
     const inner_blocks = _readStruct(buffer, block);
-    return inner_blocks.map((bblock: BlockInfo) => {
-        return _readIntegerAsByteString(buffer, bblock);
+    return inner_blocks.map((innerBlock: BlockInfo) => {
+        return _readIntegerAsByteString(buffer, innerBlock);
     });
 }
 

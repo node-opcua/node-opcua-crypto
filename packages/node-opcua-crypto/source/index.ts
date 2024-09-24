@@ -41,4 +41,5 @@ export * from "./x509/create_self_signed_certificate.js";
 export * from "./x509/coerce_private_key.js";
 export * from "./subject.js";
 export * from "./asn1.js";
+export * from "./explore_asn1.js";
 export * from "./make_private_key_from_pem.js";

@@ -282,6 +282,8 @@ function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
         6: { name: "uniformResourceIdentifier", type: "IA5String" },
         7: { name: "iPAddress", type: "OCTET_STRING" },
         8: { name: "registeredID", type: "OBJECT_IDENTIFIER" },
+        32: { name: "otherName", type: "AnotherName" },
+        
     };
     const blocks = _readStruct(buffer, block);
 
@@ -301,13 +303,32 @@ function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
         // tslint:disable-next-line: no-bitwise
         const t = block.tag & 0x7f;
         const type = _data[t] as { name: string; type: string } | undefined;
-
         // istanbul ignore next
         if (!type) {
-            throw new Error(" INVALID TYPE => " + t + "0x" + t.toString(16));
+            console.log("_readGeneralNames: INVALID TYPE => " + t + " 0x" + t.toString(16));
+            continue;
         }
-        n[type.name] = n[type.name] || [];
-        n[type.name].push(_readFromType(buffer, block, type.type));
+
+        if (t == 32) {
+            // console.log(buffer.subarray(block.start, block.position+ block.length).toString("hex"));
+            n[type.name] = n[type.name] || [];
+
+            const blocks2 = _readStruct(buffer, block);
+            const name = _readObjectIdentifier(buffer, blocks2[0]).name;
+            const buf = _getBlock(buffer, blocks2[1]);
+            const b = readTag(buf, 0);
+            const nn = _readValue(buf, b);
+            // console.log(buf.toString("hex"), buf.toString("ascii"));
+            // console.log("name = ", name, nn);
+            const data = {
+                identifier: name,
+                value: nn,
+            };
+            n[type.name].push(data.value);
+        } else {
+            n[type.name] = n[type.name] || [];
+            n[type.name].push(_readFromType(buffer, block, type.type));
+        }
     }
     return n;
 }
