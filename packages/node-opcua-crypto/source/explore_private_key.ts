@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { BlockInfo, readTag, TagType, _readIntegerAsByteString, _readStruct } from "./asn1.js";
+import { BlockInfo, readTag, TagType, _readIntegerAsByteString, readStruct } from "./asn1.js";
 import { PrivateKey } from "./common.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
 
@@ -63,7 +63,7 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
         typeof privateKey1 === "string" ? convertPEMtoDER(privateKey1) : privateKey1.export({ format: "der", type: "pkcs1" });
 
     const block_info = readTag(privateKey, 0);
-    const blocks = _readStruct(privateKey, block_info);
+    const blocks = readStruct(privateKey, block_info);
 
     if (blocks.length === 9) {
         // alice_rsa
@@ -107,7 +107,7 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
     const b = blocks[2];
     const bb = privateKey.subarray(b.position, b.position + b.length);
     const block_info1 = readTag(bb, 0);
-    const blocks1 = _readStruct(bb, block_info1);
+    const blocks1 = readStruct(bb, block_info1);
 
     /* istanbul ignore next */
     if (doDebug) {

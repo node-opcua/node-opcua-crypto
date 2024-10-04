@@ -66,7 +66,7 @@ export function readTag(buf: Buffer, pos: number): BlockInfo {
     return { start, tag, position: pos, length };
 }
 
-export function _readStruct(buf: Buffer, blockInfo: BlockInfo): BlockInfo[] {
+export function readStruct(buf: Buffer, blockInfo: BlockInfo): BlockInfo[] {
     const length = blockInfo.length;
     let cursor = blockInfo.position;
     const end = blockInfo.position + length;
@@ -160,7 +160,7 @@ export function _readIntegerAsByteString(buffer: Buffer, block: BlockInfo): Buff
 
 export function _readListOfInteger(buffer: Buffer): Buffer[] {
     const block = readTag(buffer, 0);
-    const inner_blocks = _readStruct(buffer, block);
+    const inner_blocks = readStruct(buffer, block);
     return inner_blocks.map((innerBlock: BlockInfo) => {
         return _readIntegerAsByteString(buffer, innerBlock);
     });
@@ -207,15 +207,15 @@ export function _readObjectIdentifier(buffer: Buffer, block: BlockInfo): { oid: 
     };
 }
 
-export function _readAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
-    const inner_blocks = _readStruct(buffer, block);
+export function readAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
+    const inner_blocks = readStruct(buffer, block);
     return {
         identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
     };
 }
 
 export function _readECCAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
-    const inner_blocks = _readStruct(buffer, block);
+    const inner_blocks = readStruct(buffer, block);
     return {
         identifier: _readObjectIdentifier(buffer, inner_blocks[1]).name, // difference with RSA as algorithm is second element of nested block
     };
@@ -223,12 +223,12 @@ export function _readECCAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): A
 
 export type SignatureValue = string;
 
-export function _readSignatureValueBin(buffer: Buffer, block: BlockInfo): Buffer {
+export function readSignatureValueBin(buffer: Buffer, block: BlockInfo): Buffer {
     return _readBitString(buffer, block).data;
 }
 
-export function _readSignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
-    return _readSignatureValueBin(buffer, block).toString("hex");
+export function readSignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
+    return readSignatureValueBin(buffer, block).toString("hex");
 }
 
 export function _readLongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
@@ -381,15 +381,15 @@ export function _readDirectoryName(buffer: Buffer, block: BlockInfo): DirectoryN
     // AttributeTypeAndValue ::= SEQUENCE {
     //    type   ATTRIBUTE.&id({SupportedAttributes}),
     //    value  ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-    const set_blocks = _readStruct(buffer, block);
+    const set_blocks = readStruct(buffer, block);
     const names: DirectoryName = {};
     for (const set_block of set_blocks) {
         assert(set_block.tag === 0x31);
-        const blocks = _readStruct(buffer, set_block);
+        const blocks = readStruct(buffer, set_block);
         assert(blocks.length === 1);
         assert(blocks[0].tag === 0x30);
 
-        const sequenceBlock = _readStruct(buffer, blocks[0]);
+        const sequenceBlock = readStruct(buffer, blocks[0]);
         assert(sequenceBlock.length === 2);
 
         const type = _readObjectIdentifier(buffer, sequenceBlock[0]);

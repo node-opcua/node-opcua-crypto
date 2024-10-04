@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { BlockInfo, readTag, _findBlockAtIndex, _getBlock, _readObjectIdentifier, _readStruct, _readVersionValue } from "./asn1.js";
+import { BlockInfo, readTag, _findBlockAtIndex, _getBlock, _readObjectIdentifier, readStruct, _readVersionValue } from "./asn1.js";
 
 import { BasicConstraints, X509KeyUsage, _readExtension } from "./crypto_explore_certificate.js";
 
@@ -37,7 +37,7 @@ export interface CertificateSigningRequestInfo {
 function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
     const block = readTag(buffer, 0);
 
-    const inner_blocks = _readStruct(buffer, block);
+    const inner_blocks = readStruct(buffer, block);
     const extensions = inner_blocks.map((block1) => _readExtension(buffer, block1));
 
     const result: any = {};
@@ -49,14 +49,14 @@ function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
 }
 
 export function readCertificationRequestInfo(buffer: Buffer, block: BlockInfo): CertificateSigningRequestInfo {
-    const blocks = _readStruct(buffer, block);
+    const blocks = readStruct(buffer, block);
     if (blocks.length === 4) {
         const extensionRequestBlock = _findBlockAtIndex(blocks, 0);
         if (!extensionRequestBlock) {
             throw new Error("cannot find extensionRequest block");
         }
-        const blocks1 = _readStruct(buffer, extensionRequestBlock);
-        const blocks2 = _readStruct(buffer, blocks1[0]);
+        const blocks1 = readStruct(buffer, extensionRequestBlock);
+        const blocks2 = readStruct(buffer, blocks1[0]);
         const identifier = _readObjectIdentifier(buffer, blocks2[0]);
         if (identifier.name !== "extensionRequest") {
             throw new Error(" Cannot find extension Request in ASN1 block");
@@ -74,7 +74,7 @@ export function readCertificationRequestInfo(buffer: Buffer, block: BlockInfo): 
 
 export function exploreCertificateSigningRequest(crl: Buffer): CertificateSigningRequestInfo {
     const blockInfo = readTag(crl, 0);
-    const blocks = _readStruct(crl, blockInfo);
+    const blocks = readStruct(crl, blockInfo);
     const csrInfo = readCertificationRequestInfo(crl, blocks[0]);
     return csrInfo;
 }

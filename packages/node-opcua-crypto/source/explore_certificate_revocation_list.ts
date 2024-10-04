@@ -22,13 +22,13 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import {
-    _readStruct,
+    readStruct,
     readTag,
     _readBitString,
     AlgorithmIdentifier,
-    _readAlgorithmIdentifier,
-    _readSignatureValue,
-    _readSignatureValueBin,
+    readAlgorithmIdentifier,
+    readSignatureValue,
+    readSignatureValueBin,
     BlockInfo,
     _readObjectIdentifier,
     DirectoryName,
@@ -75,13 +75,13 @@ export function readNameForCrl(buffer: Buffer, block: BlockInfo): DirectoryName 
 }
 
 function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
-    const blocks = _readStruct(buffer, blockInfo);
+    const blocks = readStruct(buffer, blockInfo);
 
     const hasOptionalVersion = blocks[0].tag === TagType.INTEGER;
 
     if (hasOptionalVersion) {
         const version = _readIntegerValue(buffer, blocks[0]);
-        const signature = _readAlgorithmIdentifier(buffer, blocks[1]);
+        const signature = readAlgorithmIdentifier(buffer, blocks[1]);
         const issuer = readNameForCrl(buffer, blocks[2]);
         const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[2])));
 
@@ -91,10 +91,10 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
         const revokedCertificates: RevokedCertificate[] = [];
 
         if (blocks[5] && blocks[5].tag < 0x80) {
-            const list = _readStruct(buffer, blocks[5]);
+            const list = readStruct(buffer, blocks[5]);
             for (const r of list) {
                 // sometime blocks[5] doesn't exits .. in this case
-                const rr = _readStruct(buffer, r);
+                const rr = readStruct(buffer, r);
                 const userCertificate = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, rr[0]));
                 const revocationDate = _readTime(buffer, rr[1]);
                 revokedCertificates.push({
@@ -107,7 +107,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
         const ext0 = _findBlockAtIndex(blocks, 0);
         return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
     } else {
-        const signature = _readAlgorithmIdentifier(buffer, blocks[0]);
+        const signature = readAlgorithmIdentifier(buffer, blocks[0]);
         const issuer = readNameForCrl(buffer, blocks[1]);
         const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[1])));
 
@@ -117,10 +117,10 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
         const revokedCertificates: RevokedCertificate[] = [];
 
         if (blocks[4] && blocks[4].tag < 0x80) {
-            const list = _readStruct(buffer, blocks[4]);
+            const list = readStruct(buffer, blocks[4]);
             for (const r of list) {
                 // sometime blocks[5] doesn't exits .. in this case
-                const rr = _readStruct(buffer, r);
+                const rr = readStruct(buffer, r);
                 const userCertificate = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, rr[0]));
                 const revocationDate = _readTime(buffer, rr[1]);
                 revokedCertificates.push({
@@ -136,9 +136,9 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
 
 export function exploreCertificateRevocationList(crl: CertificateRevocationList): CertificateRevocationListInfo {
     const blockInfo = readTag(crl, 0);
-    const blocks = _readStruct(crl, blockInfo);
+    const blocks = readStruct(crl, blockInfo);
     const tbsCertList = _readTbsCertList(crl, blocks[0]);
-    const signatureAlgorithm = _readAlgorithmIdentifier(crl, blocks[1]);
-    const signatureValue = _readSignatureValueBin(crl, blocks[2]);
+    const signatureAlgorithm = readAlgorithmIdentifier(crl, blocks[1]);
+    const signatureValue = readSignatureValueBin(crl, blocks[2]);
     return { tbsCertList, signatureAlgorithm, signatureValue };
 }

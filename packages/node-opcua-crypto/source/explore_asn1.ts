@@ -1,4 +1,4 @@
-import { BlockInfo, readTag, _readStruct, TagType } from "./asn1";
+import { BlockInfo, readTag, readStruct, TagType } from "./asn1";
 import { hexDump } from "./crypto_utils";
 
 function t(tag: number) {
@@ -23,7 +23,7 @@ export function exploreAsn1(buffer: Buffer) {
         function dumpBlock(blockInfo: BlockInfo, depth: number) {
             console.log(bi(blockInfo, depth));
             if (blockInfo.tag === TagType.SEQUENCE || blockInfo.tag === TagType.SET || blockInfo.tag >= TagType.CONTEXT_SPECIFIC0) {
-                const blocks = _readStruct(buffer, blockInfo);
+                const blocks = readStruct(buffer, blockInfo);
                 for (const block of blocks) {
                     dumpBlock(block, depth +1);
                 }

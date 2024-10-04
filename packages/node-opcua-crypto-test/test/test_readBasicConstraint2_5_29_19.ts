@@ -1,4 +1,6 @@
-import { coerceCertificate, readTag, _readStruct, readTbsCertificate } from "node-opcua-crypto";
+import { coerceCertificate, readTbsCertificate } from "node-opcua-crypto";
+import { asn1 } from "node-opcua-crypto";
+
 import assert from "assert";
 
 /*
@@ -135,8 +137,8 @@ nPgNSo9ViIrAO7PVmvJ8ikE7Bi9io4fFSA0Jzok+tx9WFpta
 
 function extractBasicConstraintsExtension(certificate: string | Buffer) {
     certificate = coerceCertificate(certificate);
-    const block_info = readTag(certificate, 0);
-    const blocks = _readStruct(certificate, block_info);
+    const block_info = asn1.readTag(certificate, 0);
+    const blocks = asn1.readStruct(certificate, block_info);
     const { extensions } = readTbsCertificate(certificate, blocks[0]);
     return extensions?.basicConstraints;
 }

@@ -33,16 +33,16 @@ import { createVerify } from "crypto";
 import { Certificate } from "./common.js";
 import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";
 import { toPem } from "./crypto_utils.js";
-import { _readAlgorithmIdentifier, _readSignatureValueBin, TagType, readTag, _readStruct, _getBlock } from "./asn1.js";
+import { readAlgorithmIdentifier, readSignatureValueBin, TagType, readTag, readStruct, _getBlock } from "./asn1.js";
 
 export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);
-    const blocks = _readStruct(certificateOrCrl, block_info);
+    const blocks = readStruct(certificateOrCrl, block_info);
     const bufferToBeSigned = certificateOrCrl.subarray(block_info.position, blocks[1].position - 2);
 
     //xx console.log("bufferToBeSigned  = ", bufferToBeSigned.length, bufferToBeSigned.toString("hex").substr(0, 50), bufferToBeSigned.toString("hex").substr(-10));
-    const signatureAlgorithm = _readAlgorithmIdentifier(certificateOrCrl, blocks[1]);
-    const signatureValue = _readSignatureValueBin(certificateOrCrl, blocks[2]);
+    const signatureAlgorithm = readAlgorithmIdentifier(certificateOrCrl, blocks[1]);
+    const signatureValue = readSignatureValueBin(certificateOrCrl, blocks[2]);
 
     const p = split_der(parentCertificate)[0];
     //xx    const publicKey = extractPublicKeyFromCertificateSync(p);
