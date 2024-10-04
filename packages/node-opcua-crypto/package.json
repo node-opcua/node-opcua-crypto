@@ -14,6 +14,11 @@
             "types": "./dist/source/index_web.d.ts",
             "import": "./dist/source/index_web.mjs",
             "require": "./dist/source/index_web.js"
+        },
+        "./node": {
+            "types": "./dist/source_nodejs/index.d.ts",
+            "import": "./dist/source_nodejs/index.mjs",
+            "require": "./dist/source_nodejs/index.js"
         }
     },
     "scripts": {

@@ -22,13 +22,12 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import assert from "assert";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { createPrivateKey, createPublicKey } from "crypto";
 import { Certificate, CertificatePEM, DER, PEM, PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "../source/common.js";
 import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 import sshpk from "sshpk";
-import { fileURLToPath } from "url";
 
 function _readPemFile(filename: string): PEM {
     assert(typeof filename === "string");
@@ -83,16 +82,6 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     return { hidden: retValue };
 }
 
-export function makePrivateKeyThumbPrint(privateKey: PrivateKey): Buffer {
-    //   // .export({ format: "der", type: "pkcs1" });
-    //   if (typeof privateKey === "string") {
-    //
-    //   } else {
-    //    return makeSHA1Thumbprint(privateKey.hidden);
-    //   }
-    // to do
-    return Buffer.alloc(0);
-}
 
 function ensureTrailingLF(str: string): string {
     return str.match(/\n$/) ? str : str + "\n";

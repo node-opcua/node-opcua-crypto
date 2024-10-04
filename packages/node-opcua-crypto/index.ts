@@ -1,2 +1,2 @@
-export * from "./source/index.js";
-export * from "./source_nodejs/index.js"
+export * from "./source";
+export * from "./source_nodejs";

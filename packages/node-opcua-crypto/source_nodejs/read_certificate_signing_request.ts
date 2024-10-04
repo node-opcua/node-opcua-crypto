@@ -21,15 +21,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import fs from "fs";
-import { promisify } from "util";
+import fs from "node:fs";
 import { convertPEMtoDER } from "../source/crypto_utils.js";
 import { CertificateRevocationList } from "../source/common.js";
 
 export type CertificateSigningRequest = Buffer;
 
 export async function readCertificateSigningRequest(filename: string): Promise<CertificateSigningRequest> {
-    const csr = await promisify(fs.readFile)(filename);
+    const csr = await fs.promises.readFile(filename);
     if (csr[0] === 0x30 && csr[1] === 0x82) {
         // der format
         return csr as CertificateRevocationList;

@@ -24,20 +24,20 @@
 import path from "path";
 import { SignPrivateKeyInput, constants, createSign } from "crypto";
 import { verifyCertificateSignature, Certificate, toPem2, PrivateKey } from "node-opcua-crypto";
-import { readTag, _readStruct, _readAlgorithmIdentifier, _readSignatureValueBin } from "node-opcua-crypto";
+import { asn1 } from "node-opcua-crypto";
 import { readCertificate, readPrivateKey } from "node-opcua-crypto";
 
 export function investigateCertificateSignature(certificate: Certificate, caPrivateKey?: PrivateKey): void {
-    const block_info = readTag(certificate, 0);
-    const blocks = _readStruct(certificate, block_info);
+    const block_info = asn1.readTag(certificate, 0);
+    const blocks = asn1.readStruct(certificate, block_info);
 
     //  console.log(block_info, blocks[0], blocks[1], blocks[2]);
     const bufferTbsCertificate = certificate.subarray(block_info.position, block_info.position + 4 + blocks[0].length);
 
     // console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
-    const signatureAlgorithm = _readAlgorithmIdentifier(certificate, blocks[1]);
+    const signatureAlgorithm = asn1.readAlgorithmIdentifier(certificate, blocks[1]);
 
-    const signatureValue = _readSignatureValueBin(certificate, blocks[2]);
+    const signatureValue = asn1.readSignatureValueBin(certificate, blocks[2]);
     // console.log("", ellipsis(signatureValue.toString("hex")), signatureValue.length);
 
     function testPadding(padding: number, saltLength?: number): boolean {
