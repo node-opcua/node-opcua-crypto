@@ -1,4 +1,4 @@
-const { exploreCertificateInfo } = require("../../node-opcua-crypto");
+const { exploreCertificateInfo } = require("node-opcua-crypto");
 // eslint-disable-next-line no-undef
 
 
