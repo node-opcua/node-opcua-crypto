@@ -1,6 +1,6 @@
-import path from "path";
-import fs from "fs";
-import { tmpdir } from "os";
+import path from "node:path";
+import fs from "node:fs";
+import { tmpdir } from "node:os";
 import { Crypto as PeculiarWebCrypto } from "@peculiar/webcrypto";
 import * as x509 from "@peculiar/x509";
 import { AsnConvert, AsnUtf8StringConverter } from "@peculiar/asn1-schema";
@@ -116,7 +116,7 @@ declare const window: any;
 
 const ignoreCrypto = process.env.IGNORE_SUBTLE_FROM_CRYPTO;
 
-import nativeCrypto from "crypto";
+import nativeCrypto from "node:crypto";
 
 if (typeof window === "undefined") {
     _crypto = nativeCrypto as any;

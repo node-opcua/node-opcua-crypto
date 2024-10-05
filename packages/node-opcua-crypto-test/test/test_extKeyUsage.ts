@@ -21,9 +21,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import path from "path";
-import { exploreCertificate, readCertificate } from "node-opcua-crypto";
+import path from "node:path";
 import should from "should";
+import { exploreCertificate, readCertificate } from "node-opcua-crypto";
 
 describe("X509ExtKeyUsage", () => {
     it("should parse extKeyUsage 1", () => {

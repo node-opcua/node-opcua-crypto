@@ -21,8 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { createPublicKey } from "crypto";
-import path from "path";
+import { createPublicKey } from "node:crypto";
+import path from "node:path";
 import { rsaLengthPublicKey } from "node-opcua-crypto";
 import { readCertificate, readCertificatePEM } from "node-opcua-crypto";
 

@@ -21,9 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import path from "path";
-import { verifyCertificateChain } from "node-opcua-crypto";
-import { readCertificate } from "node-opcua-crypto";
+import path from "node:path";
+import { verifyCertificateChain, readCertificate } from "node-opcua-crypto";
 
 describe("Test Certificate Chain", () => {
     it("DX should verify a certificate chain", async () => {
