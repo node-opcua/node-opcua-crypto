@@ -22,6 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import assert from "assert";
+import fs from "node:fs";
+import path from "node:path";
 import {
     createHmac,
     createCipheriv,
@@ -32,9 +34,7 @@ import {
     publicEncrypt as publicEncrypt_fromCrypto,
     randomBytes,
     KeyObject,
-} from "crypto";
-import fs from "fs";
-import path from "path";
+} from "node:crypto";
 import should from "should";
 import * as loremIpsum1 from "lorem-ipsum";
 

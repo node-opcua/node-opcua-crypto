@@ -21,10 +21,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import fs from "fs";
-import path from "path";
-import os from "os";
-import util from "util";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import util from "node:util";
 import should from "should";
 import x509 from "@peculiar/x509";
 import {

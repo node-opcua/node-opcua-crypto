@@ -21,9 +21,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import fs from "fs";
-import os from "os";
-import path from "path";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import * as loremIpsum from "lorem-ipsum";
 import "should";

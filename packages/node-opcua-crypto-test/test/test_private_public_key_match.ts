@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import path from "path";
+import path from "node:path";
 import { exploreCertificate, explorePrivateKey } from "node-opcua-crypto";
 import { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "node-opcua-crypto";
 import { readCertificate, readPrivateKey } from "node-opcua-crypto";
