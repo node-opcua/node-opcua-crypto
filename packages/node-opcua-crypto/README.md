@@ -67,11 +67,16 @@ Please refer to the examples directory for more specific use cases and comprehen
 
 ## Support
 
-For any inquiries or issues related to NodeOPCUA Crypto, you can contact us at contact@sterfive.com. Please note that priority support is available to NodeOPCUA Support Subscription members.
+Sterfive provides this module free of charge, "as is," with the hope that it will be useful to you. However, any support requests, bug fixes, or enhancements are handled exclusively through our paid services. We believe strongly that independent open-source companies should be fairly compensated for their contributions to the community.
+
+We highly recommend subscribing to our support program to ensure your requests are addressed and resolved. Please note that we only consider requests from members of our support program or sponsors.
+
 
 ### Getting professional support
 
-NodeOPCUA PKI is developed and maintained by sterfive.com.
+
+NodeOPCUA Crypto is developed and maintained by sterfive.com.
+
 
 To get professional support, consider subscribing to the node-opcua membership community:
 
@@ -109,6 +114,6 @@ Thank you for considering NodeOPCUA Crypto for your OPCUA cryptography needs. We
 
 ##  Supporting the development effort - Sponsors & Backers
 
-If you like `node-opcua-pki` and if you are relying on it in one of your projects, please consider becoming a backer and [sponsoring us](https://github.com/sponsors/node-opcua), this will help us to maintain a high-quality stack and constant evolution of this module.
+If you like `node-opcua-crypto` and if you are relying on it in one of your projects, please consider becoming a backer and [sponsoring us](https://opencollective.com/node-opcua), this will help us to maintain a high-quality stack and constant evolution of this module.
 
-If your company would like to participate and influence the development of future versions of `node-opcua` please contact [sterfive](mailto:contact@sterfive.com).
+If your company would like to participate and influence the development of future versions of `node-opcua` and its components, please contact [sterfive](mailto:contact@sterfive.com).
