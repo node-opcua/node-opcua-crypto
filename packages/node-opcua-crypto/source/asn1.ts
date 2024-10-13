@@ -1,6 +1,6 @@
 import assert from "assert";
 import { oid_map } from "./oid_map.js";
-
+import { DirectoryName } from "./directory_name.js";
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js
 export enum TagType {
     BOOLEAN = 0x01,
@@ -107,9 +107,9 @@ export interface BitString {
     debug?: any;
 }
 
-export function _readBitString(buffer: Buffer, block: BlockInfo): BitString {
+export function readBitString(buffer: Buffer, block: BlockInfo): BitString {
     assert(block.tag === TagType.BIT_STRING);
-    const data = _getBlock(buffer, block);
+    const data = getBlock(buffer, block);
     // number of skipped bits
     const ignore_bits = data.readUInt8(0);
 
@@ -133,7 +133,7 @@ export function formatBuffer2DigitHexWithColum(buffer: Buffer): string {
         .replace(/^(00:)*/, "");
 }
 
-export function _readOctetString(buffer: Buffer, block: BlockInfo): Buffer {
+export function readOctetString(buffer: Buffer, block: BlockInfo): Buffer {
     assert(block.tag === TagType.OCTET_STRING);
     const tag = readTag(buffer, block.position);
     assert(tag.tag === TagType.OCTET_STRING);
@@ -144,7 +144,7 @@ export function _readOctetString(buffer: Buffer, block: BlockInfo): Buffer {
     return b;
 }
 
-export function _getBlock(buffer: Buffer, block: BlockInfo): Buffer {
+export function getBlock(buffer: Buffer, block: BlockInfo): Buffer {
     const start = block.position;
     const end = block.position + block.length;
     return buffer.subarray(start, end);
@@ -154,15 +154,15 @@ export interface AlgorithmIdentifier {
     identifier: string;
 }
 
-export function _readIntegerAsByteString(buffer: Buffer, block: BlockInfo): Buffer {
-    return _getBlock(buffer, block);
+export function readIntegerAsByteString(buffer: Buffer, block: BlockInfo): Buffer {
+    return getBlock(buffer, block);
 }
 
-export function _readListOfInteger(buffer: Buffer): Buffer[] {
+export function readListOfInteger(buffer: Buffer): Buffer[] {
     const block = readTag(buffer, 0);
     const inner_blocks = readStruct(buffer, block);
     return inner_blocks.map((innerBlock: BlockInfo) => {
-        return _readIntegerAsByteString(buffer, innerBlock);
+        return readIntegerAsByteString(buffer, innerBlock);
     });
 }
 
@@ -197,7 +197,7 @@ function parseOID(buffer: Buffer, start: number, end: number): string {
     return s;
 }
 
-export function _readObjectIdentifier(buffer: Buffer, block: BlockInfo): { oid: string; name: string } {
+export function readObjectIdentifier(buffer: Buffer, block: BlockInfo): { oid: string; name: string } {
     assert(block.tag === TagType.OBJECT_IDENTIFIER);
     const b = buffer.subarray(block.position, block.position + block.length);
     const oid = parseOID(b, 0, block.length);
@@ -210,28 +210,28 @@ export function _readObjectIdentifier(buffer: Buffer, block: BlockInfo): { oid: 
 export function readAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
     const inner_blocks = readStruct(buffer, block);
     return {
-        identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
+        identifier: readObjectIdentifier(buffer, inner_blocks[0]).name,
     };
 }
 
-export function _readECCAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
+export function readECCAlgorithmIdentifier(buffer: Buffer, block: BlockInfo): AlgorithmIdentifier {
     const inner_blocks = readStruct(buffer, block);
     return {
-        identifier: _readObjectIdentifier(buffer, inner_blocks[1]).name, // difference with RSA as algorithm is second element of nested block
+        identifier: readObjectIdentifier(buffer, inner_blocks[1]).name, // difference with RSA as algorithm is second element of nested block
     };
 }
 
 export type SignatureValue = string;
 
 export function readSignatureValueBin(buffer: Buffer, block: BlockInfo): Buffer {
-    return _readBitString(buffer, block).data;
+    return readBitString(buffer, block).data;
 }
 
 export function readSignatureValue(buffer: Buffer, block: BlockInfo): SignatureValue {
     return readSignatureValueBin(buffer, block).toString("hex");
 }
 
-export function _readLongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
+export function readLongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer {
     assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     const pos = block.position;
     const nbBytes = block.length;
@@ -239,7 +239,7 @@ export function _readLongIntegerValue(buffer: Buffer, block: BlockInfo): Buffer 
     return buf;
 }
 
-export function _readIntegerValue(buffer: Buffer, block: BlockInfo): number {
+export function readIntegerValue(buffer: Buffer, block: BlockInfo): number {
     assert(block.tag === TagType.INTEGER, "expecting a INTEGER tag");
     let pos = block.position;
     const nbBytes = block.length;
@@ -252,7 +252,7 @@ export function _readIntegerValue(buffer: Buffer, block: BlockInfo): number {
     return value;
 }
 
-export function _readBooleanValue(buffer: Buffer, block: BlockInfo): boolean {
+export function readBooleanValue(buffer: Buffer, block: BlockInfo): boolean {
     assert(block.tag === TagType.BOOLEAN, "expecting a BOOLEAN tag. got " + TagType[block.tag]);
     const pos = block.position;
     const nbBytes = block.length;
@@ -261,9 +261,9 @@ export function _readBooleanValue(buffer: Buffer, block: BlockInfo): boolean {
     return value as boolean;
 }
 
-export function _readVersionValue(buffer: Buffer, block: BlockInfo): number {
+export function readVersionValue(buffer: Buffer, block: BlockInfo): number {
     block = readTag(buffer, block.position);
-    return _readIntegerValue(buffer, block);
+    return readIntegerValue(buffer, block);
 }
 
 /*
@@ -292,7 +292,7 @@ function convertGeneralizedTime(str: string): Date {
 }
 
 function _readBMPString(buffer: Buffer, block: BlockInfo): string {
-    const strBuff = _getBlock(buffer, block);
+    const strBuff = getBlock(buffer, block);
     let str = "";
     for (let i = 0; i < strBuff.length; i += 2) {
         const word = strBuff.readUInt16BE(i);
@@ -343,10 +343,10 @@ function convertUTCTime(str: string): Date {
     return new Date(Date.UTC(year, month, day, hours, mins, secs));
 }
 
-export function _readValue(buffer: Buffer, block: BlockInfo): any {
+export function readValue(buffer: Buffer, block: BlockInfo): any {
     switch (block.tag) {
         case TagType.BOOLEAN:
-            return _readBooleanValue(buffer, block);
+            return readBooleanValue(buffer, block);
         case TagType.BMPString:
             return _readBMPString(buffer, block);
         case TagType.PrintableString:
@@ -354,51 +354,24 @@ export function _readValue(buffer: Buffer, block: BlockInfo): any {
         case TagType.UTF8String:
         case TagType.NumericString:
         case TagType.IA5String:
-            return _getBlock(buffer, block).toString("ascii");
+            return getBlock(buffer, block).toString("ascii");
         case TagType.UTCTime:
-            return convertUTCTime(_getBlock(buffer, block).toString("ascii"));
+            return convertUTCTime(getBlock(buffer, block).toString("ascii"));
         case TagType.GeneralizedTime:
-            return convertGeneralizedTime(_getBlock(buffer, block).toString("ascii"));
+            return convertGeneralizedTime(getBlock(buffer, block).toString("ascii"));
         default:
             throw new Error("Invalid tag 0x" + block.tag.toString(16) + "");
         //xx return " ??? <" + block.tag + ">";
     }
 }
 
-export interface DirectoryName {
-    stateOrProvinceName?: string;
-    localityName?: string;
-    organizationName?: string;
-    organizationUnitName?: string;
-    commonName?: string;
-    countryName?: string;
-}
+
 export function compactDirectoryName(d: DirectoryName): string {
     return JSON.stringify(d);
 }
 
-export function _readDirectoryName(buffer: Buffer, block: BlockInfo): DirectoryName {
-    // AttributeTypeAndValue ::= SEQUENCE {
-    //    type   ATTRIBUTE.&id({SupportedAttributes}),
-    //    value  ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-    const set_blocks = readStruct(buffer, block);
-    const names: DirectoryName = {};
-    for (const set_block of set_blocks) {
-        assert(set_block.tag === 0x31);
-        const blocks = readStruct(buffer, set_block);
-        assert(blocks.length === 1);
-        assert(blocks[0].tag === 0x30);
 
-        const sequenceBlock = readStruct(buffer, blocks[0]);
-        assert(sequenceBlock.length === 2);
-
-        const type = _readObjectIdentifier(buffer, sequenceBlock[0]);
-        (names as any)[type.name] = _readValue(buffer, sequenceBlock[1]);
-    }
-    return names;
-}
-
-export function _findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo | null {
+export function findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo | null {
     const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index || b.tag === 0x80 + index);
     if (tmp.length === 0) {
         return null;
@@ -406,6 +379,6 @@ export function _findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo
     return tmp[0];
 }
 
-export function _readTime(buffer: Buffer, block: BlockInfo): any {
-    return _readValue(buffer, block);
+export function readTime(buffer: Buffer, block: BlockInfo): any {
+    return readValue(buffer, block);
 }

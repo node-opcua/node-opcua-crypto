@@ -33,7 +33,7 @@ import { createVerify } from "crypto";
 import { Certificate } from "./common.js";
 import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";
 import { toPem } from "./crypto_utils.js";
-import { readAlgorithmIdentifier, readSignatureValueBin, TagType, readTag, readStruct, _getBlock } from "./asn1.js";
+import { readAlgorithmIdentifier, readSignatureValueBin, readTag, readStruct } from "./asn1.js";
 
 export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);

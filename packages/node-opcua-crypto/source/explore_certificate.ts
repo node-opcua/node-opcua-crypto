@@ -27,7 +27,7 @@ import assert from "assert";
 
 import { Certificate, CertificatePEM } from "./common.js";
 import { exploreCertificate, SubjectPublicKey } from "./crypto_explore_certificate.js";
-import { DirectoryName } from "./asn1.js";
+import { DirectoryName } from "./directory_name.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
 
 export type PublicKeyLength = 64 | 96 | 128 | 256 | 384 | 512;

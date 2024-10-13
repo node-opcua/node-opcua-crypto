@@ -21,9 +21,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { BlockInfo, readTag, _findBlockAtIndex, _getBlock, _readObjectIdentifier, readStruct, _readVersionValue } from "./asn1.js";
+import { 
+    BlockInfo, 
+    findBlockAtIndex, 
+    getBlock, 
+    readObjectIdentifier, 
+    readStruct,
+    readTag, 
+} from "./asn1.js";
 
-import { BasicConstraints, X509KeyUsage, _readExtension } from "./crypto_explore_certificate.js";
+import { BasicConstraints, X509KeyUsage, readExtension } from "./crypto_explore_certificate.js";
 
 export interface ExtensionRequest {
     basicConstraints: BasicConstraints;
@@ -38,7 +45,7 @@ function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
     const block = readTag(buffer, 0);
 
     const inner_blocks = readStruct(buffer, block);
-    const extensions = inner_blocks.map((block1) => _readExtension(buffer, block1));
+    const extensions = inner_blocks.map((block1) => readExtension(buffer, block1));
 
     const result: any = {};
     for (const e of extensions) {
@@ -51,17 +58,17 @@ function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
 export function readCertificationRequestInfo(buffer: Buffer, block: BlockInfo): CertificateSigningRequestInfo {
     const blocks = readStruct(buffer, block);
     if (blocks.length === 4) {
-        const extensionRequestBlock = _findBlockAtIndex(blocks, 0);
+        const extensionRequestBlock = findBlockAtIndex(blocks, 0);
         if (!extensionRequestBlock) {
             throw new Error("cannot find extensionRequest block");
         }
         const blocks1 = readStruct(buffer, extensionRequestBlock);
         const blocks2 = readStruct(buffer, blocks1[0]);
-        const identifier = _readObjectIdentifier(buffer, blocks2[0]);
+        const identifier = readObjectIdentifier(buffer, blocks2[0]);
         if (identifier.name !== "extensionRequest") {
             throw new Error(" Cannot find extension Request in ASN1 block");
         }
-        const buf = _getBlock(buffer, blocks2[1]);
+        const buf = getBlock(buffer, blocks2[1]);
 
         const extensionRequest = _readExtensionRequest(buf);
 

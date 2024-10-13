@@ -25,5 +25,3 @@
  * @module node_opcua_crypto
  */
 export * from "./index_web.js";
-import { readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin } from "./asn1.js";
-export const asn1 = { readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin };

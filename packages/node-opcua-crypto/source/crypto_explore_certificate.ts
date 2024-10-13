@@ -57,31 +57,30 @@
 import assert from "assert";
 
 import {
-    _readBitString,
-    BlockInfo,
-    TagType,
-    readTag,
-    _getBlock,
-    readStruct,
-    formatBuffer2DigitHexWithColum,
-    _readOctetString,
     AlgorithmIdentifier,
-    _readListOfInteger,
-    _readObjectIdentifier,
-    readAlgorithmIdentifier,
-    _readECCAlgorithmIdentifier,
-    _readBooleanValue,
-    _readIntegerValue,
-    _readLongIntegerValue,
-    _readVersionValue,
+    BlockInfo,
     SignatureValue,
+    TagType,
+    findBlockAtIndex,
+    formatBuffer2DigitHexWithColum,
+    getBlock,
+    readAlgorithmIdentifier,
+    readBitString,
+    readBooleanValue,
+    readECCAlgorithmIdentifier,
+    readIntegerValue,
+    readListOfInteger,
+    readLongIntegerValue,
+    readObjectIdentifier,
+    readOctetString,
     readSignatureValue,
-    DirectoryName,
-    _readValue,
-    _readTime,
-    _findBlockAtIndex,
-    _readDirectoryName,
+    readStruct,
+    readTag,
+    readTime,
+    readValue,
+    readVersionValue,
 } from "./asn1.js";
+import { DirectoryName, readDirectoryName } from "./directory_name.js";
 import { Certificate } from "./common.js";
 import { PublicKeyLength } from "./explore_certificate.js";
 import { makeSHA1Thumbprint } from "./crypto_utils.js";
@@ -102,8 +101,8 @@ function _readAttributeTypeAndValue(buffer: Buffer, block: BlockInfo): Attribute
     inner_blocks = readStruct(buffer, inner_blocks[0]);
 
     const data = {
-        identifier: _readObjectIdentifier(buffer, inner_blocks[0]).name,
-        value: _readValue(buffer, inner_blocks[1]),
+        identifier: readObjectIdentifier(buffer, inner_blocks[0]).name,
+        value: readValue(buffer, inner_blocks[1]),
     };
 
     const result: AttributeTypeAndValue = {};
@@ -140,8 +139,8 @@ export interface Validity {
 function _readValidity(buffer: Buffer, block: BlockInfo): Validity {
     const inner_blocks = readStruct(buffer, block);
     return {
-        notBefore: _readTime(buffer, inner_blocks[0]),
-        notAfter: _readTime(buffer, inner_blocks[1]),
+        notBefore: readTime(buffer, inner_blocks[0]),
+        notAfter: readTime(buffer, inner_blocks[1]),
     };
 }
 
@@ -166,23 +165,23 @@ function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorityKeyIdentifier {
     const block_info = readTag(buffer, 0);
     const blocks = readStruct(buffer, block_info);
 
-    const keyIdentifier_block = _findBlockAtIndex(blocks, 0);
-    const authorityCertIssuer_block = _findBlockAtIndex(blocks, 1);
-    const authorityCertSerialNumber_block = _findBlockAtIndex(blocks, 2);
+    const keyIdentifier_block = findBlockAtIndex(blocks, 0);
+    const authorityCertIssuer_block = findBlockAtIndex(blocks, 1);
+    const authorityCertSerialNumber_block = findBlockAtIndex(blocks, 2);
 
     function _readAuthorityCertIssuer(block: BlockInfo): DirectoryName {
         const inner_blocks = readStruct(buffer, block);
-        const directoryName_block = _findBlockAtIndex(inner_blocks, 4);
+        const directoryName_block = findBlockAtIndex(inner_blocks, 4);
         if (directoryName_block) {
             const a = readStruct(buffer, directoryName_block);
-            return _readDirectoryName(buffer, a[0]);
+            return readDirectoryName(buffer, a[0]);
         } else {
             throw new Error("Invalid _readAuthorityCertIssuer");
         }
     }
     function _readAuthorityCertIssuerFingerPrint(block: BlockInfo): string {
         const inner_blocks = readStruct(buffer, block);
-        const directoryName_block = _findBlockAtIndex(inner_blocks, 4)!;
+        const directoryName_block = findBlockAtIndex(inner_blocks, 4)!;
         if (!directoryName_block) {
             return "";
         }
@@ -190,7 +189,7 @@ function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorityKeyIdentifier {
         if (a.length < 1) {
             return "";
         }
-        return directoryName_block ? formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, a[0]))) : "";
+        return directoryName_block ? formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, a[0]))) : "";
     }
 
     const authorityCertIssuer = authorityCertIssuer_block ? _readAuthorityCertIssuer(authorityCertIssuer_block) : null;
@@ -202,9 +201,9 @@ function _readAuthorityKeyIdentifier(buffer: Buffer): AuthorityKeyIdentifier {
         authorityCertIssuer,
         authorityCertIssuerFingerPrint,
         serial: authorityCertSerialNumber_block
-            ? formatBuffer2DigitHexWithColum(_getBlock(buffer, authorityCertSerialNumber_block!))
+            ? formatBuffer2DigitHexWithColum(getBlock(buffer, authorityCertSerialNumber_block!))
             : null, // can be null for self-signed cert
-        keyIdentifier: keyIdentifier_block ? formatBuffer2DigitHexWithColum(_getBlock(buffer, keyIdentifier_block!)) : null, // can be null for self-signed certf
+        keyIdentifier: keyIdentifier_block ? formatBuffer2DigitHexWithColum(getBlock(buffer, keyIdentifier_block!)) : null, // can be null for self-signed certf
     };
 }
 
@@ -245,10 +244,10 @@ function readBasicConstraint2_5_29_19(buffer: Buffer, block: BlockInfo): BasicCo
     for (const inner_block of inner_blocks) {
         switch (inner_block.tag) {
             case TagType.BOOLEAN:
-                cA = _readBooleanValue(buffer, inner_block);
+                cA = readBooleanValue(buffer, inner_block);
                 break;
             case TagType.INTEGER:
-                pathLengthConstraint = _readIntegerValue(buffer, inner_block);
+                pathLengthConstraint = readIntegerValue(buffer, inner_block);
                 breakControl = 1;
                 break;
         }
@@ -314,10 +313,10 @@ function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
             n[type.name] = n[type.name] || [];
 
             const blocks2 = readStruct(buffer, block);
-            const name = _readObjectIdentifier(buffer, blocks2[0]).name;
-            const buf = _getBlock(buffer, blocks2[1]);
+            const name = readObjectIdentifier(buffer, blocks2[0]).name;
+            const buf = getBlock(buffer, blocks2[1]);
             const b = readTag(buf, 0);
-            const nn = _readValue(buf, b);
+            const nn = readValue(buf, b);
             // console.log(buf.toString("hex"), buf.toString("ascii"));
             // console.log("name = ", name, nn);
             const data = {
@@ -419,7 +418,7 @@ function readExtKeyUsage(oid: string, buffer: Buffer): X509ExtKeyUsage {
         ocspSigning: false,
     };
     for (const block of inner_blocks) {
-        const identifier = _readObjectIdentifier(buffer, block);
+        const identifier = readObjectIdentifier(buffer, block);
         (extKeyUsage as any)[identifier.name] = true;
     }
     /*
@@ -481,7 +480,7 @@ function _readSubjectPublicKey(buffer: Buffer): SubjectPublicKey {
  -- by extnID
  }
  */
-export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: { oid: string; name: string }; value: any } {
+export function readExtension(buffer: Buffer, block: BlockInfo): { identifier: { oid: string; name: string }; value: any } {
     const inner_blocks = readStruct(buffer, block);
 
     if (inner_blocks.length === 3) {
@@ -489,8 +488,8 @@ export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: 
         inner_blocks[1] = inner_blocks[2];
     }
 
-    const identifier = _readObjectIdentifier(buffer, inner_blocks[0]);
-    const buf = _getBlock(buffer, inner_blocks[1]);
+    const identifier = readObjectIdentifier(buffer, inner_blocks[0]);
+    const buf = getBlock(buffer, inner_blocks[1]);
     let value: string | null | any = null;
     switch (identifier.name) {
         case "subjectKeyIdentifier":
@@ -508,7 +507,7 @@ export function _readExtension(buffer: Buffer, block: BlockInfo): { identifier: 
                   SHA-1 hash of the value of the BIT STRING subjectPublicKey
                   (excluding the tag, length, and number of unused bit string bits).
             */
-            value = formatBuffer2DigitHexWithColum(_readOctetString(buffer, inner_blocks[1]));
+            value = formatBuffer2DigitHexWithColum(readOctetString(buffer, inner_blocks[1]));
             break;
         case "subjectAltName":
             value = _readSubjectAltNames(buf);
@@ -544,7 +543,7 @@ function _readExtensions(buffer: Buffer, block: BlockInfo): CertificateExtension
     let inner_blocks = readStruct(buffer, block);
     inner_blocks = readStruct(buffer, inner_blocks[0]);
 
-    const extensions = inner_blocks.map((block) => _readExtension(buffer, block));
+    const extensions = inner_blocks.map((block) => readExtension(buffer, block));
 
     const result: any = {};
     for (const e of extensions) {
@@ -584,11 +583,11 @@ function _readSubjectPublicKeyInfo(buffer: Buffer, block: BlockInfo): SubjectPub
     // algorithm identifier
     const algorithm = readAlgorithmIdentifier(buffer, inner_blocks[0]);
     //const parameters         = _readBitString(buffer,inner_blocks[1]);
-    const subjectPublicKey = _readBitString(buffer, inner_blocks[1]);
+    const subjectPublicKey = readBitString(buffer, inner_blocks[1]);
 
     // read the 2 big integers of the key
     const data = subjectPublicKey.data;
-    const values = _readListOfInteger(data);
+    const values = readListOfInteger(data);
     // xx const value = _readListOfInteger(data);
     return {
         algorithm: algorithm.identifier,
@@ -603,10 +602,10 @@ function _readSubjectECCPublicKeyInfo(buffer: Buffer, block: BlockInfo): Subject
     const inner_blocks = readStruct(buffer, block);
 
     // first parameter is the second element of the first block, which is why we have another algorithm
-    const algorithm = _readECCAlgorithmIdentifier(buffer, inner_blocks[0]);
+    const algorithm = readECCAlgorithmIdentifier(buffer, inner_blocks[0]);
 
     // the public key is already in bit format, we just need to read it
-    const subjectPublicKey = _readBitString(buffer, inner_blocks[1]);
+    const subjectPublicKey = readBitString(buffer, inner_blocks[1]);
 
     // take out the data which is the entirity of our public key
     const data = subjectPublicKey.data;
@@ -669,28 +668,28 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
         // X509 Version 1:
         version = 1;
 
-        serialNumber = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, blocks[0]));
+        serialNumber = formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, blocks[0]));
         signature = readAlgorithmIdentifier(buffer, blocks[1]);
         issuer = _readName(buffer, blocks[2]);
         validity = _readValidity(buffer, blocks[3]);
         subject = _readName(buffer, blocks[4]);
-        subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[4])));
+        subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, blocks[4])));
         subjectPublicKeyInfo = _readSubjectPublicKeyInfo(buffer, blocks[5]);
 
         extensions = null;
     } else {
         // X509 Version 3:
-        const version_block = _findBlockAtIndex(blocks, 0);
+        const version_block = findBlockAtIndex(blocks, 0);
         if (!version_block) {
             throw new Error("cannot find version block");
         }
-        version = _readVersionValue(buffer, version_block) + 1;
-        serialNumber = formatBuffer2DigitHexWithColum(_readLongIntegerValue(buffer, blocks[1]));
+        version = readVersionValue(buffer, version_block) + 1;
+        serialNumber = formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, blocks[1]));
         signature = readAlgorithmIdentifier(buffer, blocks[2]);
         issuer = _readName(buffer, blocks[3]);
         validity = _readValidity(buffer, blocks[4]);
         subject = _readName(buffer, blocks[5]);
-        subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(_getBlock(buffer, blocks[5])));
+        subjectFingerPrint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, blocks[5])));
 
         const inner_block = readStruct(buffer, blocks[6]);
         const what_type = readAlgorithmIdentifier(buffer, inner_block[0]).identifier;
@@ -707,7 +706,7 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
             }
         }
 
-        const extensionBlock = _findBlockAtIndex(blocks, 3);
+        const extensionBlock = findBlockAtIndex(blocks, 3);
         if (!extensionBlock) {
             // tslint:disable-next-line: no-console
             doDebug && console.log("X509 certificate is invalid : cannot find extension block version =" + version_block);
