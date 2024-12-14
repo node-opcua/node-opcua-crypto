@@ -23,14 +23,14 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v4.2.2
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v4.1.0
               with:
                   node-version: ${{ matrix.node-version }}
             - run: npm install
             - name: Cache dependencies
-              uses: actions/cache/save@v4
+              uses: actions/cache@v4.1.1
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
@@ -43,19 +43,19 @@ jobs:
                 os: [ubuntu-latest]
         runs-on: ${{ matrix.os }}
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v4.2.2
+            - uses: actions/setup-node@v4.1.0
               with:
                   node-version: ${{ matrix.node-version }}
             - name: Cache dependencies
-              uses: actions/cache/restore@v4
+              uses: actions/cache@v4.1.1
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
             - run: npm install
             - run: npm run build
             - name: Cache build artifacts
-              uses: actions/cache/save@v4
+              uses: actions/cache@v4.1.1
               with:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
@@ -73,21 +73,21 @@ jobs:
         steps:
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.2.2
 
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v4.1.0
               with:
                   node-version: ${{ matrix.node-version }}
 
             - name: Restore dependencies
-              uses: actions/cache/restore@v4
+              uses: actions/cache@v4.1.1
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
-              uses: actions/cache/restore@v4
+              uses: actions/cache@v4.1.1
               with:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
@@ -107,10 +107,10 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - name: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v4.2.2
 
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v4.1.0
               with:
                   node-version: ${{ matrix.node-version }}
 
@@ -118,13 +118,13 @@ jobs:
               run: node --version
 
             - name: Restore dependencies
-              uses: actions/cache/restore@v4
+              uses: actions/cache@v4.1.1
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
-              uses: actions/cache/restore@v4
+              uses: actions/cache@v4.1.1
               with:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
@@ -152,10 +152,10 @@ jobs:
     #     runs-on: ${{ matrix.os }}
     #     steps:
     #         - name: checkout
-    #           uses: actions/checkout@v4
+    #           uses: actions/checkout@v4.2.2
 
     #         - name: Use Node.js ${{ matrix.node-version }}
-    #           uses: actions/setup-node@v4
+    #           uses: actions/setup-node@v4.1.0
     #           with:
     #               node-version: ${{ matrix.node-version }}
 
@@ -164,13 +164,13 @@ jobs:
 
 
     #         - name: Restore dependencies
-    #           uses: actions/cache/restore@v4
+    #           uses: actions/cache@v4.1.1
     #           with:
     #               key: ${{ runner.os }}-node-modules-${{ github.sha }}
     #               path: node_modules
 
     #         - name: Restore build artifacts
-    #           uses: actions/cache/restore@v4
+    #           uses: actions/cache@v4.1.1
     #           with:
     #               enableCrossOsArchive: true
     #               key: dist-${{ github.sha }}
