@@ -30,7 +30,7 @@ jobs:
 
       - name: "Setup npm" # Add our registry to npm config
         run: | # Custom action
-            npm set "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+            npm set "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}"
 
       - name: Run lerna publish
         run: npx lerna publish minor -y
