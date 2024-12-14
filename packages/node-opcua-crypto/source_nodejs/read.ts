@@ -67,7 +67,7 @@ export function readPublicKey(filename: string): PublicKey {
 function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     if (!createPrivateKey || process.env.NO_CREATE_PRIVATEKEY) {
         // we are not running nodejs or createPrivateKey is not supported in the environment
-        if (rawKey instanceof Buffer) {
+        if (Buffer.isBuffer(rawKey)) {
             const pemKey = toPem(rawKey, "PRIVATE KEY");
             assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(pemKey) as string) >= 0);
             return { hidden: pemKey };

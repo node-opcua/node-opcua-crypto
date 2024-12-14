@@ -436,7 +436,7 @@ describe("exploring symmetric signing", function () {
 
         const hash = createHmac("sha1", key).update(text).digest();
 
-        assert(hash instanceof Buffer);
+        assert(Buffer.isBuffer(hash));
         //xx console.log(hash.toString("hex"), hash.length);
 
         hash.length.should.eql(20);

@@ -740,7 +740,7 @@ export interface CertificateInternals {
  * @returns a json object that exhibits the internal data of the certificate
  */
 export function exploreCertificate(certificate: Certificate): CertificateInternals {
-    assert(certificate instanceof Buffer);
+    assert(Buffer.isBuffer(certificate));
     if (!(certificate as any)._exploreCertificate_cache) {
         const block_info = readTag(certificate, 0);
         const blocks = readStruct(certificate, block_info);

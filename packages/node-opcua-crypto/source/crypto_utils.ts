@@ -57,10 +57,10 @@ const PEM_TYPE_REGEX = /^(-----BEGIN (.*)-----)/m;
  * buffer doesn't seem to be any sort of PEM format file.
  */
 export function identifyPemType(rawKey: Buffer | string): undefined | string {
-    if (rawKey instanceof Buffer) {
+    if (Buffer.isBuffer(rawKey)) {
         rawKey = rawKey.toString("utf8");
     }
-    const match = PEM_TYPE_REGEX.exec(rawKey);
+    const match = PEM_TYPE_REGEX.exec(rawKey as string);
     return !match ? undefined : match[2];
 }
 
@@ -74,7 +74,7 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
     assert(typeof pem === "string");
     let pemType = identifyPemType(raw_key);
     if (pemType) {
-        return raw_key instanceof Buffer ? removeTrailingLF(raw_key.toString("utf8")) : removeTrailingLF(raw_key);
+        return Buffer.isBuffer(raw_key) ? removeTrailingLF((raw_key as Buffer).toString("utf8")) : removeTrailingLF(raw_key as string);
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
@@ -293,7 +293,7 @@ export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKey, bloc
 }
 
 export function coerceCertificatePem(certificate: Certificate | CertificatePEM): CertificatePEM {
-    if (certificate instanceof Buffer) {
+    if (Buffer.isBuffer(certificate)) {
         certificate = toPem(certificate, "CERTIFICATE");
     }
     assert(typeof certificate === "string");

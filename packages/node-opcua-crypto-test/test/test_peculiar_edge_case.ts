@@ -158,7 +158,7 @@ async function generatePrivateKeyFile(privateKeyFilename: string, modulusLength:
     const privateKeyPem = await privateKeyToPEM(keys.privateKey);
     await fs.promises.writeFile(privateKeyFilename, privateKeyPem.privPem, "utf-8");
     privateKeyPem.privPem = "";
-    privateKeyPem.privDer = new Uint8Array(0);
+    privateKeyPem.privDer = new ArrayBuffer(0);
 }
 
 async function generatePrivateKeyFileJSRSA(privateKeyFilename: string, modulusLength: 2048 | 3072 | 4096) {

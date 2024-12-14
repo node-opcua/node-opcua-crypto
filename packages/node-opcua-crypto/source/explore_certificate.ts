@@ -52,7 +52,7 @@ export function coerceCertificate(certificate: Certificate | CertificatePEM): Ce
     if (typeof certificate === "string") {
         certificate = convertPEMtoDER(certificate);
     }
-    assert(certificate instanceof Buffer);
+    assert(Buffer.isBuffer(certificate));
     return certificate;
 }
 

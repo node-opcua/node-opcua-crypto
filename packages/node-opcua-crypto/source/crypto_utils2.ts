@@ -83,7 +83,7 @@ export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: s
 export function coercePrivateKeyPem(privateKey: PrivateKey): PrivateKeyPEM {
     return toPem2(privateKey, "PRIVATE KEY");
     /*
-    if (privateKey.hidden instanceof Buffer) {
+    if (Buffer.isBuffer(privateKey.hidden)) {
         const o = createPrivateKeyFromNodeJSCrypto({ key: privateKey.hidden, format: "der", type: "pkcs1" });
         const e = o.export({ format: "der", type: "pkcs1" });
         return toPem(e, "RSA PRIVATE KEY");

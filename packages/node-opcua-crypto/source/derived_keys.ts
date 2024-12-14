@@ -88,7 +88,7 @@ function plus(buf1: Buffer, buf2: Buffer): Buffer {
 // see also http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/ws-secureconversation-1.3-os.html
 //          http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
 export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: number, sha1or256: "SHA1" | "SHA256"): Buffer {
-    assert(seed instanceof Buffer);
+    assert(Buffer.isBuffer(seed));
     assert(sha1or256 === "SHA1" || sha1or256 === "SHA256");
 
     const a: Buffer[] = [];
@@ -199,7 +199,7 @@ export type VerifyChunkSignatureOptions = VerifyMessageChunkSignatureOptions;
  * @return {*}
  */
 export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatureOptions): boolean {
-    assert(chunk instanceof Buffer);
+    assert(Buffer.isBuffer(chunk));
     let signatureLength = options.signatureLength || 0;
     if (signatureLength === 0) {
         // let's get the signatureLength by checking the size
@@ -287,8 +287,8 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
  * @return
  */
 export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derivedKeys: DerivedKeys): Buffer {
-    assert(message instanceof Buffer);
-    assert(derivedKeys.signingKey instanceof Buffer);
+    assert(Buffer.isBuffer(message));
+    assert(Buffer.isBuffer(derivedKeys.signingKey));
     assert(typeof derivedKeys.sha1or256 === "string");
     assert(derivedKeys.sha1or256 === "SHA1" || derivedKeys.sha1or256 === "SHA256");
     const signature = createHmac(derivedKeys.sha1or256, derivedKeys.signingKey).update(message).digest();
