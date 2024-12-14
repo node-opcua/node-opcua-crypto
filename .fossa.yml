@@ -3,16 +3,16 @@
 
 version: 2
 cli:
-  server: https://app.fossa.com
-  fetcher: custom
-  project: https://github.com/node-opcua/node-opcua-crypto
+    server: https://app.fossa.com
+    fetcher: custom
+    project: https://github.com/node-opcua/node-opcua-crypto
 analyze:
-  modules:
-  - name: .
-    type: npm
-    target: .
-    path: .
-  - name: .
-    type: npm
-    target: .
-    path: .
+    modules:
+        - name: .
+          type: npm
+          target: .
+          path: .
+        - name: .
+          type: npm
+          target: .
+          path: .

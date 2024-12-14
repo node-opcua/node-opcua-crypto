@@ -74,7 +74,9 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
     assert(typeof pem === "string");
     let pemType = identifyPemType(raw_key);
     if (pemType) {
-        return Buffer.isBuffer(raw_key) ? removeTrailingLF((raw_key as Buffer).toString("utf8")) : removeTrailingLF(raw_key as string);
+        return Buffer.isBuffer(raw_key)
+            ? removeTrailingLF((raw_key as Buffer).toString("utf8"))
+            : removeTrailingLF(raw_key as string);
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);

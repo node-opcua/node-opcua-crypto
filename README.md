@@ -9,14 +9,15 @@ NodeOPCUA Crypto is a powerful JavaScript module for handling security and crypt
 [![Coverage Status](https://coveralls.io/repos/github/node-opcua/node-opcua-crypto/badge.svg?branch=master)](https://coveralls.io/github/node-opcua/node-opcua-crypto?branch=master)
 [![install size](https://packagephobia.com/badge?p=node-opcua-crypto)](https://packagephobia.com/result?p=node-opcua-crypto)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B20248%2Fgithub.com%2Fnode-opcua%2Fnode-opcua-crypto.svg?type=shield)](https://app.fossa.com/projects/custom%2B20248%2Fgithub.com%2Fnode-opcua%2Fnode-opcua-crypto?ref=badge_shield)
+
 <!-- [![Test Coverage](https://codeclimate.com/github/node-opcua/node-opcua-crypto/badges/coverage.svg)](https://codeclimate.com/github/node-opcua/node-opcua-crypto/coverage) -->
 
 ## Features
 
-* a comprehensive set of cryptographic functionalities.
-* supports both Node.js and browser environments.
-* compatible with TypeScript for robust, type-safe coding.
-* implements advanced security standards for OPCUA.
+-   a comprehensive set of cryptographic functionalities.
+-   supports both Node.js and browser environments.
+-   compatible with TypeScript for robust, type-safe coding.
+-   implements advanced security standards for OPCUA.
 
 ## Getting Started
 
@@ -24,13 +25,13 @@ To use NodeOPCUA Crypto in your project, follow these steps:
 
 #### Installation
 
-``` bash
+```bash
 npm install nodeopcua-crypto
 ```
 
 ### Usage
 
-``` bash
+```bash
 
 import { generatePrivateKey, privateKeyToPEM, CertificatePurpose, createSelfSignedCertificate } from "./node-opcua-crypto.js";
 
@@ -64,19 +65,15 @@ demonstratePrivateKeyAndSelfSignedCertificateCreation();
 
 Please refer to the examples directory for more specific use cases and comprehensive samples.
 
-
 ## Support
 
 Sterfive provides this module free of charge, "as is," with the hope that it will be useful to you. However, any support requests, bug fixes, or enhancements are handled exclusively through our paid services. We believe strongly that independent open-source companies should be fairly compensated for their contributions to the community.
 
 We highly recommend subscribing to our support program to ensure your requests are addressed and resolved. Please note that we only consider requests from members of our support program or sponsors.
 
-
 ### Getting professional support
 
-
 NodeOPCUA Crypto is developed and maintained by sterfive.com.
-
 
 To get professional support, consider subscribing to the node-opcua membership community:
 
@@ -88,17 +85,17 @@ or contact [sterfive](https://www.sterfive.com) for dedicated consulting and mor
 
 We appreciate contributions from the community. To contribute:
 
-* Fork the repository.
-* Create a new branch.
-* Commit your changes.
-* Submit a pull request.
-* Sign the CLA (Contributor Licence Agreement) form
- 
+-   Fork the repository.
+-   Create a new branch.
+-   Commit your changes.
+-   Submit a pull request.
+-   Sign the CLA (Contributor Licence Agreement) form
+
 For more detailed instructions, refer to the CONTRIBUTING.md file.
 
 ## License
 
-NodeOPCUA Crypto is MIT licensed. See the [LICENSE file](./LICENSE) for full license details. 
+NodeOPCUA Crypto is MIT licensed. See the [LICENSE file](./LICENSE) for full license details.
 
 Copyright © 2023-2024 Sterfive.com.
 
@@ -110,9 +107,7 @@ Please report any issues or vulnerabilities you find via the issue tracker.
 
 Thank you for considering NodeOPCUA Crypto for your OPCUA cryptography needs. We look forward to seeing what you build with i
 
-
-
-##  Supporting the development effort - Sponsors & Backers
+## Supporting the development effort - Sponsors & Backers
 
 If you like `node-opcua-crypto` and if you are relying on it in one of your projects, please consider becoming a backer and [sponsoring us](https://opencollective.com/node-opcua), this will help us to maintain a high-quality stack and constant evolution of this module.
 

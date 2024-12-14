@@ -10,7 +10,6 @@ export interface DirectoryName {
     countryName?: string;
 }
 
-
 export function readDirectoryName(buffer: Buffer, block: BlockInfo): DirectoryName {
     // AttributeTypeAndValue ::= SEQUENCE {
     //    type   ATTRIBUTE.&id({SupportedAttributes}),

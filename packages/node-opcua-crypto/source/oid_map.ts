@@ -66,7 +66,7 @@ export const oid_map: { [key: string]: { d: string; c: string; w?: boolean } } =
     "1.3.6.1.4.1.311.2.1.22": { d: "1.3.6.1.4.1.311.2.1.22", c: "SPC_COMMERCIAL_SP_KEY_PURPOSE_OBJID" },
     "1.3.6.1.4.1.311.10.3.1": { d: "1.3.6.1.4.1.311.10.3.1", c: "Signer of CTLs -- szOID_KP_CTL_USAGE_SIGNING" },
     "1.3.6.1.4.1.311.10.3.4": { d: "1.3.6.1.4.1.311.10.3.4", c: "szOID_EFS_RECOVERY (Encryption File System)" },
-    
+
     "1.3.6.1.4.1.311.20.2.3": { d: "1.3.6.1.4.1.311.20.2.3", c: "id-on-personalData" },
 
     "1.3.6.1.5.5.7.3.17": { d: "1.3.6.1.5.5.7.3.17", c: "Internet Key Exchange (IKE)" },

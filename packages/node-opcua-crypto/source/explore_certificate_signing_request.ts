@@ -21,14 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { 
-    BlockInfo, 
-    findBlockAtIndex, 
-    getBlock, 
-    readObjectIdentifier, 
-    readStruct,
-    readTag, 
-} from "./asn1.js";
+import { BlockInfo, findBlockAtIndex, getBlock, readObjectIdentifier, readStruct, readTag } from "./asn1.js";
 
 import { BasicConstraints, X509KeyUsage, readExtension } from "./crypto_explore_certificate.js";
 

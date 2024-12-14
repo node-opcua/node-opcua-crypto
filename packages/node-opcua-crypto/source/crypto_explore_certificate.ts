@@ -282,7 +282,6 @@ function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
         7: { name: "iPAddress", type: "OCTET_STRING" },
         8: { name: "registeredID", type: "OBJECT_IDENTIFIER" },
         32: { name: "otherName", type: "AnotherName" },
-        
     };
     const blocks = readStruct(buffer, block);
 

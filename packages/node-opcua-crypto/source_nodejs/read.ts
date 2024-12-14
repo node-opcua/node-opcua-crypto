@@ -82,7 +82,6 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     return { hidden: retValue };
 }
 
-
 function ensureTrailingLF(str: string): string {
     return str.match(/\n$/) ? str : str + "\n";
 }
@@ -136,7 +135,7 @@ export function readPrivateRsaKey(filename: string): PrivateKey {
         throw new Error("createPrivateKey is not supported in this environment");
     }
     if (filename.substring(0, 1) !== "." && !fs.existsSync(filename)) {
-        filename = path.join(getCertificateStore(),filename);
+        filename = path.join(getCertificateStore(), filename);
     }
     const content = fs.readFileSync(filename, "utf8");
     const sshKey = sshpk.parsePrivateKey(content, "auto");

@@ -21,12 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import {
-     BlockInfo, 
-     TagType, 
-     readTag, 
-     readStruct 
-} from "./asn1.js";
+import { BlockInfo, TagType, readTag, readStruct } from "./asn1.js";
 import { PrivateKey } from "./common.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
 
@@ -72,7 +67,7 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
 
     if (blocks.length === 9) {
         // alice_rsa
-        const version = f(privateKey, blocks[0]); 
+        const version = f(privateKey, blocks[0]);
         const modulus = f(privateKey, blocks[1]);
         const publicExponent = f(privateKey, blocks[2]);
         const privateExponent = f(privateKey, blocks[3]);

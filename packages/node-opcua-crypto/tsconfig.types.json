@@ -1,13 +1,10 @@
 {
     "extends": "./tsconfig.common.json",
-    "buildOptions": {
-
-    },
+    "buildOptions": {},
     "compilerOptions": {
         "emitDeclarationOnly": true,
         "declaration": true,
-        "outDir": "dist-types",
+        "outDir": "dist-types"
     },
-    "include": ["index.ts", "src/**/*.ts"],
+    "include": ["index.ts", "src/**/*.ts"]
 }
-    

@@ -14,10 +14,9 @@ build({
             polyfills: {
                 crypto: true,
                 constants: true,
-            }
+            },
         }),
     ],
 });
-
 
 console.log("done");

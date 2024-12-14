@@ -36,7 +36,7 @@ import {
     readTag,
     readTime,
 } from "./asn1.js";
-import { DirectoryName , readDirectoryName} from "./directory_name.js";    
+import { DirectoryName, readDirectoryName } from "./directory_name.js";
 import { CertificateRevocationList } from "./common.js";
 import { makeSHA1Thumbprint, convertPEMtoDER } from "./crypto_utils.js";
 

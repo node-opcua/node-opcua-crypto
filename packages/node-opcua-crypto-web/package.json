@@ -1,37 +1,37 @@
 {
-  "name": "node-opcua-crypto-web",
-  "private": true,
-  "version": "4.12.0",
-  "description": "Crypto tools for Node-OPCUA",
-  "scripts": {
-    "build:tsup": "tsup  --config tsup.config.mjs --clean",
-    "build": "node bin/esbuild.mjs",
-    "tslint": "tslint --project . --fix",
-    "lint": "eslint . --ext .ts",
-    "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
-    "demo": "npx http-server ."
-  },
-  "keywords": [
-    "OPCUA",
-    "opcua",
-    "m2m",
-    "iot",
-    "opc ua",
-    "internet of things"
-  ],
-  "author": "Etienne Rossignon",
-  "license": "MIT",
-  "engine": {
-    "node": ">=16.0"
-  },
-  "dependencies": {
-    "node-opcua-crypto": "^4.12.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/node-opcua/node-opcua-crypto.git"
-  },
-  "bugs": {
-    "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
-  }
+    "name": "node-opcua-crypto-web",
+    "private": true,
+    "version": "4.12.0",
+    "description": "Crypto tools for Node-OPCUA",
+    "scripts": {
+        "build:tsup": "tsup  --config tsup.config.mjs --clean",
+        "build": "node bin/esbuild.mjs",
+        "tslint": "tslint --project . --fix",
+        "lint": "eslint . --ext .ts",
+        "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
+        "demo": "npx http-server ."
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "engine": {
+        "node": ">=16.0"
+    },
+    "dependencies": {
+        "node-opcua-crypto": "^4.12.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua-crypto.git"
+    },
+    "bugs": {
+        "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+    }
 }

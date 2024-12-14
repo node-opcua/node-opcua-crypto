@@ -11,5 +11,5 @@
         "types": ["node", "mocha", "should"],
         "rootDir": "."
     },
-    "include": ["./source/*.ts", "./source_nodejs/*.ts", "source/x509/*.ts" ]
+    "include": ["./source/*.ts", "./source_nodejs/*.ts", "source/x509/*.ts"]
 }

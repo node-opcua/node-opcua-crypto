@@ -30,7 +30,7 @@ export enum TagType {
     CONTEXT_SPECIFIC1 = 0xa1,
     CONTEXT_SPECIFIC2 = 0xa2,
     CONTEXT_SPECIFIC3 = 0xa3,
-    A4 = 0xa4
+    A4 = 0xa4,
 }
 
 export interface BlockInfo {
@@ -41,8 +41,6 @@ export interface BlockInfo {
 }
 
 export function readTag(buf: Buffer, pos: number): BlockInfo {
-
-
     const start = pos;
     // istanbul ignore next
     if (buf.length <= pos) {
@@ -365,11 +363,9 @@ export function readValue(buffer: Buffer, block: BlockInfo): any {
     }
 }
 
-
 export function compactDirectoryName(d: DirectoryName): string {
     return JSON.stringify(d);
 }
-
 
 export function findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo | null {
     const tmp = blocks.filter((b: BlockInfo) => b.tag === 0xa0 + index || b.tag === 0x80 + index);

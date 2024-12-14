@@ -45,8 +45,8 @@ export * from "./x509/coerce_private_key.js";
 export * from "./x509/create_certificate_signing_request.js";
 export * from "./x509/create_key_pair.js";
 export * from "./x509/create_self_signed_certificate.js";
-export { DirectoryName } from "./directory_name.js"; 
+export { DirectoryName } from "./directory_name.js";
 
 import { readDirectoryName } from "./directory_name.js";
 import { readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin } from "./asn1.js";
-export const asn1 = {  readDirectoryName, readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin };
+export const asn1 = { readDirectoryName, readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin };

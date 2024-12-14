@@ -1,5 +1,4 @@
 {
     "extends": "./tsconfig.common.json",
-    "include": [ "index.ts", "source/index.ts", "source_nodejs/index.ts"],
+    "include": ["index.ts", "source/index.ts", "source_nodejs/index.ts"]
 }
-    
