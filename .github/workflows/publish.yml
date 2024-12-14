@@ -8,6 +8,7 @@ on:
 
 jobs:
   publish:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,8 +27,13 @@ jobs:
 
       - name: Set up Git user
         run: |
-          git config --global user.email "etienne.rossignon@sterfive.com"
-          git config --global user.name "Etienne Rossignon (Sterfive)"
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor}}@users.noreply.github.com"
+
+      - name: "Setup npm" # Add our registry to npm config
+        run: | # Custom action
+            npm set "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+
       - name: Run lerna publish
         run: npx lerna publish minor -y
         env:
