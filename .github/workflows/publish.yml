@@ -1,0 +1,36 @@
+name: publish
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Set up Git user
+        run: |
+          git config --global user.email "etienne.rossignon@sterfive.com"
+          git config --global user.name "Etienne Rossignon (Sterfive)"
+      - name: Run lerna publish
+        run: npx lerna publish minor -y
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
