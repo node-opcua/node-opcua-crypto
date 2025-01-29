@@ -29,7 +29,7 @@ export async function generatePrivateKeyFile(privateKeyFilename: string, modulus
     const privateKeyPem = await privateKeyToPEM(keys.privateKey);
     await fs.promises.writeFile(privateKeyFilename, privateKeyPem.privPem, "utf-8");
     privateKeyPem.privPem = "";
-    privateKeyPem.privDer = Buffer.alloc(0) as any; // new Uint8Array(0);
+    privateKeyPem.privDer = new ArrayBuffer(0);
 }
 
 /**

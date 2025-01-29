@@ -72,7 +72,7 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
             assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(pemKey) as string) >= 0);
             return { hidden: pemKey };
         }
-        return { hidden: ensureTrailingLF(rawKey) };
+        return { hidden: ensureTrailingLF(rawKey as string) };
     }
     // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
     const backup = process.env.OPENSSL_CONF;
