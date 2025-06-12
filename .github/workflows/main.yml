@@ -27,7 +27,7 @@ jobs:
                   node-version: ${{ matrix.node-version }}
             - run: npm install
             - name: Cache dependencies
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
@@ -45,14 +45,14 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
             - name: Cache dependencies
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
             - run: npm install
             - run: npm run build
             - name: Cache build artifacts
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
@@ -78,13 +78,13 @@ jobs:
                   node-version: ${{ matrix.node-version }}
 
             - name: Restore dependencies
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
@@ -115,13 +115,13 @@ jobs:
               run: node --version
 
             - name: Restore dependencies
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   key: ${{ runner.os }}-node-modules-${{ github.sha }}
                   path: node_modules
 
             - name: Restore build artifacts
-              uses: actions/cache@v4.1.1
+              uses: actions/cache@v4.2.0
               with:
                   enableCrossOsArchive: true
                   key: dist-${{ github.sha }}
@@ -161,13 +161,13 @@ jobs:
 
 
     #         - name: Restore dependencies
-    #           uses: actions/cache@v4.1.1
+    #           uses: actions/cache@v4.2.0
     #           with:
     #               key: ${{ runner.os }}-node-modules-${{ github.sha }}
     #               path: node_modules
 
     #         - name: Restore build artifacts
-    #           uses: actions/cache@v4.1.1
+    #           uses: actions/cache@v4.2.0
     #           with:
     #               enableCrossOsArchive: true
     #               key: dist-${{ github.sha }}
