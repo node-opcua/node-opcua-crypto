@@ -47,7 +47,7 @@
         "cross-env": "^7.0.3",
         "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
-        "eslint-plugin-prettier": "^5.4.1",
+        "eslint-plugin-prettier": "^5.5.0",
         "mocha": "^11.6.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",
