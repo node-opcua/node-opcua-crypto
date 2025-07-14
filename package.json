@@ -43,7 +43,7 @@
         "packages/node-opcua-crypto-web"
     ],
     "dependencies": {
-        "@typescript-eslint/eslint-plugin": "^8.34.0",
+        "@typescript-eslint/eslint-plugin": "^8.34.1",
         "cross-env": "^7.0.3",
         "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
