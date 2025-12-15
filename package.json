@@ -12,7 +12,7 @@
         "makedoc": "cd packages/node-opcua-crypto && npm run makedoc",
         "cost-of-modules": "npx cost-of-modules --no-install",
         "prettier-format": "prettier --config .prettierrc.js packages/**/source/**/*.ts packages/**/test/**/*.ts --write",
-        "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk",
+        "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk,@types/node && npx npm-check-updates --deep -u --minor",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext",
         "publish": "npx -y lerna publish",
         "esm:test": "cd packages/node-opcua-crypto-test && npm run test:esm2"
@@ -28,7 +28,7 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "engine": {
-        "node": ">=16.0"
+        "node": ">=18.0"
     },
     "repository": {
         "type": "git",
@@ -43,20 +43,22 @@
         "packages/node-opcua-crypto-web"
     ],
     "dependencies": {
-        "@typescript-eslint/eslint-plugin": "^8.34.0",
-        "cross-env": "^7.0.3",
-        "eslint": "^9.28.0",
-        "eslint-config-prettier": "^10.1.5",
-        "eslint-plugin-prettier": "^5.4.1",
-        "mocha": "^11.6.0",
+        "@types/node": "^24.0.1",
+        "@typescript-eslint/eslint-plugin": "^8.49.0",
+        "cross-env": "^10.1.0",
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.4",
+        "glob": "^13.0.0",
+        "mocha": "^11.7.5",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
-        "tsup": "^8.5.0",
-        "typescript": "^5.8.3"
+        "tsup": "^8.5.1",
+        "typescript": "^5.9.3"
     },
     "devDependencies": {
-        "@eslint/eslintrc": "^3.3.1",
-        "@eslint/js": "^9.28.0"
+        "@eslint/eslintrc": "^3.3.3",
+        "@eslint/js": "^9.39.2"
     }
 }

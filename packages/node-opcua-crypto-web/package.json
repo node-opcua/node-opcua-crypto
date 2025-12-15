@@ -22,7 +22,7 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "engine": {
-    "node": ">=16.0"
+    "node": ">=18.0"
   },
   "dependencies": {
     "node-opcua-crypto": "^4.16.0"
