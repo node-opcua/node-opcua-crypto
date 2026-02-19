@@ -97,7 +97,7 @@ For more detailed instructions, refer to the CONTRIBUTING.md file.
 
 NodeOPCUA Crypto is MIT licensed. See the [LICENSE file](./LICENSE) for full license details.
 
-Copyright © 2023-2024 Sterfive.com.
+Copyright © 2023-2026 Sterfive.com.
 
 ## Disclaimer
 
