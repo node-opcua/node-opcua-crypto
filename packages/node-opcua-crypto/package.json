@@ -23,9 +23,9 @@
     },
     "scripts": {
         "build:tsup": "tsup  ./index.ts ./index_web.ts ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs --out-dir dist  --sourcemap  --clean --dts ",
+        "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:types": "tsc -p tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
-        "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build": "npm run build:tsup",
         "prepare": "npm run build",
         "tslint": "tslint --project . --fix",

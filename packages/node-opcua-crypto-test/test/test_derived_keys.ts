@@ -97,11 +97,9 @@ describe("test derived key making", () => {
         const footer = computePaddingFooter(clear_message, derivedKeys);
         const clear_message_with_padding = Buffer.concat([clear_message, footer]);
 
-        const msg =
-            "clear_message length " +
-            clear_message_with_padding.length +
-            " shall be a multiple of block size=" +
-            options.encryptingBlockSize;
+        const _msg = 
+            `clear_message length ${clear_message_with_padding.length} shall be a multiple of block size=${options.encryptingBlockSize}`;
+
         expect(clear_message_with_padding.length % options.encryptingBlockSize).toBe(0);
 
         const encrypted_message = encryptBufferWithDerivedKeys(clear_message_with_padding, derivedKeys);
