@@ -5,7 +5,7 @@
   "description": "Crypto tools for Node-OPCUA",
   "scripts": {
     "build:tsup": "tsup  --config tsup.config.mjs --clean",
-    "build": "node bin/esbuild.mjs",
+    "build": "npx vite build",
     "tslint": "tslint --project . --fix",
     "lint": "eslint . --ext .ts",
     "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
@@ -33,5 +33,7 @@
   },
   "bugs": {
     "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+  },
+  "devDependencies": {
   }
 }
