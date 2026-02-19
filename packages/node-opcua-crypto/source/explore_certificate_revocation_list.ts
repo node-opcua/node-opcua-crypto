@@ -22,9 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import {
-    AlgorithmIdentifier,
-    BlockInfo,
-    TagType,
+    type AlgorithmIdentifier,
+    type BlockInfo,
     findBlockAtIndex,
     formatBuffer2DigitHexWithColum,
     getBlock,
@@ -35,10 +34,11 @@ import {
     readStruct,
     readTag,
     readTime,
+    TagType,
 } from "./asn1.js";
-import { DirectoryName, readDirectoryName } from "./directory_name.js";
-import { CertificateRevocationList } from "./common.js";
-import { makeSHA1Thumbprint, convertPEMtoDER } from "./crypto_utils.js";
+import type { CertificateRevocationList } from "./common.js";
+import { makeSHA1Thumbprint } from "./crypto_utils.js";
+import { type DirectoryName, readDirectoryName } from "./directory_name.js";
 
 export type Version = string;
 export type Name = string;
@@ -75,7 +75,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
     const hasOptionalVersion = blocks[0].tag === TagType.INTEGER;
 
     if (hasOptionalVersion) {
-        const version = readIntegerValue(buffer, blocks[0]);
+        const _version = readIntegerValue(buffer, blocks[0]);
         const signature = readAlgorithmIdentifier(buffer, blocks[1]);
         const issuer = readNameForCrl(buffer, blocks[2]);
         const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, blocks[2])));
@@ -91,7 +91,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
                 // sometime blocks[5] doesn't exits .. in this case
                 const rr = readStruct(buffer, r);
                 const userCertificate = formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, rr[0]));
-                const revocationDate = readTime(buffer, rr[1]);
+                const revocationDate = readTime(buffer, rr[1]) as Date;
                 revokedCertificates.push({
                     revocationDate,
                     userCertificate,
@@ -99,7 +99,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
             }
         }
 
-        const ext0 = findBlockAtIndex(blocks, 0);
+        const _ext0 = findBlockAtIndex(blocks, 0);
         return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
     } else {
         const signature = readAlgorithmIdentifier(buffer, blocks[0]);
@@ -117,7 +117,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
                 // sometime blocks[5] doesn't exits .. in this case
                 const rr = readStruct(buffer, r);
                 const userCertificate = formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, rr[0]));
-                const revocationDate = readTime(buffer, rr[1]);
+                const revocationDate = readTime(buffer, rr[1]) as Date;
                 revokedCertificates.push({
                     revocationDate,
                     userCertificate,

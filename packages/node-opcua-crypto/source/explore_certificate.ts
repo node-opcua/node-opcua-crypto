@@ -23,12 +23,12 @@
 /**
  * @module node_opcua_crypto
  */
-import assert from "assert";
+import assert from "node:assert";
 
-import { Certificate, CertificatePEM } from "./common.js";
-import { exploreCertificate, SubjectPublicKey } from "./crypto_explore_certificate.js";
-import { DirectoryName } from "./directory_name.js";
+import type { Certificate, CertificatePEM } from "./common.js";
+import { exploreCertificate, type SubjectPublicKey } from "./crypto_explore_certificate.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
+import type { DirectoryName } from "./directory_name.js";
 
 export type PublicKeyLength = 64 | 96 | 128 | 256 | 384 | 512;
 
@@ -82,7 +82,7 @@ export function exploreCertificateInfo(certificate: Certificate | CertificatePEM
             data.publicKeyLength === 128
         )
     ) {
-        throw new Error("Invalid public key length (expecting 128,256,384 or 512)" + data.publicKeyLength);
+        throw new Error(`Invalid public key length (expecting 128,256,384 or 512): ${data.publicKeyLength}`);
     }
     return data;
 }

@@ -20,12 +20,13 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
+
+import { AsnConvert, AsnUtf8StringConverter } from "@peculiar/asn1-schema";
+import type { CertificatePurpose } from "../common.js";
 import { Subject } from "../subject.js";
-import { CertificatePurpose } from "../common.js";
+import { buildPublicKey } from "./_build_public_key.js";
 import { getCrypto, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
-import { buildPublicKey } from "./_build_public_key.js";
-import { AsnConvert, AsnUtf8StringConverter } from "@peculiar/asn1-schema";
 
 export interface CreateSelfSignCertificateOptions {
     privateKey: CryptoKey;
@@ -74,9 +75,19 @@ export async function createSelfSignedCertificate({
     notAfter = notAfter || new Date(notBefore.getTime() + validity * 24 * 60 * 60 * 1000);
 
     const alternativeNameExtensions: x509.JsonGeneralName[] = [];
-    dns && dns.forEach((d) => alternativeNameExtensions.push({ type: "dns", value: d }));
-    ip && ip.forEach((d) => alternativeNameExtensions.push({ type: "ip", value: d }));
-    applicationUri && alternativeNameExtensions.push({ type: "url", value: applicationUri });
+    if (dns) {
+        for (const d of dns) {
+            alternativeNameExtensions.push({ type: "dns", value: d });
+        }
+    }
+    if (ip) {
+        for (const d of ip) {
+            alternativeNameExtensions.push({ type: "ip", value: d });
+        }
+    }
+    if (applicationUri) {
+        alternativeNameExtensions.push({ type: "url", value: applicationUri });
+    }
 
     // https://opensource.apple.com/source/OpenSSH/OpenSSH-186/osslshim/heimdal-asn1/rfc2459.asn1.auto.html
     const ID_NETSCAPE_COMMENT = "2.16.840.1.113730.1.13";
@@ -107,7 +118,7 @@ export async function createSelfSignedCertificate({
                 new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
             ],
         },
-        crypto
+        crypto as Crypto,
     );
 
     return { cert: cert.toString("pem"), der: cert };

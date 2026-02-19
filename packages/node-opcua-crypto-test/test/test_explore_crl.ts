@@ -23,13 +23,14 @@
 
 import path from "node:path";
 import {
-    verifyCertificateRevocationListSignature,
-    exploreCertificateRevocationList,
-    verifyCertificateSignature,
     exploreCertificate,
+    exploreCertificateRevocationList,
+    readCertificate,
+    readCertificateRevocationList,
     toPem,
+    verifyCertificateRevocationListSignature,
+    verifyCertificateSignature,
 } from "node-opcua-crypto";
-import { readCertificateRevocationList, readCertificate } from "node-opcua-crypto";
 
 describe("Explore Certificate Revocation List", () => {
     it("should read and explore a PEM revocation list", async () => {
@@ -85,11 +86,11 @@ describe("Explore Certificate Revocation List", () => {
         //  console.log(certificateOfIssuerInfo.tbsCertificate.extensions!.authorityKeyIdentifier?.authorityCertIssuer);
         // console.log(crlInfo.tbsCertList.issuer);
         crlInfo.tbsCertList.issuerFingerprint.should.eql("AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD");
-        certificateOfIssuerInfo.tbsCertificate.extensions!.authorityKeyIdentifier?.authorityCertIssuerFingerPrint.should.eql(
-            "AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD"
+        certificateOfIssuerInfo.tbsCertificate.extensions.authorityKeyIdentifier?.authorityCertIssuerFingerPrint.should.eql(
+            "AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD",
         );
         certificateOfIssuerInfo.tbsCertificate.subjectFingerPrint.should.eql(
-            "AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD"
+            "AF:FE:C7:57:6C:85:65:59:2F:35:C5:21:10:38:8A:2C:62:0C:D5:DD",
         );
 
         verifyCertificateSignature(certificateOfIssuer, certificateOfIssuer);

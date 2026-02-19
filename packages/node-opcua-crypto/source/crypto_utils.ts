@@ -21,30 +21,26 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
+import assert from "node:assert";
 // tslint:disabled:no-var-requires
 /**
  * @module node_opcua_crypto
  */
-import constants from "constants";
-import assert from "assert";
+import constants from "node:constants";
 import {
     createHash,
     createSign,
     createVerify,
-    publicEncrypt as publicEncrypt1,
+    type KeyLike,
+    type KeyObject,
     privateDecrypt as privateDecrypt1,
-    KeyLike,
-    KeyObject,
-} from "crypto";
-
-
-import { createFastUninitializedBuffer } from "./buffer_utils.js";
-import { Certificate, CertificatePEM, DER, PEM, PublicKeyPEM, Signature, PrivateKey } from "./common.js";
-import { combine_der } from "./crypto_explore_certificate.js";
+    publicEncrypt as publicEncrypt1,
+} from "node:crypto";
 import jsrsasign from "jsrsasign";
+import { createFastUninitializedBuffer } from "./buffer_utils.js";
+import type { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKeyPEM, Signature } from "./common.js";
+import { combine_der } from "./crypto_explore_certificate.js";
 import { hexy } from "./hexy.js";
-
-
 
 const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n?)/gm;
 
@@ -82,32 +78,33 @@ export function toPem(raw_key: Buffer | string, pem: string): string {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
         let b = (raw_key as Buffer).toString("base64");
-        let str = "-----BEGIN " + pemType + "-----\n";
+        let str = `-----BEGIN ${pemType}-----\n`;
         while (b.length) {
-            str += b.substring(0, 64) + "\n";
+            str += `${b.substring(0, 64)}\n`;
             b = b.substring(64);
         }
-        str += "-----END " + pemType + "-----";
+        str += `-----END ${pemType}-----`;
         // no leading \n
         return str;
     }
 }
 
 export function convertPEMtoDER(raw_key: PEM): DER {
-    let match: any;
-    let pemType;
-    let base64str;
+    let match: RegExpExecArray | null;
+    let _pemType: string;
+    let base64str: string;
 
     const parts: DER[] = [];
 
     PEM_REGEX.lastIndex = 0;
-    // tslint:disable-next-line:no-conditional-assignment
-    while ((match = PEM_REGEX.exec(raw_key)) !== null) {
-        pemType = match[2];
+    match = PEM_REGEX.exec(raw_key);
+    while (match !== null) {
+        _pemType = match[2];
         // pemType shall be "RSA PRIVATE KEY" , "PUBLIC KEY", "CERTIFICATE", "X509 CRL"
         base64str = match[3];
         base64str = base64str.replace(/\r?\n/g, "");
         parts.push(Buffer.from(base64str, "base64"));
+        match = PEM_REGEX.exec(raw_key);
     }
     return combine_der(parts);
 }
@@ -119,7 +116,7 @@ export function hexDump(buffer: Buffer, width?: number): string {
     }
     width = width || 32;
     if (buffer.length > 1024) {
-        return hexy(buffer.subarray(0, 1024), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
+        return `${hexy(buffer.subarray(0, 1024), { width, format: "twos" })}\n .... ( ${buffer.length})`;
     } else {
         return hexy(buffer, { width, format: "twos" });
     }
@@ -165,7 +162,7 @@ export interface VerifyMessageChunkSignatureOptions {
 export function verifyMessageChunkSignature(
     blockToVerify: Buffer,
     signature: Signature,
-    options: VerifyMessageChunkSignatureOptions
+    options: VerifyMessageChunkSignatureOptions,
 ): boolean {
     // Note those assets are failing in web browse
     // assert(blockToVerify instanceof Buffer || blockToVerify instanceof Uint8Array);
@@ -213,7 +210,7 @@ export function publicEncrypt_native(buffer: Buffer, publicKey: KeyLike, algorit
             key: publicKey,
             padding: algorithm,
         },
-        buffer
+        buffer,
     );
 }
 
@@ -228,9 +225,9 @@ export function privateDecrypt_native(buffer: Buffer, privateKey: PrivateKey, al
                 key: privateKey.hidden as KeyObject,
                 padding: algorithm,
             },
-            buffer
+            buffer,
         );
-    } catch (err) {
+    } catch (_err) {
         return Buffer.alloc(1);
     }
 }
@@ -243,7 +240,7 @@ export function publicEncrypt_long(
     publicKey: KeyLike,
     blockSize: number,
     padding?: number,
-    paddingAlgorithm?: PaddingAlgorithm
+    paddingAlgorithm?: PaddingAlgorithm,
 ): Buffer {
     if (paddingAlgorithm === undefined) {
         paddingAlgorithm = PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING;
@@ -255,7 +252,7 @@ export function publicEncrypt_long(
         padding = padding || 42;
         if (padding !== 42) throw new Error("padding should be 42");
     } else {
-        throw new Error("Invalid padding algorithm " + paddingAlgorithm);
+        throw new Error(`Invalid padding algorithm ${paddingAlgorithm}`);
     }
 
     const chunk_size = blockSize - padding;
@@ -278,7 +275,7 @@ export function privateDecrypt_long(buffer: Buffer, privateKey: PrivateKey, bloc
     paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_OAEP_PADDING;
     // istanbul ignore next
     if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
-        throw new Error("Invalid padding algorithm " + paddingAlgorithm);
+        throw new Error(`Invalid padding algorithm ${paddingAlgorithm}`);
     }
 
     const nbBlocks = Math.ceil(buffer.length / blockSize);
@@ -319,14 +316,14 @@ export function extractPublicKeyFromCertificateSync(certificate: Certificate | C
  */
 export function extractPublicKeyFromCertificate(
     certificate: CertificatePEM | Certificate,
-    callback: (err: Error | null, publicKeyPEM?: PublicKeyPEM) => void
+    callback: (err: Error | null, publicKeyPEM?: PublicKeyPEM) => void,
 ): void {
-    let err1: any = null;
+    let err1: Error | null = null;
     let keyPem: PublicKeyPEM;
     try {
         keyPem = extractPublicKeyFromCertificateSync(certificate);
     } catch (err) {
-        err1 = err;
+        err1 = err as Error;
     }
     setImmediate(() => {
         callback(err1, keyPem);

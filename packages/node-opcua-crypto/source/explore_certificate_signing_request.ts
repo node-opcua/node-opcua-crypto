@@ -21,14 +21,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { BlockInfo, findBlockAtIndex, getBlock, readObjectIdentifier, readStruct, readTag } from "./asn1.js";
+import { type BlockInfo, findBlockAtIndex, getBlock, readObjectIdentifier, readStruct, readTag } from "./asn1.js";
 
-import { BasicConstraints, X509KeyUsage, readExtension } from "./crypto_explore_certificate.js";
+import { type BasicConstraints, readExtension, type X509KeyUsage } from "./crypto_explore_certificate.js";
 
 export interface ExtensionRequest {
     basicConstraints: BasicConstraints;
     keyUsage: X509KeyUsage;
-    subjectAltName: any;
+    subjectAltName: string;
 }
 export interface CertificateSigningRequestInfo {
     extensionRequest: ExtensionRequest;
@@ -40,12 +40,24 @@ function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
     const inner_blocks = readStruct(buffer, block);
     const extensions = inner_blocks.map((block1) => readExtension(buffer, block1));
 
-    const result: any = {};
+    const result: ExtensionRequest = {} as ExtensionRequest;
     for (const e of extensions) {
-        result[e.identifier.name] = e.value;
+        switch (e.identifier.name) {
+            case "basicConstraints":
+                result.basicConstraints = e.value as BasicConstraints;
+                break;
+            case "keyUsage":
+                result.keyUsage = e.value as X509KeyUsage;
+                break;
+            case "subjectAltName":
+                result.subjectAltName = e.value as string;
+                break;
+            default:
+                // ignore unknown extensions
+                break;
+        }
     }
-    const { basicConstraints, keyUsage, subjectAltName } = result;
-    return { basicConstraints, keyUsage, subjectAltName };
+    return result;
 }
 
 export function readCertificationRequestInfo(buffer: Buffer, block: BlockInfo): CertificateSigningRequestInfo {

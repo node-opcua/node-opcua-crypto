@@ -1,4 +1,4 @@
-import { BlockInfo, readTag, readStruct, TagType } from "./asn1";
+import { type BlockInfo, readStruct, readTag, TagType } from "./asn1";
 import { hexDump } from "./crypto_utils";
 
 function t(tag: number) {

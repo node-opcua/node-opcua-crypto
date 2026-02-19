@@ -1,13 +1,13 @@
 import path from "node:path";
 import "should";
 import {
-    makePrivateKeyFromPem,
-    generatePrivateKey,
-    coercePrivateKeyPem,
-    privateKeyToPEM,
-    generatePrivateKeyFile,
-    readPrivateKey,
     coercePEMorDerToPrivateKey,
+    coercePrivateKeyPem,
+    generatePrivateKey,
+    generatePrivateKeyFile,
+    makePrivateKeyFromPem,
+    privateKeyToPEM,
+    readPrivateKey,
     rsaLengthPrivateKey,
 } from "node-opcua-crypto";
 

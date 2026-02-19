@@ -20,7 +20,8 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import __crypto from "crypto";
+import __crypto from "node:crypto";
+
 const KeyObjectOrig = __crypto.KeyObject;
 
 export const { createPrivateKey: createPrivateKeyFromNodeJSCrypto } = __crypto;
@@ -43,11 +44,11 @@ export interface KeyObject {
 
     type: KeyObjectType;
 }
-export function isKeyObject(mayBeKeyObject: any): boolean {
+export function isKeyObject(mayBeKeyObject: unknown): boolean {
     if (KeyObjectOrig) {
         return mayBeKeyObject instanceof KeyObjectOrig;
     }
-    return typeof mayBeKeyObject === "object" && typeof (mayBeKeyObject as any).type === "string"; /// .constructor?.name === "KeyObject";
+    return typeof mayBeKeyObject === "object" && typeof (mayBeKeyObject as { type?: unknown }).type === "string"; /// .constructor?.name === "KeyObject";
 }
 export type PrivateKey = { hidden: string } | { hidden: KeyObject };
 export type PublicKey = KeyObject;

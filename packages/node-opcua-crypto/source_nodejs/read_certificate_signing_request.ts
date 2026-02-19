@@ -22,8 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
+import type { CertificateRevocationList } from "../source/common.js";
 import { convertPEMtoDER } from "../source/crypto_utils.js";
-import { CertificateRevocationList } from "../source/common.js";
 
 export type CertificateSigningRequest = Buffer;
 

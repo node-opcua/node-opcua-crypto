@@ -61,14 +61,14 @@ export function makeBuffer(listOfBytes: string): Buffer {
 export function hexString(str: string): string {
     let hexLine = "";
     const lines = str.split("\n");
-    lines.forEach(function (line) {
+    lines.forEach((line) => {
         line = line.trim();
         if (line.length > 80) {
             line = line.substring(10, 98).trim();
-            hexLine = hexLine ? hexLine + " " + line : line;
+            hexLine = hexLine ? `${hexLine} ${line}` : line;
         } else if (line.length > 60) {
             line = line.substring(7, 48).trim();
-            hexLine = hexLine ? hexLine + " " + line : line;
+            hexLine = hexLine ? `${hexLine} ${line}` : line;
         }
     });
     return hexLine;

@@ -43,7 +43,6 @@
         "cross-env": "^10.1.0",
         "jsrsasign": "^11.1.0",
         "lorem-ipsum": "^2.0.8",
-        "mocha": "^11.7.5",
         "node-opcua-crypto": "^4.16.1",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",

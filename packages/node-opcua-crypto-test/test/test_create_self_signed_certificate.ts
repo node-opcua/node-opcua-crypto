@@ -22,22 +22,22 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import util from "node:util";
-import should from "should";
 import x509 from "@peculiar/x509";
 import {
-    readCertificate,
     CertificatePurpose,
     convertPEMtoDER,
+    createSelfSignedCertificate,
     exploreCertificate,
     generateKeyPair,
     pemToPrivateKey,
     privateKeyToPEM,
-    createSelfSignedCertificate,
+    readCertificate,
     removeTrailingLF,
 } from "node-opcua-crypto";
+import should from "should";
 
 const tmpTestFolder = os.tmpdir();
 
@@ -59,20 +59,22 @@ describe("creating X509 self-signed certificates", function () {
         // openssl asn1parse -in _tmp_certificate.pem -inform pem -i
         // openssl x509 -in _tmp_certificate.pem -inform pem -out --text --noout
 
-        const certificate = readCertificate(tmpCertificatePemFile);
+        const _certificate = readCertificate(tmpCertificatePemFile);
         const info = exploreCertificate(Buffer.from(x509.PemConverter.decode(cert)[0]));
 
         console.log(util.inspect(info, { depth: 4 }));
 
-        info.tbsCertificate.extensions!.keyUsage!.dataEncipherment.should.eql(true);
-        info.tbsCertificate.extensions!.keyUsage!.digitalSignature.should.eql(true);
-        info.tbsCertificate.extensions!.keyUsage!.cRLSign.should.eql(false);
+        const keyUsage = info.tbsCertificate.extensions?.keyUsage;
+        should.exist(keyUsage);
+        should(keyUsage?.dataEncipherment).eql(true);
+        should(keyUsage?.digitalSignature).eql(true);
+        should(keyUsage?.cRLSign).eql(false);
 
-        should.exist(info.tbsCertificate.extensions!.subjectKeyIdentifier);
-        should.exist(info.tbsCertificate.extensions!.authorityKeyIdentifier);
-        info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier!.should.eql(
-            info.tbsCertificate.extensions?.subjectKeyIdentifier
-        );
+        const subjectKeyIdentifier = info.tbsCertificate.extensions?.subjectKeyIdentifier;
+        should.exist(subjectKeyIdentifier);
+        const authorityKeyIdentifier = info.tbsCertificate.extensions?.authorityKeyIdentifier;
+        should.exist(authorityKeyIdentifier);
+        should(authorityKeyIdentifier?.keyIdentifier).eql(subjectKeyIdentifier);
     });
     it("should create a certificate with alternative names", async () => {
         const { privateKey } = await generateKeyPair();
@@ -110,7 +112,8 @@ describe("creating X509 self-signed certificates", function () {
         });
 
         const info = exploreCertificate(convertPEMtoDER(cert));
-        info.tbsCertificate.extensions?.subjectAltName.should.eql({
+        should.exist(info.tbsCertificate.extensions?.subjectAltName);
+        should(info.tbsCertificate.extensions?.subjectAltName).eql({
             dNSName: ["DNS1", "DNS2"],
             iPAddress: ["c0a80101"],
             uniformResourceIdentifier: ["urn:HOSTNAME:ServerDescription"],
@@ -128,7 +131,7 @@ describe("creating X509 self-signed certificates", function () {
         const privateKeyPem = removeTrailingLF(await fs.promises.readFile(tmpPrivateKeyFilename, "utf-8"));
         const privateKey = await pemToPrivateKey(privateKeyPem);
 
-        const { cert } = await createSelfSignedCertificate({
+        const { cert: _cert } = await createSelfSignedCertificate({
             privateKey,
             notAfter: new Date(2020, 1, 1),
             notBefore: new Date(2019, 1, 1),

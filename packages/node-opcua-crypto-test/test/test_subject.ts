@@ -23,6 +23,7 @@
 
 import "should";
 import { Subject } from "node-opcua-crypto";
+
 describe("Subject", () => {
     it("should compose a subject with common name only", () => {
         const subject = new Subject({ commonName: "Hello" });
@@ -45,23 +46,23 @@ describe("Subject", () => {
     it("should parse a SubjectLine ", () => {
         const str = "/C=FR/ST=IDF/L=Paris/O=Local NODE-OPCUA Certificate Authority/CN=Hello";
         const subject = Subject.parse(str);
-        subject.commonName!.should.eql("Hello");
-        subject.country!.should.eql("FR");
+        subject.commonName.should.eql("Hello");
+        subject.country.should.eql("FR");
     });
 
     it("should parse a SubjectLine ", () => {
         const str = "/DC=MYDOMAIN/CN=Hello";
 
         const subject = Subject.parse(str);
-        subject.commonName!.should.eql("Hello");
-        subject.domainComponent!.should.eql("MYDOMAIN");
+        subject.commonName.should.eql("Hello");
+        subject.domainComponent.should.eql("MYDOMAIN");
     });
 
     it("should parse a long CN with slashes SubjectLine ", () => {
         const str = "/CN=PC.DOMAIN.COM/path/scada/server@PC/DC=/O=Sterfive/L=Orleans/C=FR";
         const subject = Subject.parse(str);
-        subject.commonName!.should.eql("PC.DOMAIN.COM/path/scada/server@PC");
-        subject.domainComponent!.should.eql("");
+        subject.commonName.should.eql("PC.DOMAIN.COM/path/scada/server@PC");
+        subject.domainComponent.should.eql("");
     });
 
     it("should enclose data that contains special character  = with quote", () => {
@@ -74,23 +75,23 @@ describe("Subject", () => {
     });
     it("should replace unwanted quote character with a substitute character", () => {
         const subject = new Subject({ commonName: 'Hello"Hallo"' });
-        subject.commonName!.should.eql('Hello"Hallo"');
+        subject.commonName.should.eql('Hello"Hallo"');
         subject.toString().should.eql("/CN=Hello”Hallo”");
     });
     it("should parse a quoted string ", () => {
         const subject = new Subject("CN=Hello'Hallo'");
-        subject.commonName!.should.eql("Hello'Hallo'");
+        subject.commonName.should.eql("Hello'Hallo'");
         subject.toString().should.eql("/CN=Hello'Hallo'");
     });
     it("should parse a quoted string ", () => {
         const subject = new Subject('CN="Hello/Hallo"');
-        subject.commonName!.should.eql("Hello/Hallo");
+        subject.commonName.should.eql("Hello/Hallo");
         subject.toString().should.eql('/CN="Hello/Hallo"');
     });
 
     it("should produce a string with ', ' as sep ", () => {
         const subject = new Subject('CN="Hello/Hallo"/O=Sterfive/L=Orleans/C=FR');
-        subject.commonName!.should.eql("Hello/Hallo");
+        subject.commonName.should.eql("Hello/Hallo");
         subject.toStringInternal(", ").should.eql('C=FR, L=Orleans, O=Sterfive, CN="Hello/Hallo"');
     });
 });

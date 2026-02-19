@@ -21,23 +21,22 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import should from "should";
-import path from "node:path";
 import fs from "node:fs";
-
+import path from "node:path";
 import {
-    readCertificate,
-    exploreCertificate,
-    combine_der,
-    split_der,
     CertificatePurpose,
-    createSelfSignedCertificate,
-    pemToPrivateKey,
-    generatePrivateKeyFile,
+    combine_der,
     convertPEMtoDER,
+    createSelfSignedCertificate,
     exploreAsn1,
+    exploreCertificate,
+    generatePrivateKeyFile,
+    pemToPrivateKey,
+    readCertificate,
     readCertificatePEM,
+    split_der,
 } from "node-opcua-crypto";
+import should from "should";
 
 describe(" exploring Certificates", function (this: Mocha.Suite) {
     this.timeout(200000);
@@ -52,13 +51,13 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         console.log(" issuer.commonName         : ", certificate_info.tbsCertificate.issuer.commonName);
         console.log(
             " uniformResourceIdentifier : ",
-            certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier
+            certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier,
         );
-        console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions!.subjectAltName.dNSName);
+        console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions?.subjectAltName?.dNSName);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(128);
-        certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
+        should(certificate_info.tbsCertificate.version).eql(3);
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(128);
+        should(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).eql(1);
     });
 
     it("should extract the information out of a 2048-bits certificate ", () => {
@@ -67,9 +66,10 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         // console.log(hexDump(certificate))
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(256);
-        certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
+        should(certificate_info.tbsCertificate.version).eql(3);
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(256);
+        should.exist(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier);
+        should(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).eql(1);
     });
 
     it("should extract the information out of a 4096-bits certificate - 1", () => {
@@ -78,10 +78,10 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(512);
-        //xx certificate_info.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier.length.should.eql(1);
-        const data = exploreCertificate(certificate);
+        should(certificate_info.tbsCertificate.version).eql(3);
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(512);
+        should.exist(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier);
+        should(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).eql(1);
     });
 
     it("should read a V3 X509 self-certificate (with extensions)", () => {
@@ -93,23 +93,26 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
+        should(certificate_info.tbsCertificate.version).eql(3);
 
         // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
-        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions!.authorityCertIssuer,{colors:true,depth:10}));
-        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.countryName!.should.eql("FR");
-        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.localityName!.should.eql("Paris");
+        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions.authorityCertIssuer,{colors:true,depth:10}));
+        should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer);
+        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.countryName).eql("FR");
+        should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName);
+        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).eql("Paris");
 
         // console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
-        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!.should.eql(
-            "74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F"
+        should.exist(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier);
+        should(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).eql(
+            "74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F",
         );
 
-        if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
+        if (certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier) {
             // when serial and keyIdentifier are provided the certificate is not self-signed
-            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.serial);
-            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier);
+            should.exist(certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.serial);
+            should.exist(certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.keyIdentifier);
         }
     });
     it("should read a V3 X509 certificate  signed by ta CA (with extensions)", () => {
@@ -121,23 +124,24 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
 
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
+        should(certificate_info.tbsCertificate.version).eql(3);
 
         // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
-        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions!.authorityCertIssuer,{colors:true,depth:10}));
-        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.countryName!.should.eql("FR");
-        certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.authorityCertIssuer!.localityName!.should.eql("Paris");
+        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions.authorityCertIssuer,{colors:true,depth:10}));
+        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.countryName).eql("FR");
+        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).eql("Paris");
 
         //xx console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
 
-        certificate_info.tbsCertificate.extensions!.subjectKeyIdentifier!.should.eql(
-            "B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19"
+        should.exist(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier);
+        should(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).eql(
+            "B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19",
         );
 
-        if (certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier) {
+        if (certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier) {
             // when serial and keyIdentifier are provided the certificate is not self-signed
-            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.serial);
-            should.exist(certificate_info.tbsCertificate.extensions!.authorityKeyIdentifier!.keyIdentifier);
+            should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.serial);
+            should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier);
         }
     });
 
@@ -151,7 +155,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         //xx console.log(certificate.toString("base64"));
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(1);
+        should(certificate_info.tbsCertificate.version).eql(1);
         should(certificate_info.tbsCertificate.extensions).eql(null);
 
         // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
@@ -166,7 +170,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         //xx console.log(certificate.toString("base64"));
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
+        should(certificate_info.tbsCertificate.version).eql(3);
         should(certificate_info.tbsCertificate.extensions).eql(null);
     });
     it("investigate certificate with block problem 2", () => {
@@ -178,11 +182,8 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         //xx console.log(certificate.toString("base64"));
         const certificate_info = exploreCertificate(certificate);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
+        should(certificate_info.tbsCertificate.version).eql(3);
         should(certificate_info.tbsCertificate.extensions).not.eql(null);
-
-        (certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus as any) =
-            certificate_info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus.toString("base64");
 
         // console.log(JSON.stringify(certificate_info, null, " "));
     });
@@ -193,13 +194,13 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         const certificate = convertPEMtoDER(certificatePem);
         exploreAsn1(certificate);
         console.log(certificate.toString("base64"));
-        const certificate_info = exploreCertificate(certificate);
+        const _certificate_info = exploreCertificate(certificate);
     });
 
     it("PEC-1: investigate certificate generated by @peculiar/webcrypto", () => {
         const content = fs.readFileSync(path.join(__dirname, "../test-fixtures/peculiar_cert_in_base64.txt"), "utf-8");
         const certificate = Buffer.from(content, "base64");
-        const info = exploreCertificate(certificate);
+        const _info = exploreCertificate(certificate);
     });
 
     it("PEC-2 create a certificate with subtle and explore it with @peculiar/x509", async () => {
@@ -235,7 +236,7 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         });
 
         const certificateDer = convertPEMtoDER(cert);
-        const info = exploreCertificate(certificateDer);
+        const _info = exploreCertificate(certificateDer);
     });
 });
 
@@ -261,6 +262,7 @@ describe("exploring certificate chains", () => {
 
         chain.length.should.eql(2);
 
+        // biome-ignore lint/correctness/noConstantCondition: this is for debugging purpose
         if (false) {
             console.log(chain[0].toString("hex"));
             console.log(cert1.toString("hex"));
@@ -297,6 +299,7 @@ describe("exploring certificate chains", () => {
 
         chain.length.should.eql(3);
 
+        // biome-ignore lint/correctness/noConstantCondition: this is for debugging purpose
         if (false) {
             console.log(chain[0].toString("hex"));
             console.log(cert1.toString("hex"));
@@ -330,8 +333,8 @@ describe("explore ECC certificates", () => {
         console.log(" Version                   : ", certificate_info.tbsCertificate.version);
         console.log(" issuer.countryName        : ", certificate_info.tbsCertificate.issuer.countryName);
 
-        certificate_info.tbsCertificate.version.should.eql(3);
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(64);
+        should(certificate_info.tbsCertificate.version).eql(3);
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(64);
     });
     it("should do the same but with a brainpool256r1 certificate", () => {
         //generated by following command lines
@@ -342,8 +345,8 @@ describe("explore ECC certificates", () => {
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/brainpool256_certif.pem"));
 
         const certificate_info = exploreCertificate(certificate);
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm.should.eql("brainpoolP256r1");
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(64);
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm).eql("brainpoolP256r1");
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(64);
     });
     it("should do the same but with a brainpoolP384r1 certificate", () => {
         //generated by following command lines
@@ -354,8 +357,8 @@ describe("explore ECC certificates", () => {
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/brainpoolP384r1_certif.pem"));
 
         const certificate_info = exploreCertificate(certificate);
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm.should.eql("brainpoolP384r1");
-        certificate_info.tbsCertificate.subject.organizationName!.should.eql("Sterfive");
-        certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength.should.eql(96);
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm).eql("brainpoolP384r1");
+        should(certificate_info.tbsCertificate.subject.organizationName).eql("Sterfive");
+        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(96);
     });
 });

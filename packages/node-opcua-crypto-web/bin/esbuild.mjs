@@ -1,7 +1,8 @@
 // esbuild.config.mjs
-import { build } from "esbuild";
-import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
+
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
+import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
+import { build } from "esbuild";
 
 build({
     entryPoints: ["./web/main.ts"],
@@ -20,9 +21,11 @@ build({
             process: true,
         }),
     ],
-}).then(() => {
-    console.log("Build terminée avec succès !");
-}).catch((error) => {
-    console.error("Erreur lors du build :", error);
-    process.exit(1);
-});
+})
+    .then(() => {
+        console.log("Build terminée avec succès !");
+    })
+    .catch((error) => {
+        console.error("Erreur lors du build :", error);
+        process.exit(1);
+    });

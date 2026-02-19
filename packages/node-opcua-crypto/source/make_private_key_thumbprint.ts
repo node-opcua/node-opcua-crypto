@@ -1,5 +1,5 @@
-import { PrivateKey } from "./common.js";
-export function makePrivateKeyThumbPrint(privateKey: PrivateKey): Buffer {
+import type { PrivateKey } from "./common.js";
+export function makePrivateKeyThumbPrint(_privateKey: PrivateKey): Buffer {
     //   // .export({ format: "der", type: "pkcs1" });
     //   if (typeof privateKey === "string") {
     //

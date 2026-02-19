@@ -22,20 +22,19 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
-import should from "should";
-
+import path from "node:path";
 import {
-    readPrivateKey,
-    explorePrivateKey,
+    coercePEMorDerToPrivateKey,
     derToPrivateKey,
+    explorePrivateKey,
     generateKeyPair,
     generatePrivateKey,
-    privateKeyToPEM,
     pemToPrivateKey,
-    coercePEMorDerToPrivateKey,
+    privateKeyToPEM,
+    readPrivateKey,
 } from "node-opcua-crypto";
+import should from "should";
 
 const tmpTestFolder = os.tmpdir();
 
@@ -44,7 +43,7 @@ describe("creating X509 key pair", function () {
     this.timeout(100000);
 
     it("should create a key pair", async () => {
-        const { privateKey, publicKey } = await generateKeyPair();
+        const { privateKey } = await generateKeyPair();
 
         const { privPem, privDer } = await privateKeyToPEM(privateKey);
 
@@ -83,7 +82,7 @@ describe("creating X509 key pair", function () {
         const privateKey = await generatePrivateKey();
         const { privPem, privDer } = await privateKeyToPEM(privateKey);
 
-        const privateKey2 = await derToPrivateKey(privDer);
+        const _privateKey2 = await derToPrivateKey(privDer);
 
         const privateKey1 = await coercePEMorDerToPrivateKey(privPem);
         should.exist(privateKey1.hidden);

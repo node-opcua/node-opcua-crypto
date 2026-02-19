@@ -21,10 +21,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { explorePrivateKey } from "./explore_private_key.js";
-import { Certificate, CertificatePEM, PrivateKey } from "./common.js";
-import { privateDecrypt_long, publicEncrypt_long, toPem } from "./crypto_utils.js";
+import type { Certificate, CertificatePEM, PrivateKey } from "./common.js";
 import { exploreCertificate } from "./crypto_explore_certificate.js";
+import { privateDecrypt_long, publicEncrypt_long, toPem } from "./crypto_utils.js";
+import { explorePrivateKey } from "./explore_private_key.js";
 
 export function publicKeyAndPrivateKeyMatches(certificate: Certificate, privateKey: PrivateKey): boolean {
     const i = exploreCertificate(certificate);
@@ -33,7 +33,7 @@ export function publicKeyAndPrivateKeyMatches(certificate: Certificate, privateK
     const modulus1 = i.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus;
     const modulus2 = j.modulus;
 
-    if (modulus1.length != modulus2.length) {
+    if (modulus1.length !== modulus2.length) {
         return false;
     }
     return modulus1.toString("hex") === modulus2.toString("hex");

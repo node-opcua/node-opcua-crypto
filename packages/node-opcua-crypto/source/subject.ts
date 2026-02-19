@@ -88,11 +88,11 @@ export class Subject implements SubjectOptions {
             const s: string[] = element.split("=");
 
             if (s.length !== 2) {
-                throw new Error("invalid format for " + element);
+                throw new Error(`invalid format for ${element}`);
             }
             const longName = (_keys as Record<string, string>)[s[0]];
             if (!longName) {
-                throw new Error("Invalid field found in subject name " + s[0]);
+                throw new Error(`Invalid field found in subject name ${s[0]}`);
             }
             const value = s[1];
             options[longName] = unquote(Buffer.from(value, "ascii").toString("utf8"));
@@ -110,25 +110,25 @@ export class Subject implements SubjectOptions {
 
         const tmp: string[] = [];
         if (this.country) {
-            tmp.push("C=" + enquoteIfNecessary(this.country));
+            tmp.push(`C=${enquoteIfNecessary(this.country)}`);
         }
         if (this.state) {
-            tmp.push("ST=" + enquoteIfNecessary(this.state));
+            tmp.push(`ST=${enquoteIfNecessary(this.state)}`);
         }
         if (this.locality) {
-            tmp.push("L=" + enquoteIfNecessary(this.locality));
+            tmp.push(`L=${enquoteIfNecessary(this.locality)}`);
         }
         if (this.organization) {
-            tmp.push("O=" + enquoteIfNecessary(this.organization));
+            tmp.push(`O=${enquoteIfNecessary(this.organization)}`);
         }
         if (this.organizationalUnit) {
-            tmp.push("OU=" + enquoteIfNecessary(this.organizationalUnit));
+            tmp.push(`OU=${enquoteIfNecessary(this.organizationalUnit)}`);
         }
         if (this.commonName) {
-            tmp.push("CN=" + enquoteIfNecessary(this.commonName));
+            tmp.push(`CN=${enquoteIfNecessary(this.commonName)}`);
         }
         if (this.domainComponent) {
-            tmp.push("DC=" + enquoteIfNecessary(this.domainComponent));
+            tmp.push(`DC=${enquoteIfNecessary(this.domainComponent)}`);
         }
         return tmp.join(sep);
     }
@@ -139,6 +139,6 @@ export class Subject implements SubjectOptions {
         // standard for SSL is to have a / in front of each Field
         // see https://www.digicert.com/kb/ssl-support/openssl-quick-reference-guide.htm
         const t = this.toStringForOPCUA();
-        return t ? "/" + t : t;
+        return t ? `/${t}` : t;
     }
 }

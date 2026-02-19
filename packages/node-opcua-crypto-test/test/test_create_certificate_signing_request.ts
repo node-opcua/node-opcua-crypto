@@ -22,16 +22,16 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 
 import "should";
 
 import {
-    generateKeyPair,
+    CertificatePurpose,
     createCertificateSigningRequest,
     exploreCertificateSigningRequest,
-    CertificatePurpose,
+    generateKeyPair,
     readCertificate,
 } from "node-opcua-crypto";
 

@@ -21,48 +21,44 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import assert from "assert";
-import fs from "node:fs";
-import path from "node:path";
+import assert from "node:assert";
 import {
-    createHmac,
     createCipheriv,
     createDecipheriv,
+    createHmac,
     createSign,
     createVerify,
     getDiffieHellman,
+    type KeyObject,
     publicEncrypt as publicEncrypt_fromCrypto,
     randomBytes,
-    KeyObject,
 } from "node:crypto";
-import should from "should";
+import fs from "node:fs";
+import path from "node:path";
 import * as loremIpsum1 from "lorem-ipsum";
-
 import {
     convertPEMtoDER,
     extractPublicKeyFromCertificate,
     makeMessageChunkSignature,
+    type PublicKeyPEM,
     privateDecrypt_long,
-    publicEncrypt_long,
     publicEncrypt,
-    PublicKeyPEM,
+    publicEncrypt_long,
     RSA_PKCS1_OAEP_PADDING,
     RSA_PKCS1_PADDING,
-    toPem,
-    verifyMessageChunkSignature,
-    rsaLengthRsaPublicKey,
-} from "node-opcua-crypto";
-
-import {
     readCertificate,
     readPrivateKey,
     readPrivateRsaKey,
     readPublicKey,
-    setCertificateStore,
     readPublicRsaKey,
+    rsaLengthRsaPublicKey,
+    setCertificateStore,
+    toPem,
+    verifyMessageChunkSignature,
 } from "node-opcua-crypto";
+import should from "should";
 
-const loremIpsum: string = (loremIpsum1 as any).loremIpsum({ count: 100 });
+const loremIpsum: string = loremIpsum1.loremIpsum({ count: 100 });
 
 // see https://github.com/nodejs/node/issues/22815
 
@@ -95,7 +91,7 @@ const bob_certificate_out_of_date_filename = path.join(__dirname, "../test-fixtu
 const doDebug = false;
 
 //Xx doDebug = true;
-function debugLog(...args: [any?, ...any[]]) {
+function debugLog(...args: [unknown?, ...unknown[]]) {
     if (doDebug) {
         console.log(console, ...args);
     }
@@ -120,17 +116,17 @@ function decrypt_buffer(buffer: Buffer, algorithm: string, key: Buffer): Buffer 
     return Buffer.concat(decrypted_chunks);
 }
 
-describe("testing and exploring the NodeJS crypto api", function () {
-    beforeEach(function (done) {
+describe("testing and exploring the NodeJS crypto api", () => {
+    beforeEach((done) => {
         switch_to_test_certificate_store();
         done();
     });
-    afterEach(function (done) {
+    afterEach((done) => {
         restore_default_certificate_store();
         done();
     });
 
-    it("should be possible to sign a message and verify the signature of a message", function () {
+    it("should be possible to sign a message and verify the signature of a message", () => {
         // ------------------- this is Alice
         //
         // alice want to send a message to Bob
@@ -163,7 +159,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
 
         // The keys are asymmetrical, this means that Bob cannot sign
         // a message using alice public key.
-        should(function () {
+        should(() => {
             const bob_sign = createSign("RSA-SHA256");
             bob_sign.update("HelloWorld");
             const signature1 = bob_sign.sign(alice_public_key);
@@ -175,26 +171,25 @@ describe("testing and exploring the NodeJS crypto api", function () {
     });
 
     if (publicEncrypt_fromCrypto !== null) {
-        it("should check that bob rsa key is 2048bit long (256 bytes)", function () {
+        it("should check that bob rsa key is 2048bit long (256 bytes)", () => {
             const key = readPublicRsaKey("bob_id_rsa.pub");
             rsaLengthRsaPublicKey(key).should.equal(256);
         });
 
-        it("should check that john rsa key is 1024bit long (128 bytes)", function () {
+        it("should check that john rsa key is 1024bit long (128 bytes)", () => {
             const key = readPublicRsaKey("john_id_rsa.pub");
             rsaLengthRsaPublicKey(key).should.equal(128);
         });
-        it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
+        it("RSA_PKCS1_OAEP_PADDING 1024 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", () => {
             const john_public_key = readPublicRsaKey("john_id_rsa.pub") as KeyObject; // 1024 bit RSA
             debugLog("john_public_key", john_public_key);
-            let encryptedBuffer;
 
             // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
             // Padding is 41 or 11 and added at the start of the buffer
             // so the max length of the input buffer sent to RSA_public_encrypt() is:
             //      128 - 42 = 215 with RSA_PKCS1_OAEP_PADDING
 
-            encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(1), john_public_key as KeyObject);
+            let encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(1), john_public_key as KeyObject);
             debugLog(" A encryptedBuffer length = ", encryptedBuffer.length);
             encryptedBuffer.length.should.eql(128);
 
@@ -202,28 +197,27 @@ describe("testing and exploring the NodeJS crypto api", function () {
             debugLog(" B encryptedBuffer length = ", encryptedBuffer.length);
             encryptedBuffer.length.should.eql(128);
 
-            should(function () {
+            should(() => {
                 encryptedBuffer = publicEncrypt(
                     Buffer.allocUnsafe(128 - 42 + 1),
                     john_public_key as KeyObject,
-                    RSA_PKCS1_OAEP_PADDING
+                    RSA_PKCS1_OAEP_PADDING,
                 );
                 debugLog(" C encryptedBuffer length = ", encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
-            should(function () {
+            should(() => {
                 encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(128), john_public_key, RSA_PKCS1_OAEP_PADDING);
                 console.log(" D encryptedBuffer length = ", encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
         });
 
-        it("RSA_PKCS1_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
+        it("RSA_PKCS1_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", () => {
             //
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub");
             debugLog("bob_public_key", bob_public_key);
-            let encryptedBuffer;
 
             // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
             // Padding is 41 or 11 and added at the start of the buffer
@@ -231,7 +225,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             //      256 - 42 = 214 with RSA_PKCS1_OAEP_PADDING
             //      256 - 11 = 245 with RSA_PKCS1_PADDING
 
-            encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(1), bob_public_key as KeyObject, RSA_PKCS1_PADDING);
+            let encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(1), bob_public_key as KeyObject, RSA_PKCS1_PADDING);
             debugLog(" A encryptedBuffer length = ", encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
@@ -239,24 +233,23 @@ describe("testing and exploring the NodeJS crypto api", function () {
             debugLog(" B encryptedBuffer length = ", encryptedBuffer.length);
             encryptedBuffer.length.should.eql(256);
 
-            should(function () {
+            should(() => {
                 encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(246), bob_public_key as KeyObject, RSA_PKCS1_PADDING);
                 debugLog(" C encryptedBuffer length = ", encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
-            should(function () {
+            should(() => {
                 encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(259), bob_public_key as KeyObject, RSA_PKCS1_PADDING);
                 console.log(" D encryptedBuffer length = ", encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
         });
 
-        it("RSA_PKCS1_OAEP_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", function () {
+        it("RSA_PKCS1_OAEP_PADDING 2048 verifying that RSA publicEncrypt cannot encrypt buffer bigger than 215 bytes due to the effect of padding", () => {
             //
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject;
             debugLog("bob_public_key", bob_public_key);
-            let encryptedBuffer;
 
             // since bob key is a 2048-RSA, encrypted buffer will be 2048-bits = 256-bytes long
             // Padding is 41 or 11 and added at the start of the buffer
@@ -264,28 +257,28 @@ describe("testing and exploring the NodeJS crypto api", function () {
             //      256 - 42 = 214 with RSA_PKCS1_OAEP_PADDING
             //      256 - 11 = 245 with RSA_PKCS1_PADDING
 
-            encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(1), bob_public_key, RSA_PKCS1_OAEP_PADDING);
-            debugLog(" A encryptedBuffer length = ", encryptedBuffer.length);
-            encryptedBuffer.length.should.eql(256);
+            let _encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(1), bob_public_key, RSA_PKCS1_OAEP_PADDING);
+            debugLog(" A encryptedBuffer length = ", _encryptedBuffer.length);
+            _encryptedBuffer.length.should.eql(256);
 
-            encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(214), bob_public_key, RSA_PKCS1_OAEP_PADDING);
-            debugLog(" B encryptedBuffer length = ", encryptedBuffer.length);
-            encryptedBuffer.length.should.eql(256);
+            _encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(214), bob_public_key, RSA_PKCS1_OAEP_PADDING);
+            debugLog(" B encryptedBuffer length = ", _encryptedBuffer.length);
+            _encryptedBuffer.length.should.eql(256);
 
-            should(function () {
-                encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(215), bob_public_key, RSA_PKCS1_OAEP_PADDING);
-                debugLog(" C encryptedBuffer length = ", encryptedBuffer.length);
+            should(() => {
+                _encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(215), bob_public_key, RSA_PKCS1_OAEP_PADDING);
+                debugLog(" C encryptedBuffer length = ", _encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
 
-            should(function () {
-                encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(259), bob_public_key, RSA_PKCS1_OAEP_PADDING);
-                console.log(" D encryptedBuffer length = ", encryptedBuffer.length);
+            should(() => {
+                _encryptedBuffer = publicEncrypt(Buffer.allocUnsafe(259), bob_public_key, RSA_PKCS1_OAEP_PADDING);
+                console.log(" D encryptedBuffer length = ", _encryptedBuffer.length);
                 //xx encryptedBuffer.length.should.eql(128);
             }).throwError();
         });
 
-        it("publicEncrypt  shall produce  different encrypted string if call many times with the same input", function () {
+        it("publicEncrypt  shall produce  different encrypted string if call many times with the same input", () => {
             //xx            const bob_public_key = readCertificate('test/fixtures/certs/alice_cert_1024.pem'); // 2048bit long key
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject; // 2048bit long key
             const bob_private_key = readPrivateRsaKey("bob_id_rsa");
@@ -302,7 +295,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             decryptedBuffer1.toString("hex").should.equal(decryptedBuffer2.toString("hex"));
         });
 
-        it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes", function () {
+        it("publicEncrypt_long should encrypt a 256 bytes buffer and return a encrypted buffer of 512 bytes", () => {
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject; // 2048bit long key
 
             const initialBuffer = Buffer.from(loremIpsum.substring(0, 256));
@@ -314,7 +307,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             decryptedBuffer.toString("ascii").should.eql(initialBuffer.toString("ascii"));
         });
 
-        it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 1280 bytes", function () {
+        it("publicEncrypt_long should encrypt a 1024 bytes buffer and return a encrypted buffer of 1280 bytes", () => {
             const bob_public_key = readPublicRsaKey("bob_id_rsa.pub") as KeyObject;
 
             const initialBuffer = Buffer.from(loremIpsum.substring(0, 1024));
@@ -327,7 +320,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             decryptedBuffer.toString("ascii").should.eql(initialBuffer.toString("ascii"));
         });
 
-        it("Alice should be able to encrypt a message with bob's public key and Bob shall be able to decrypt it with his Private Key", function () {
+        it("Alice should be able to encrypt a message with bob's public key and Bob shall be able to decrypt it with his Private Key", () => {
             // see also : http://crypto.stackexchange.com/questions/5458/should-we-sign-then-encrypt-or-encrypt-then-sign
 
             // ------------------- this is Alice
@@ -338,7 +331,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
             //
             // she will sign he message first with her private key
 
-            const message = "My dear Bob, " + loremIpsum + "... Alice";
+            const message = `My dear Bob, ${loremIpsum}... Alice`;
             debugLog("length of original  message = ", message.length);
 
             const alice_private_key = readPrivateRsaKey("alice_id_rsa");
@@ -380,7 +373,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
         });
     }
 
-    it("explore DiffieHellman encryption (generating keys)", function () {
+    it("explore DiffieHellman encryption (generating keys)", () => {
         const alice = getDiffieHellman("modp5");
         const bob = getDiffieHellman("modp5");
 
@@ -395,7 +388,7 @@ describe("testing and exploring the NodeJS crypto api", function () {
     });
 
     // encrypt_buffer(buffer,"aes-256-cbc",key);
-    it("should encrypt a message", function () {
+    it("should encrypt a message", () => {
         // http://stackoverflow.com/questions/8750780/encrypting-data-with-public-key-in-node-js
         // http://slproweb.com/products/Win32OpenSSL.html
         const key = randomBytes(32);
@@ -414,10 +407,10 @@ describe("testing and exploring the NodeJS crypto api", function () {
         s.end();
     });
 
-    it("exploring crypto api with symmetrical encryption/decryption", function () {
+    it("exploring crypto api with symmetrical encryption/decryption", () => {
         const key = randomBytes(32);
 
-        const bufferToEncrypt = Buffer.from("This is a top , very top secret message !! ah ah" + loremIpsum);
+        const bufferToEncrypt = Buffer.from(`This is a top , very top secret message !! ah ah${loremIpsum}`);
 
         const encryptedBuffer = encrypt_buffer(bufferToEncrypt, "aes-256-cbc", key);
         const decryptedBuffer = decrypt_buffer(encryptedBuffer, "aes-256-cbc", key);
@@ -429,8 +422,8 @@ describe("testing and exploring the NodeJS crypto api", function () {
     });
 });
 
-describe("exploring symmetric signing", function () {
-    it("should sign and verify", function () {
+describe("exploring symmetric signing", () => {
+    it("should sign and verify", () => {
         const text = "I love cupcakes",
             key = randomBytes(32);
 
@@ -455,7 +448,7 @@ describe("exploring symmetric signing", function () {
 // https://github.com/coolaj86/node-ssl-root-cas
 // https://github.com/coolaj86/bitcrypt
 
-describe("Testing AsymmetricSignatureAlgorithm", function () {
+describe("Testing AsymmetricSignatureAlgorithm", () => {
     const chunk = Buffer.from(loremIpsum);
 
     // console.log("crypto.getHashes() =" ,crypto.getHashes());
@@ -463,7 +456,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
     // crypto.getHashes().forEach(function(a){ make_suite(a,128); });
 
     function make_suite(algorithm: string, signatureLength: number) {
-        it("should sign with a private key and verify with the public key - " + algorithm, function () {
+        it(`should sign with a private key and verify with the public key - ${algorithm}`, () => {
             const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
@@ -486,7 +479,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             signVerif.should.eql(true);
         });
 
-        it("should sign with a private key and verify with the certificate (ASCII) - " + algorithm, function () {
+        it(`should sign with a private key and verify with the certificate (ASCII) - ${algorithm}`, () => {
             const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
@@ -510,7 +503,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             signVerif.should.eql(true, "Verification has failed");
         });
 
-        it("should sign with a private key and verify with a OUT OF DATE certificate (ASCII) - " + algorithm, function () {
+        it(`should sign with a private key and verify with a OUT OF DATE certificate (ASCII) - ${algorithm}`, () => {
             const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
@@ -530,10 +523,10 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
                 publicKey: alice_certificate,
             };
             const signVerif = verifyMessageChunkSignature(chunk, signature, options2);
-            signVerif.should.eql(true, "Verification of message chunk signature should succeed signatureLength=" + signatureLength);
+            signVerif.should.eql(true, `Verification of message chunk signature should succeed signatureLength=${signatureLength}`);
         });
 
-        it("should sign with a private key and verify with the certificate (DER) - " + algorithm, function () {
+        it(`should sign with a private key and verify with the certificate (DER) - ${algorithm}`, () => {
             const alice_private_key = readPrivateKey(alice_private_key_filename);
             const options1 = {
                 algorithm,
@@ -556,7 +549,7 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
             signVerif.should.eql(true);
         });
 
-        it("should sign with a other private key and verify with a OUT OF DATE certificate (ASCII) - " + algorithm, function () {
+        it(`should sign with a other private key and verify with a OUT OF DATE certificate (ASCII) - ${algorithm}`, () => {
             const privateKey = readPrivateKey(bob_private_key_filename);
             const options1 = {
                 algorithm,
@@ -593,8 +586,8 @@ describe("Testing AsymmetricSignatureAlgorithm", function () {
     make_suite("sha256WithRSAEncryption", 128);
 });
 
-describe("extractPublicKeyFromCertificate", function () {
-    it("should extract a public key from a certificate", function (done) {
+describe("extractPublicKeyFromCertificate", () => {
+    it("should extract a public key from a certificate", (done) => {
         const certificate2 = readCertificate(bob_certificate_filename);
 
         const publickey2 = readPublicKey(bob_public_key_filename);

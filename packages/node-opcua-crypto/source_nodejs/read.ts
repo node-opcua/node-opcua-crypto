@@ -21,13 +21,23 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import assert from "assert";
+import assert from "node:assert";
+import { createPrivateKey, createPublicKey } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { createPrivateKey, createPublicKey } from "crypto";
-import { Certificate, CertificatePEM, DER, PEM, PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey, KeyObject } from "../source/common.js";
-import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 import sshpk from "sshpk";
+import type {
+    Certificate,
+    CertificatePEM,
+    DER,
+    KeyObject,
+    PEM,
+    PrivateKey,
+    PrivateKeyPEM,
+    PublicKey,
+    PublicKeyPEM,
+} from "../source/common.js";
+import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 
 function _readPemFile(filename: string): PEM {
     assert(typeof filename === "string");
@@ -83,7 +93,7 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
 }
 
 function ensureTrailingLF(str: string): string {
-    return str.match(/\n$/) ? str : str + "\n";
+    return str.match(/\n$/) ? str : `${str}\n`;
 }
 /**
  * read a DER or PEM certificate from file

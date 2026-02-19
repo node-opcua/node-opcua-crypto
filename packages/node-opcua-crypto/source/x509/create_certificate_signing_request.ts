@@ -20,11 +20,12 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
+
+import type { CertificatePurpose } from "../common.js";
 import { Subject } from "../subject.js";
-import { CertificatePurpose } from "../common.js";
-import { getAttributes } from "./_get_attributes.js";
-import { getCrypto, x509 } from "./_crypto.js";
 import { buildPublicKey } from "./_build_public_key.js";
+import { getCrypto, x509 } from "./_crypto.js";
+import { getAttributes } from "./_get_attributes.js";
 
 interface CreateCertificateSigningRequestOptions {
     privateKey: CryptoKey;
@@ -64,9 +65,15 @@ export async function createCertificateSigningRequest({
     };
 
     const alternativeNameExtensions: x509.JsonGeneralName[] = [];
-    dns && dns.forEach((d) => alternativeNameExtensions.push({ type: "dns", value: d }));
-    ip && ip.forEach((d) => alternativeNameExtensions.push({ type: "ip", value: d }));
-    applicationUri && alternativeNameExtensions.push({ type: "url", value: applicationUri });
+    for (const d of dns ?? []) {
+        alternativeNameExtensions.push({ type: "dns", value: d });
+    }
+    for (const d of ip ?? []) {
+        alternativeNameExtensions.push({ type: "ip", value: d });
+    }
+    if (applicationUri) {
+        alternativeNameExtensions.push({ type: "url", value: applicationUri });
+    }
 
     const { basicConstraints, usages } = getAttributes(purpose);
 
@@ -85,7 +92,7 @@ export async function createCertificateSigningRequest({
                 new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
             ],
         },
-        crypto
+        crypto as Crypto,
     );
     return { csr: csr.toString("pem"), der: csr };
 }

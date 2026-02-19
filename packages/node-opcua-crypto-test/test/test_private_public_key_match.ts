@@ -22,18 +22,23 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import path from "node:path";
-import { exploreCertificate, explorePrivateKey } from "node-opcua-crypto";
-import { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "node-opcua-crypto";
-import { readCertificate, readPrivateKey } from "node-opcua-crypto";
+import {
+    certificateMatchesPrivateKey,
+    exploreCertificate,
+    explorePrivateKey,
+    publicKeyAndPrivateKeyMatches,
+    readCertificate,
+    readPrivateKey,
+} from "node-opcua-crypto";
 
 const useCases = [1024, 2048];
-describe("Checking that public key (from certificate) and private key matches", function () {
+describe("Checking that public key (from certificate) and private key matches", () => {
     useCases.forEach((keyLength) => {
         const certificateFile = path.join(__dirname, `../test-fixtures/certs/server_cert_${keyLength}.pem`);
         const privateKeyFile = path.join(__dirname, `../test-fixtures/certs/server_key_${keyLength}.pem`);
         const certificate = readCertificate(certificateFile);
         const privateKey = readPrivateKey(privateKeyFile);
-        it("publicKeyAndPrivateKeyMatches: should explore a RSA private key " + keyLength, () => {
+        it(`publicKeyAndPrivateKeyMatches: should explore a RSA private key ${keyLength}`, () => {
             const i = exploreCertificate(certificate);
             const j = explorePrivateKey(privateKey);
 
@@ -47,7 +52,7 @@ describe("Checking that public key (from certificate) and private key matches", 
 
             publicKeyAndPrivateKeyMatches(certificate, privateKey).should.eql(true);
         });
-        it("certificateMatchesPrivateKey: " + keyLength, () => {
+        it(`certificateMatchesPrivateKey: ${keyLength}`, () => {
             certificateMatchesPrivateKey(certificate, privateKey).should.eql(true);
         });
     });

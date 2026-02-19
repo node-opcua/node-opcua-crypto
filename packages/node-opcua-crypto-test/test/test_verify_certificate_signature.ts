@@ -21,13 +21,20 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
+import { constants, createSign, type SignPrivateKeyInput } from "node:crypto";
 import path from "node:path";
-import { SignPrivateKeyInput, constants, createSign } from "node:crypto";
-import { verifyCertificateSignature, Certificate, toPem2, PrivateKey } from "node-opcua-crypto";
-import { asn1 } from "node-opcua-crypto";
-import { readCertificate, readPrivateKey } from "node-opcua-crypto";
+import {
+    asn1,
+    type Certificate,
+    type PrivateKey,
+    readCertificate,
+    readPrivateKey,
+    toPem2,
+    verifyCertificateSignature,
+} from "node-opcua-crypto";
+import should from "should";
 
-export function investigateCertificateSignature(certificate: Certificate, caPrivateKey?: PrivateKey): void {
+function investigateCertificateSignature(certificate: Certificate, caPrivateKey?: PrivateKey): void {
     const block_info = asn1.readTag(certificate, 0);
     const blocks = asn1.readStruct(certificate, block_info);
 
@@ -47,7 +54,7 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
         sign.end();
 
         const signOption: SignPrivateKeyInput = {
-            key: toPem2(caPrivateKey!.hidden, "RSA PRIVATE KEY"),
+            key: toPem2(caPrivateKey.hidden, "RSA PRIVATE KEY"),
             padding,
         };
         // the following circumvolution is needed to make it work with node< 12
@@ -62,7 +69,9 @@ export function investigateCertificateSignature(certificate: Certificate, caPriv
         }
         return false;
     }
-    testPadding(constants.RSA_PKCS1_PADDING).should.eql(true);
+    should(testPadding(constants.RSA_PKCS1_PADDING)).eql(true);
+
+    // biome-ignore lint/correctness/noConstantCondition: this is for debugging purpose
     if (false) {
         testPadding(constants.RSA_PKCS1_PADDING, constants.RSA_PSS_SALTLEN_MAX_SIGN);
         testPadding(constants.RSA_PKCS1_PSS_PADDING, constants.RSA_PSS_SALTLEN_MAX_SIGN);
@@ -89,15 +98,15 @@ describe("Verify Certificate Signature", () => {
     it("WW should verify the signature of certificate signed by a CA", () => {
         const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
-        verifyCertificateSignature(certificate1, certificate2).should.eql(true);
+        should(verifyCertificateSignature(certificate1, certificate2)).eql(true);
     });
     it("WW should verify the signature of a self-signed certificate", () => {
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
-        verifyCertificateSignature(certificate2, certificate2).should.eql(true);
+        should(verifyCertificateSignature(certificate2, certificate2)).eql(true);
     });
     it("WW should fail when verifying a signature with the wrong parent certificate ", () => {
         const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"));
-        verifyCertificateSignature(certificate1, certificate2).should.eql(false);
+        should(verifyCertificateSignature(certificate1, certificate2)).eql(false);
     });
 });

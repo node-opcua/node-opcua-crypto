@@ -31,22 +31,22 @@ import "should";
 import {
     exploreCertificateInfo,
     makeSHA1Thumbprint,
+    readCertificate,
     readCertificatePEM,
     removeTrailingLF,
     split_der,
     toPem,
 } from "node-opcua-crypto";
-import { readCertificate } from "node-opcua-crypto";
 
 // tslint:disable:no-var-requires
-const loremIpsumTxt = (loremIpsum as any).loremIpsum({ units: "words", count: 100 });
+const loremIpsumTxt = loremIpsum.loremIpsum({ units: "words", count: 100 });
 loremIpsumTxt.length.should.be.greaterThan(100);
 
 function make_lorem_ipsum_buffer() {
     return Buffer.from(loremIpsumTxt);
 }
 
-describe("Crypto utils", function () {
+describe("Crypto utils", () => {
     it("should read a PEM file", () => {
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate.pem"));
 
@@ -76,7 +76,7 @@ describe("Crypto utils", function () {
                     "hupROculSJ749son0sP1rBvdJEyKN9v9jQf2nv6jo9wytJKM+VslEMCeBzGhi1n6" +
                     "FYHX/e3jaMAQAdkyq9aIQYaHyVQxOBy98B5usZclZ7ry6xf/Rb9bOOP8c61tBQ9k" +
                     "SXDGOBbNHWyWf+DqquMvwN0+Ud/n6hhDexyiShstLhKK1gMNpO6ftMZO80HdI/sm" +
-                    "ynbBVHaSnuA9"
+                    "ynbBVHaSnuA9",
             );
     });
 

@@ -21,8 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { BlockInfo, TagType, readTag, readStruct } from "./asn1.js";
-import { PrivateKey } from "./common.js";
+import { type BlockInfo, readStruct, readTag, TagType } from "./asn1.js";
+import type { PrivateKey } from "./common.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
 
 // tslint:disable:no-empty-interface
@@ -96,11 +96,11 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
         // tslint:disable:no-console
         console.log(
             blocks.map((b) => ({
-                tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+                tag: `${TagType[b.tag]} 0x${b.tag.toString(16)}`,
                 l: b.length,
                 p: b.position,
                 buff: privateKey.subarray(b.position, b.position + b.length).toString("hex"),
-            }))
+            })),
         );
     }
 
@@ -114,11 +114,11 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
         // tslint:disable:no-console
         console.log(
             blocks1.map((b) => ({
-                tag: TagType[b.tag] + " 0x" + b.tag.toString(16),
+                tag: `${TagType[b.tag]} 0x${b.tag.toString(16)}`,
                 l: b.length,
                 p: b.position,
                 buff: bb.subarray(b.position, b.position + b.length).toString("hex"),
-            }))
+            })),
         );
     }
 

@@ -22,8 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
-import { generateKeyPair, privateKeyToPEM } from "../source/index.js";
 import jsrsasign from "jsrsasign";
+import { generateKeyPair, privateKeyToPEM } from "../source/index.js";
 export async function generatePrivateKeyFile(privateKeyFilename: string, modulusLength: 1024 | 2048 | 3072 | 4096) {
     const keys = await generateKeyPair(modulusLength);
     const privateKeyPem = await privateKeyToPEM(keys.privateKey);
@@ -40,7 +40,7 @@ export async function generatePrivateKeyFile(privateKeyFilename: string, modulus
 export async function generatePrivateKeyFileAlternate(privateKeyFilename: string, modulusLength: 2048 | 3072 | 4096) {
     const kp = jsrsasign.KEYUTIL.generateKeypair("RSA", modulusLength);
     const prv = kp.prvKeyObj;
-    const pub = kp.pubKeyObj;
+    const _pub = kp.pubKeyObj;
     const prvpem = jsrsasign.KEYUTIL.getPEM(prv, "PKCS8PRV");
     // const pubpem = jsrsasign.KEYUTIL.getPEM(pub, "PKCS8PUB");
     await fs.promises.writeFile(privateKeyFilename, prvpem, "utf-8");

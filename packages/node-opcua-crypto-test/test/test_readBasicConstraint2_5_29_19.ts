@@ -1,7 +1,5 @@
-import { coerceCertificate, readTbsCertificate } from "node-opcua-crypto";
-import { asn1 } from "node-opcua-crypto";
-
-import assert from "assert";
+import assert from "node:assert";
+import { asn1, coerceCertificate, readTbsCertificate } from "node-opcua-crypto";
 
 /*
   The folowing test certificates should reflect the following configurations of
@@ -144,7 +142,7 @@ function extractBasicConstraintsExtension(certificate: string | Buffer) {
 }
 
 describe("Testing basicConstraint field", function (this) {
-    it("Should parse if only CA:false is specified", async function () {
+    it("Should parse if only CA:false is specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_1);
 
         if (basicConstraints) {
@@ -152,7 +150,7 @@ describe("Testing basicConstraint field", function (this) {
         }
     });
 
-    it("Should parse if only pathlen:0 is specified", async function () {
+    it("Should parse if only pathlen:0 is specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_2);
 
         if (basicConstraints) {
@@ -160,7 +158,7 @@ describe("Testing basicConstraint field", function (this) {
         }
     });
 
-    it("Should parse if both CA:false and pathlen:0 are specified", async function () {
+    it("Should parse if both CA:false and pathlen:0 are specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_3);
 
         if (basicConstraints) {
@@ -169,7 +167,7 @@ describe("Testing basicConstraint field", function (this) {
         }
     });
 
-    it("Should parse if both CA:true and pathlen:0 are specified", async function () {
+    it("Should parse if both CA:true and pathlen:0 are specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_4);
 
         if (basicConstraints) {

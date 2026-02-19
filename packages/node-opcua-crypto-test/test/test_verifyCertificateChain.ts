@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import path from "node:path";
-import { verifyCertificateChain, readCertificate } from "node-opcua-crypto";
+import { readCertificate, verifyCertificateChain } from "node-opcua-crypto";
 
 describe("Test Certificate Chain", () => {
     it("DX should verify a certificate chain", async () => {

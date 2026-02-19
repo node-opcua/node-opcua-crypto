@@ -1,19 +1,18 @@
+import nativeCrypto from "node:crypto";
+import { Crypto as PeculiarWebCrypto } from "@peculiar/webcrypto";
 import * as x509 from "@peculiar/x509";
 
-import { Crypto as PeculiarWebCrypto } from "@peculiar/webcrypto";
-import nativeCrypto from "crypto";
+const doDebug = false;
 
-let doDebug = false;
+let _crypto: PeculiarWebCrypto | typeof nativeCrypto | undefined;
 
-let _crypto: PeculiarWebCrypto | undefined;
-
-declare const crypto: any;
-declare const window: any;
+declare const crypto: typeof nativeCrypto;
+declare const window: unknown;
 
 const ignoreCrypto = process.env.IGNORE_SUBTLE_FROM_CRYPTO;
 
 if (typeof window === "undefined") {
-    _crypto = nativeCrypto as any;
+    _crypto = nativeCrypto;
 
     if (!_crypto?.subtle || ignoreCrypto) {
         _crypto = new PeculiarWebCrypto();
@@ -21,16 +20,15 @@ if (typeof window === "undefined") {
     } else {
         doDebug && console.warn("using nodejs crypto (native)");
     }
-    x509.cryptoProvider.set(_crypto);
+    x509.cryptoProvider.set(_crypto as Crypto);
 } else {
     // using browser crypto
     doDebug && console.warn("using browser crypto (native)");
     _crypto = crypto;
-    x509.cryptoProvider.set(crypto);
+    x509.cryptoProvider.set(crypto as Crypto);
 }
 
-interface CryptoInterface {}
-export function getCrypto(): PeculiarWebCrypto {
-    return _crypto || crypto || require("crypto");
+export function getCrypto(): PeculiarWebCrypto | typeof nativeCrypto {
+    return _crypto || crypto || nativeCrypto;
 }
 export * as x509 from "@peculiar/x509";

@@ -1,4 +1,4 @@
-import { PrivateKey, KeyObject, createPrivateKeyFromNodeJSCrypto } from "../common.js";
+import { createPrivateKeyFromNodeJSCrypto, isKeyObject, type KeyObject, type PrivateKey } from "../common.js";
 import { getCrypto } from "./_crypto.js";
 import { derToPrivateKey, pemToPrivateKey } from "./create_key_pair.js";
 
@@ -9,7 +9,7 @@ const doDebug = false;
 export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string | Buffer): PrivateKey {
     if (typeof privateKeyInDerOrPem === "string") {
         const hidden = createPrivateKeyFromNodeJSCrypto(privateKeyInDerOrPem);
-        return { hidden: hidden as any };
+        return { hidden: hidden as unknown as KeyObject };
     }
     //istanbul ignore next
     throw new Error("not implemented");
@@ -20,10 +20,10 @@ export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string | Buffer
  *
  * @private
  */
-export async function _coercePrivateKey(privateKey: any): Promise<KeyObject> {
-    const KeyObject = (crypto as any).KeyObject;
+export async function _coercePrivateKey(privateKey: unknown): Promise<KeyObject> {
+    const KeyObject = (crypto as unknown as { KeyObject: { from(key: unknown): KeyObject } }).KeyObject;
     if (Buffer.isBuffer(privateKey)) {
-        const privateKey1 = await derToPrivateKey(privateKey as any); //
+        const privateKey1 = await derToPrivateKey(privateKey as unknown as ArrayBuffer); //
         return KeyObject.from(privateKey1);
     } else if (typeof privateKey === "string") {
         try {
@@ -34,8 +34,8 @@ export async function _coercePrivateKey(privateKey: any): Promise<KeyObject> {
             doDebug && console.log(privateKey);
             throw err;
         }
-    } else if (privateKey instanceof KeyObject) {
-        return privateKey;
+    } else if (isKeyObject(privateKey)) {
+        return privateKey as KeyObject;
     }
     throw new Error("Invalid privateKey");
 }

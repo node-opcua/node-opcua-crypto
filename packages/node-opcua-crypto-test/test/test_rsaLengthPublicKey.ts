@@ -23,8 +23,7 @@
 
 import { createPublicKey } from "node:crypto";
 import path from "node:path";
-import { rsaLengthPublicKey } from "node-opcua-crypto";
-import { readCertificate, readCertificatePEM } from "node-opcua-crypto";
+import { readCertificatePEM, rsaLengthPublicKey } from "node-opcua-crypto";
 
 describe("rsaLengthPublicKey", () => {
     it("rsaLengthPublicKey - 1024", () => {

@@ -1,5 +1,5 @@
-import assert from "assert";
-import { BlockInfo, readObjectIdentifier, readStruct, readValue } from "./asn1";
+import assert from "node:assert";
+import { type BlockInfo, readObjectIdentifier, readStruct, readValue } from "./asn1";
 
 export interface DirectoryName {
     stateOrProvinceName?: string;
@@ -26,7 +26,7 @@ export function readDirectoryName(buffer: Buffer, block: BlockInfo): DirectoryNa
         assert(sequenceBlock.length === 2);
 
         const type = readObjectIdentifier(buffer, sequenceBlock[0]);
-        (names as any)[type.name] = readValue(buffer, sequenceBlock[1]);
+        names[type.name as keyof DirectoryName] = readValue(buffer, sequenceBlock[1]) as string;
     }
     return names;
 }

@@ -8,7 +8,9 @@
         "build:test": "cd packages/node-opcua-crypto-test && npm run build",
         "build": "npm run build:crypto && npm run build:test",
         "test": "cd packages/node-opcua-crypto-test && npm run test",
-        "lint": "eslint . --ext .ts",
+        "lint": "biome lint",
+        "format": "biome format --write",
+        "check": "biome check",
         "makedoc": "cd packages/node-opcua-crypto && npm run makedoc",
         "cost-of-modules": "npx cost-of-modules --no-install",
         "prettier-format": "prettier --config .prettierrc.js packages/**/source/**/*.ts packages/**/test/**/*.ts --write",
@@ -45,11 +47,7 @@
     "dependencies": {
         "@types/node": "^24.0.1",
         "cross-env": "^10.1.0",
-        "eslint": "^9.39.2",
-        "eslint-config-prettier": "^10.1.8",
-        "eslint-plugin-prettier": "^5.5.4",
         "glob": "^13.0.0",
-        "mocha": "^11.7.5",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
@@ -57,9 +55,9 @@
         "typescript": "^5.9.3"
     },
     "devDependencies": {
-       "@eslint/eslintrc": "^3.3.3",
-        "@eslint/js": "^9.39.2",
+        "@biomejs/biome": "^2.4.2",
         "@rollup/plugin-node-resolve": "^16.0.3",
+        "mocha": "^11.7.5",
         "rollup-plugin-polyfill-node": "^0.13.0",
         "vite": "^7.3.1",
         "vite-plugin-node-polyfills": "^0.25.0"

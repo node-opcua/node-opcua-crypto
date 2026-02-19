@@ -24,12 +24,12 @@
 /**
  * @module node_opcua_crypto
  */
-import assert from "assert";
-import { createCipheriv, createDecipheriv, createHmac } from "crypto";
+import assert from "node:assert";
+import { createCipheriv, createDecipheriv, createHmac } from "node:crypto";
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
-import { Nonce } from "./common.js";
-import { verifyMessageChunkSignature, VerifyMessageChunkSignatureOptions } from "./crypto_utils.js";
+import type { Nonce } from "./common.js";
+import { type VerifyMessageChunkSignatureOptions, verifyMessageChunkSignature } from "./crypto_utils.js";
 import { exploreCertificateInfo } from "./explore_certificate.js";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
@@ -238,7 +238,7 @@ export function verifyChunkSignature(chunk: Buffer, options: VerifyChunkSignatur
 //
 
 export function computePaddingFooter(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
-    assert(Object.prototype.hasOwnProperty.call(derivedKeys, "encryptingBlockSize"));
+    assert(Object.hasOwn(derivedKeys, "encryptingBlockSize"));
     const paddingSize = derivedKeys.encryptingBlockSize - ((buffer.length + 1) % derivedKeys.encryptingBlockSize);
     const padding = createFastUninitializedBuffer(paddingSize + 1);
     padding.fill(paddingSize);
@@ -246,7 +246,7 @@ export function computePaddingFooter(buffer: Buffer, derivedKeys: DerivedKeys): 
 }
 
 function derivedKeys_algorithm(derivedKeys: DerivedKeys) {
-    assert(Object.prototype.hasOwnProperty.call(derivedKeys, "algorithm"));
+    assert(Object.hasOwn(derivedKeys, "algorithm"));
     const algorithm = derivedKeys.algorithm || "aes-128-cbc";
     assert(algorithm === "aes-128-cbc" || algorithm === "aes-256-cbc");
     return algorithm;

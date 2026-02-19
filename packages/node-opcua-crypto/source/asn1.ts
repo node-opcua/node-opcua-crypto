@@ -1,6 +1,6 @@
-import assert from "assert";
+import assert from "node:assert";
+import type { DirectoryName } from "./directory_name.js";
 import { oid_map } from "./oid_map.js";
-import { DirectoryName } from "./directory_name.js";
 // https://github.com/lapo-luchini/asn1js/blob/master/asn1.js
 export enum TagType {
     BOOLEAN = 0x01,
@@ -44,7 +44,7 @@ export function readTag(buf: Buffer, pos: number): BlockInfo {
     const start = pos;
     // istanbul ignore next
     if (buf.length <= pos) {
-        throw new Error("Invalid position : buf.length=" + buf.length + " pos =" + pos);
+        throw new Error(`Invalid position : buf.length=${buf.length} pos=${pos}`);
     }
     const tag = buf.readUInt8(pos);
     pos += 1;
@@ -80,7 +80,7 @@ export function readStruct(buf: Buffer, blockInfo: BlockInfo): BlockInfo[] {
 export function parseBitString(buffer: Buffer, start: number, end: number, maxLength: number): string {
     const unusedBit = buffer.readUInt8(start),
         lenBit = ((end - start - 1) << 3) - unusedBit,
-        intro = "(" + lenBit + " bit)\n";
+        intro = `(${lenBit} bit)\n`;
 
     let s = "",
         skip = unusedBit;
@@ -102,7 +102,7 @@ export interface BitString {
     lengthInBits: number;
     lengthInBytes: number;
     data: Buffer;
-    debug?: any;
+    debug?: string;
 }
 
 export function readBitString(buffer: Buffer, block: BlockInfo): BitString {
@@ -122,7 +122,7 @@ export function readBitString(buffer: Buffer, block: BlockInfo): BitString {
 export function formatBuffer2DigitHexWithColum(buffer: Buffer): string {
     const value: string[] = [];
     for (let i = 0; i < buffer.length; i++) {
-        value.push(("00" + buffer.readUInt8(i).toString(16)).substr(-2, 2));
+        value.push(`00${buffer.readUInt8(i).toString(16)}`.substr(-2, 2));
     }
     // remove leading 00
     return value
@@ -183,9 +183,9 @@ function parseOID(buffer: Buffer, start: number, end: number): string {
             // finished
             if (s === "") {
                 const m = n < 80 ? (n < 40 ? 0 : 1) : 2;
-                s = m + "." + (n - m * 40);
+                s = `${m}.${n - m * 40}`;
             } else {
-                s += "." + n.toString();
+                s += `.${n.toString()}`;
             }
             n = 0;
             bits = 0;
@@ -251,11 +251,11 @@ export function readIntegerValue(buffer: Buffer, block: BlockInfo): number {
 }
 
 export function readBooleanValue(buffer: Buffer, block: BlockInfo): boolean {
-    assert(block.tag === TagType.BOOLEAN, "expecting a BOOLEAN tag. got " + TagType[block.tag]);
+    assert(block.tag === TagType.BOOLEAN, `expecting a BOOLEAN tag. got ${TagType[block.tag]}`);
     const pos = block.position;
     const nbBytes = block.length;
     assert(nbBytes < 4);
-    const value = buffer.readUInt8(pos) ? true : false;
+    const value = !!buffer.readUInt8(pos);
     return value as boolean;
 }
 
@@ -341,7 +341,7 @@ function convertUTCTime(str: string): Date {
     return new Date(Date.UTC(year, month, day, hours, mins, secs));
 }
 
-export function readValue(buffer: Buffer, block: BlockInfo): any {
+export function readValue(buffer: Buffer, block: BlockInfo): unknown {
     switch (block.tag) {
         case TagType.BOOLEAN:
             return readBooleanValue(buffer, block);
@@ -358,7 +358,7 @@ export function readValue(buffer: Buffer, block: BlockInfo): any {
         case TagType.GeneralizedTime:
             return convertGeneralizedTime(getBlock(buffer, block).toString("ascii"));
         default:
-            throw new Error("Invalid tag 0x" + block.tag.toString(16) + "");
+            throw new Error(`Invalid tag 0x${block.tag.toString(16)}`);
         //xx return " ??? <" + block.tag + ">";
     }
 }
@@ -375,6 +375,6 @@ export function findBlockAtIndex(blocks: BlockInfo[], index: number): BlockInfo 
     return tmp[0];
 }
 
-export function readTime(buffer: Buffer, block: BlockInfo): any {
+export function readTime(buffer: Buffer, block: BlockInfo): unknown {
     return readValue(buffer, block);
 }

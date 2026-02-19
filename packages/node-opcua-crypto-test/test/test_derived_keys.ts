@@ -21,25 +21,25 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import should from "should";
 import * as loremIpsum1 from "lorem-ipsum";
 import {
+    type ComputeDerivedKeysOptions,
     computeDerivedKeys,
-    ComputeDerivedKeysOptions,
-    makePseudoRandomBuffer,
     computePaddingFooter,
-    encryptBufferWithDerivedKeys,
     decryptBufferWithDerivedKeys,
-    removePadding,
-    reduceLength,
+    encryptBufferWithDerivedKeys,
     makeMessageChunkSignatureWithDerivedKeys,
+    makePseudoRandomBuffer,
+    reduceLength,
+    removePadding,
     verifyChunkSignatureWithDerivedKeys,
 } from "node-opcua-crypto";
+import should from "should";
 
 const loremIpsum = loremIpsum1.loremIpsum({ count: 100 });
 
 // tslint:disable-next-line:unused-constant
-const should_ = should;
+const _should = should;
 
 loremIpsum.length.should.be.greaterThan(100);
 
@@ -47,7 +47,7 @@ function make_lorem_ipsum_buffer(): Buffer {
     return Buffer.from(loremIpsum);
 }
 
-describe("test derived key making", function () {
+describe("test derived key making", () => {
     const secret = Buffer.from("my secret");
     const seed = Buffer.from("my seed");
 
@@ -76,14 +76,14 @@ describe("test derived key making", function () {
         sha1or256: "SHA256",
     };
 
-    it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA1", function () {
+    it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA1", () => {
         const minLength = 256;
         const buf = makePseudoRandomBuffer(secret, seed, minLength, "SHA1");
         buf.length.should.be.equal(minLength);
         //xx console.log(hexDump(buf));
     });
 
-    it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA256", function () {
+    it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA256", () => {
         const min_length = 256;
         const buf = makePseudoRandomBuffer(secret, seed, min_length, "SHA256");
         buf.length.should.be.equal(min_length);
@@ -136,7 +136,7 @@ describe("test derived key making", function () {
         perform_symmetric_encryption_test(options_AES_256_CBC_SHA256, done);
     });
 
-    it("should produce a smaller buffer (reduceLength)", function () {
+    it("should produce a smaller buffer (reduceLength)", () => {
         const buffer = Buffer.from("Hello World", "ascii");
         const reduced = reduceLength(buffer, 6);
         reduced.toString("ascii").should.equal("Hello");
@@ -163,17 +163,17 @@ describe("test derived key making", function () {
         verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(false);
     }
 
-    it("demonstrating how to use derived keys for signature - AES_128_CBC", function () {
+    it("demonstrating how to use derived keys for signature - AES_128_CBC", () => {
         test_verifyChunkSignatureWithDerivedKeys(options_AES_128_CBC);
     });
-    it("demonstrating how to use derived keys for signature - AES_256_CBC", function () {
+    it("demonstrating how to use derived keys for signature - AES_256_CBC", () => {
         test_verifyChunkSignatureWithDerivedKeys(options_AES_256_CBC);
     });
-    it("demonstrating how to use derived keys for signature - AES_256_CBC_SHA256", function () {
+    it("demonstrating how to use derived keys for signature - AES_256_CBC_SHA256", () => {
         test_verifyChunkSignatureWithDerivedKeys(options_AES_256_CBC_SHA256);
     });
 
-    it("should compute key using keysize, client and server keys.", function (done) {
+    it("should compute key using keysize, client and server keys.", (done) => {
         // see https://github.com/leandrob/node-psha1/blob/master/test/lib.index.js#L4
         const secret1 = Buffer.from("GS5olVevYMI4vW1Df/7FUpHcJJopTszp6sodlK4/rP8=", "base64");
         const seed1 = Buffer.from("LmF9Mjf9lYMa9YkxZDjaRFe6iMAfReKjzhLHDx376jA=", "base64");
@@ -182,7 +182,7 @@ describe("test derived key making", function () {
         done();
     });
 
-    it("should create derived keys (computeDerivedKeys)", function () {
+    it("should create derived keys (computeDerivedKeys)", () => {
         const options: ComputeDerivedKeysOptions = options_AES_128_CBC;
         const derivedKeys = computeDerivedKeys(secret, seed, options);
 

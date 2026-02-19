@@ -22,8 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
+import type { CertificateRevocationList } from "../source/common.js";
 import { convertPEMtoDER } from "../source/crypto_utils.js";
-import { CertificateRevocationList } from "../source/common.js";
 
 export async function readCertificateRevocationList(filename: string): Promise<CertificateRevocationList> {
     const crl = await fs.promises.readFile(filename);

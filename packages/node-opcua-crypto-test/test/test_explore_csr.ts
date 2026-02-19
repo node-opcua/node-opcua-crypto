@@ -22,9 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import path from "node:path";
-import { exploreCertificateSigningRequest } from "node-opcua-crypto";
-
-import { readCertificateSigningRequest } from "node-opcua-crypto";
+import { exploreCertificateSigningRequest, readCertificateSigningRequest } from "node-opcua-crypto";
 
 const doDebug = !!process.env.DEBUG;
 

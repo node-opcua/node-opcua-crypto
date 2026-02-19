@@ -20,8 +20,7 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
-import { x509 } from "./_crypto.js";
-import { getCrypto } from "./_crypto.js";
+import { getCrypto, x509 } from "./_crypto.js";
 
 export async function generateKeyPair(modulusLength: 1024 | 2048 | 3072 | 4096 = 2048): Promise<CryptoKeyPair> {
     const crypto = getCrypto();
@@ -34,7 +33,7 @@ export async function generateKeyPair(modulusLength: 1024 | 2048 | 3072 | 4096 =
     };
     const keys = await crypto.subtle.generateKey(alg, true, ["sign", "verify"]);
 
-    return keys;
+    return keys as CryptoKeyPair;
 }
 
 /**
@@ -57,7 +56,7 @@ export async function privateKeyToPEM(privateKey: CryptoKey) {
 export async function derToPrivateKey(privDer: ArrayBuffer): Promise<CryptoKey> {
     const crypto = getCrypto();
 
-    return await crypto.subtle.importKey(
+    const importedKey = await crypto.subtle.importKey(
         "pkcs8",
         privDer,
         {
@@ -74,8 +73,9 @@ export async function derToPrivateKey(privDer: ArrayBuffer): Promise<CryptoKey> 
             //    "unwrapKey",
             //    "deriveKey",
             //    "deriveBits"
-        ]
+        ],
     );
+    return importedKey as CryptoKey;
 }
 
 export async function pemToPrivateKey(pem: string): Promise<CryptoKey> {

@@ -21,32 +21,32 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-/**
- * @module node_opcua_crypto
- */
-export { publicKeyAndPrivateKeyMatches, certificateMatchesPrivateKey } from "./public_private_match.js";
 //xx export * from "./asn1.js";
 export * from "./common.js";
 export * from "./crypto_explore_certificate.js";
 export * from "./crypto_utils.js";
 export * from "./crypto_utils2.js";
 export * from "./derived_keys.js";
+export { DirectoryName } from "./directory_name.js";
 export * from "./explore_asn1.js";
+export * from "./explore_certificate.js";
+export * from "./explore_certificate.js";
 export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
-export * from "./explore_certificate.js";
-export * from "./explore_certificate.js";
 export * from "./explore_private_key.js";
 export * from "./make_private_key_from_pem.js";
 export * from "./make_private_key_thumbprint.js";
+/**
+ * @module node_opcua_crypto
+ */
+export { certificateMatchesPrivateKey, publicKeyAndPrivateKeyMatches } from "./public_private_match.js";
 export * from "./subject.js";
 export * from "./verify_certificate_signature.js";
 export * from "./x509/coerce_private_key.js";
 export * from "./x509/create_certificate_signing_request.js";
 export * from "./x509/create_key_pair.js";
 export * from "./x509/create_self_signed_certificate.js";
-export { DirectoryName } from "./directory_name.js";
 
+import { readAlgorithmIdentifier, readSignatureValueBin, readStruct, readTag } from "./asn1.js";
 import { readDirectoryName } from "./directory_name.js";
-import { readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin } from "./asn1.js";
 export const asn1 = { readDirectoryName, readTag, readStruct, readAlgorithmIdentifier, readSignatureValueBin };

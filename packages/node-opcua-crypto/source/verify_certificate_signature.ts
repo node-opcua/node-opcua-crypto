@@ -28,12 +28,11 @@
 // (in this case SHA-384). In order to do that, we need to extract just the body of
 // the signed certificate. Which, in our case, is everything but the signature.
 // The start of the body is always the first digit of the second line of the following command:
-import { createVerify } from "crypto";
-
-import { Certificate } from "./common.js";
-import { split_der, exploreCertificate } from "./crypto_explore_certificate.js";
+import { createVerify } from "node:crypto";
+import { readAlgorithmIdentifier, readSignatureValueBin, readStruct, readTag } from "./asn1.js";
+import type { Certificate } from "./common.js";
+import { exploreCertificate, split_der } from "./crypto_explore_certificate.js";
 import { toPem } from "./crypto_utils.js";
-import { readAlgorithmIdentifier, readSignatureValueBin, readTag, readStruct } from "./asn1.js";
 
 export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);
@@ -58,7 +57,7 @@ export function verifyCertificateSignature(certificate: Certificate, parentCerti
 }
 export function verifyCertificateRevocationListSignature(
     certificateRevocationList: Certificate,
-    parentCertificate: Certificate
+    parentCertificate: Certificate,
 ): boolean {
     return verifyCertificateOrClrSignature(certificateRevocationList, parentCertificate);
 }
@@ -74,10 +73,10 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
 
         // parent child must have keyCertSign
         const certParentInfo = exploreCertificate(certParent);
-        const keyUsage = certParentInfo.tbsCertificate.extensions!.keyUsage!;
+        const keyUsage = certParentInfo.tbsCertificate.extensions?.keyUsage;
 
         // istanbul ignore next
-        if (!keyUsage.keyCertSign) {
+        if (!keyUsage || !keyUsage.keyCertSign) {
             return {
                 status: "BadCertificateIssuerUseNotAllowed",
                 reason: "One of the certificate in the chain has not keyUsage set for Certificate Signing",

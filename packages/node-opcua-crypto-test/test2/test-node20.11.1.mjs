@@ -1,10 +1,11 @@
+import constants from "node:constants";
+import { createPrivateKey, createPublicKey, privateDecrypt, publicEncrypt } from "node:crypto";
+import fs from "node:fs";
+
 import * as loremIpsum1 from "lorem-ipsum";
-import fs from "fs";
-import constants from "constants";
 import sshpk from "sshpk";
 import "should";
 
-import { publicEncrypt, privateDecrypt, createPrivateKey, createPublicKey } from "crypto";
 const PaddingAlgorithm = {
     RSA_PKCS1_OAEP_PADDING: 4,
     RSA_PKCS1_PADDING: 1,
@@ -22,7 +23,7 @@ export function publicEncrypt_native(buffer, publicKey, algorithm) {
             key: publicKey,
             padding: algorithm,
         },
-        buffer
+        buffer,
     );
 }
 
@@ -37,7 +38,7 @@ export function privateDecrypt_native(buffer, privateKey, algorithm) {
                 key: privateKey.hidden,
                 padding: algorithm,
             },
-            buffer
+            buffer,
         );
     } catch (err) {
         console.log("privateDecrypt_native error", err);
@@ -50,7 +51,7 @@ export function publicEncrypt_long(buffer, publicKey, blockSize, padding, paddin
         paddingAlgorithm = PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING;
     }
     if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
-        throw new Error("Invalid padding algorithm " + paddingAlgorithm);
+        throw new Error(`Invalid padding algorithm ${paddingAlgorithm}`);
     }
 
     const chunk_size = blockSize - padding;
@@ -74,7 +75,7 @@ export function privateDecrypt_long(buffer, privateKey, blockSize, paddingAlgori
     paddingAlgorithm = paddingAlgorithm || RSA_PKCS1_OAEP_PADDING;
     // istanbul ignore next
     if (paddingAlgorithm !== RSA_PKCS1_PADDING && paddingAlgorithm !== RSA_PKCS1_OAEP_PADDING) {
-        throw new Error("Invalid padding algorithm " + paddingAlgorithm);
+        throw new Error(`Invalid padding algorithm ${paddingAlgorithm}`);
     }
 
     const nbBlocks = Math.ceil(buffer.length / blockSize);
@@ -103,11 +104,11 @@ function readPublicRsaKey(filename) {
     const content = fs.readFileSync(filename, "utf-8");
     const sshKey = sshpk.parseKey(content, "ssh");
     const key = sshKey.toString("pkcs1");
-    console.log("publicKey=\n" + key);
+    console.log(`publicKey=\n${key}`);
     return createPublicKey({ format: "pem", type: "pkcs1", key });
 }
 
-const loremIpsum = loremIpsum1.loremIpsum({ count: 100 });
+const _loremIpsum = loremIpsum1.loremIpsum({ count: 100 });
 
 const bob_public_key = readPublicRsaKey("./test-fixtures/certs/bob_id_rsa.pub", "utf-8");
 console.log(bob_public_key);

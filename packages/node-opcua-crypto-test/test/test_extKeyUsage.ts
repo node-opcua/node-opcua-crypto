@@ -22,8 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import path from "node:path";
-import should from "should";
 import { exploreCertificate, readCertificate } from "node-opcua-crypto";
+import should from "should";
 
 describe("X509ExtKeyUsage", () => {
     it("should parse extKeyUsage 1", () => {
@@ -32,10 +32,10 @@ describe("X509ExtKeyUsage", () => {
 
         const info = exploreCertificate(certificate);
         should.exists(info.tbsCertificate.extensions);
-        should.exists(info.tbsCertificate.extensions!.extKeyUsage);
+        should.exists(info.tbsCertificate.extensions.extKeyUsage);
 
-        info.tbsCertificate.extensions!.extKeyUsage!.serverAuth.should.eql(true);
-        info.tbsCertificate.extensions!.extKeyUsage!.clientAuth.should.eql(true);
+        info.tbsCertificate.extensions.extKeyUsage.serverAuth.should.eql(true);
+        info.tbsCertificate.extensions.extKeyUsage.clientAuth.should.eql(true);
     });
     it("should parse extKeyUsage 2", () => {
         const certificateFile = path.join(__dirname, "../test-fixtures/certificate_with_extKeyUsage2.pem");
@@ -43,11 +43,11 @@ describe("X509ExtKeyUsage", () => {
 
         const info = exploreCertificate(certificate);
         should.exists(info.tbsCertificate.extensions);
-        should.exists(info.tbsCertificate.extensions!.extKeyUsage);
+        should.exists(info.tbsCertificate.extensions.extKeyUsage);
 
-        info.tbsCertificate.extensions!.extKeyUsage!.serverAuth.should.eql(true);
-        info.tbsCertificate.extensions!.extKeyUsage!.clientAuth.should.eql(true);
+        info.tbsCertificate.extensions.extKeyUsage.serverAuth.should.eql(true);
+        info.tbsCertificate.extensions.extKeyUsage.clientAuth.should.eql(true);
 
-        console.log(info.tbsCertificate.extensions!.extKeyUsage!);
+        console.log(info.tbsCertificate.extensions.extKeyUsage);
     });
 });

@@ -25,14 +25,10 @@
 /**
  * @module node_opcua_crypto
  */
-import assert from "assert";
-
-import { KeyObject, isKeyObject } from "./common.js";
-
-import { PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "./common.js";
-import { removeTrailingLF, toPem } from "./crypto_utils.js";
-
+import assert from "node:assert";
 import jsrsasign from "jsrsasign";
+import { isKeyObject, type KeyObject, type PrivateKey, type PrivateKeyPEM, type PublicKey, type PublicKeyPEM } from "./common.js";
+import { removeTrailingLF, toPem } from "./crypto_utils.js";
 
 /***
  * @method rsaLengthPrivateKey
@@ -45,7 +41,7 @@ export function rsaLengthPrivateKey(key: PrivateKey): number {
     // in node 16 and above :
     // return o.asymmetricKeyDetails.modulusLength/8
     // in node <16 :
-    const a = jsrsasign.KEYUTIL.getKey(keyPem) as any;
+    const a = jsrsasign.KEYUTIL.getKey(keyPem) as unknown as { n: { toString(radix?: number): string } };
     return a.n.toString(16).length / 2;
 }
 
@@ -115,12 +111,12 @@ export function coerceRsaPublicKeyPem(publicKey: PublicKey | KeyObject | PublicK
 export function rsaLengthPublicKey(key: PublicKeyPEM | PublicKey): number {
     key = coercePublicKeyPem(key);
     assert(typeof key === "string");
-    const a = jsrsasign.KEYUTIL.getKey(key) as any;
+    const a = jsrsasign.KEYUTIL.getKey(key) as unknown as { n: { toString(radix?: number): string } };
     return a.n.toString(16).length / 2;
 }
 export function rsaLengthRsaPublicKey(key: PublicKeyPEM | PublicKey): number {
     key = coerceRsaPublicKeyPem(key);
     assert(typeof key === "string");
-    const a = jsrsasign.KEYUTIL.getKey(key) as any;
+    const a = jsrsasign.KEYUTIL.getKey(key) as unknown as { n: { toString(radix?: number): string } };
     return a.n.toString(16).length / 2;
 }
