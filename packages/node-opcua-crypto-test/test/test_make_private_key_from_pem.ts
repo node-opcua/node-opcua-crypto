@@ -1,5 +1,4 @@
 import path from "node:path";
-import "should";
 import {
     coercePEMorDerToPrivateKey,
     coercePrivateKeyPem,
@@ -10,6 +9,7 @@ import {
     readPrivateKey,
     rsaLengthPrivateKey,
 } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 describe("makePrivateKeyFromPem", () => {
     it("should make a private key from pem", async () => {
@@ -23,9 +23,9 @@ describe("makePrivateKeyFromPem", () => {
 
         const privateKey2 = makePrivateKeyFromPem(pem);
         const pem2 = coercePrivateKeyPem(privateKey2);
-        pem2.trimEnd().should.eql(pem.trimEnd());
+        expect(pem2.trimEnd()).toEqual(pem.trimEnd());
 
-        rsaLengthPrivateKey(privateKey).should.eql(2048 / 8);
+        expect(rsaLengthPrivateKey(privateKey)).toEqual(2048 / 8);
     });
 
     it("should make a private key from pem", async () => {
@@ -37,8 +37,8 @@ describe("makePrivateKeyFromPem", () => {
 
         const privateKey2 = makePrivateKeyFromPem(pem);
         const pem2 = coercePrivateKeyPem(privateKey2);
-        pem2.should.eql(pem);
+        expect(pem2).toEqual(pem);
 
-        rsaLengthPrivateKey(privateKey).should.eql(2048 / 8);
+        expect(rsaLengthPrivateKey(privateKey)).toEqual(2048 / 8);
     });
 });

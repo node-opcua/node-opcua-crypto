@@ -2,6 +2,7 @@
 // https://github.com/kjur/jsrsasign/wiki/Tutorial-for-generating-X.509-certificate
 
 import jsrsasign from "jsrsasign";
+import { describe, it } from "vitest";
 
 describe("testing X509 certificate creating with jsrsasign", () => {
     it("should create an X509 certificate using jsrsasign", () => {

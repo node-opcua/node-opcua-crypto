@@ -23,6 +23,7 @@
 
 import path from "node:path";
 import { makeSHA1Thumbprint, readCertificate } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 describe("makeSHA1Thumbprint", () => {
     it("should calculate a certificate SHA1-thumbprint", () => {
@@ -30,6 +31,6 @@ describe("makeSHA1Thumbprint", () => {
             path.join(__dirname, "../test-fixtures/NodeOPCUA [40BA2E8A5BEEC90067A7E554C5F3F2ECDD5BCDDF].der"),
         );
         const thumbprint = makeSHA1Thumbprint(cert);
-        thumbprint.toString("hex").toUpperCase().should.eql("40BA2E8A5BEEC90067A7E554C5F3F2ECDD5BCDDF");
+        expect(thumbprint.toString("hex").toUpperCase()).toEqual("40BA2E8A5BEEC90067A7E554C5F3F2ECDD5BCDDF");
     });
 });

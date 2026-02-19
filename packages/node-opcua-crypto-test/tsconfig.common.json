@@ -9,8 +9,12 @@
         "strict": true,
         "listFiles": false,
         "traceResolution": false,
-        "types": ["node", "mocha", "should"],
+        "types": [
+            "node"
+        ],
         "rootDir": "."
     },
-    "include": ["./test/*.ts"]
+    "include": [
+        "./test/*.ts"
+    ]
 }

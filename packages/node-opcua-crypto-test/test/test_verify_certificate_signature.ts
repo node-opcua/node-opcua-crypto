@@ -32,44 +32,37 @@ import {
     toPem2,
     verifyCertificateSignature,
 } from "node-opcua-crypto";
-import should from "should";
+import { describe, expect, it } from "vitest";
 
 function investigateCertificateSignature(certificate: Certificate, caPrivateKey?: PrivateKey): void {
     const block_info = asn1.readTag(certificate, 0);
     const blocks = asn1.readStruct(certificate, block_info);
 
-    //  console.log(block_info, blocks[0], blocks[1], blocks[2]);
     const bufferTbsCertificate = certificate.subarray(block_info.position, block_info.position + 4 + blocks[0].length);
 
-    // console.log("bufferTbsCertificate = ", bufferTbsCertificate.length);
     const signatureAlgorithm = asn1.readAlgorithmIdentifier(certificate, blocks[1]);
 
     const signatureValue = asn1.readSignatureValueBin(certificate, blocks[2]);
-    // console.log("", ellipsis(signatureValue.toString("hex")), signatureValue.length);
 
     function testPadding(padding: number, saltLength?: number): boolean {
         const sign = createSign(signatureAlgorithm.identifier);
         sign.update(bufferTbsCertificate);
-        // verify.update(bufferSignatureAlgo);
         sign.end();
 
         const signOption: SignPrivateKeyInput = {
-            key: toPem2(caPrivateKey.hidden, "RSA PRIVATE KEY"),
+            key: toPem2(caPrivateKey?.hidden || "", "RSA PRIVATE KEY"),
             padding,
         };
-        // the following circumvolution is needed to make it work with node< 12
         if (saltLength) {
             signOption.saltLength = saltLength;
         }
         const sign1 = sign.sign(signOption);
-        // console.log("RRR=", padding, saltLength, ellipsis(sign1.toString("hex")), sign1.length);
         if (sign1.toString("hex") === signatureValue.toString("hex")) {
-            //  console.log("Found !!!!! => see below");
             return true;
         }
         return false;
     }
-    should(testPadding(constants.RSA_PKCS1_PADDING)).eql(true);
+    expect(testPadding(constants.RSA_PKCS1_PADDING)).toEqual(true);
 
     // biome-ignore lint/correctness/noConstantCondition: this is for debugging purpose
     if (false) {
@@ -84,7 +77,6 @@ function investigateCertificateSignature(certificate: Certificate, caPrivateKey?
         testPadding(constants.RSA_PKCS1_PADDING, constants.RSA_PSS_SALTLEN_AUTO);
         testPadding(constants.RSA_PKCS1_PSS_PADDING, constants.RSA_PSS_SALTLEN_AUTO);
         testPadding(constants.RSA_X931_PADDING, constants.RSA_PSS_SALTLEN_AUTO);
-        // testPadding(constants.RSA_NO_PADDING);
     }
 }
 
@@ -98,15 +90,15 @@ describe("Verify Certificate Signature", () => {
     it("WW should verify the signature of certificate signed by a CA", () => {
         const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
-        should(verifyCertificateSignature(certificate1, certificate2)).eql(true);
+        expect(verifyCertificateSignature(certificate1, certificate2)).toEqual(true);
     });
     it("WW should verify the signature of a self-signed certificate", () => {
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
-        should(verifyCertificateSignature(certificate2, certificate2)).eql(true);
+        expect(verifyCertificateSignature(certificate2, certificate2)).toEqual(true);
     });
     it("WW should fail when verifying a signature with the wrong parent certificate ", () => {
         const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"));
-        should(verifyCertificateSignature(certificate1, certificate2)).eql(false);
+        expect(verifyCertificateSignature(certificate1, certificate2)).toEqual(false);
     });
 });

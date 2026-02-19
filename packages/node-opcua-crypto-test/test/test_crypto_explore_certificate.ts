@@ -36,17 +36,14 @@ import {
     readCertificatePEM,
     split_der,
 } from "node-opcua-crypto";
-import should from "should";
+import { describe, expect, it } from "vitest";
 
-describe(" exploring Certificates", function (this: Mocha.Suite) {
-    this.timeout(200000);
+describe(" exploring Certificates", { timeout: 200000 }, () => {
     it("should extract the information out of a 1024-bits certificate", () => {
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem"));
 
-        //xx console.log(hexDump(certificate));
         const certificate_info = exploreCertificate(certificate);
 
-        //xx console.log(certificate_info.tbsCertificate);
         console.log(" Version                   : ", certificate_info.tbsCertificate.version);
         console.log(" issuer.commonName         : ", certificate_info.tbsCertificate.issuer.commonName);
         console.log(
@@ -55,137 +52,114 @@ describe(" exploring Certificates", function (this: Mocha.Suite) {
         );
         console.log(" dNSName                   : ", certificate_info.tbsCertificate.extensions?.subjectAltName?.dNSName);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(128);
-        should(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).eql(1);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).toEqual(128);
+        expect(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).toEqual(1);
     });
 
     it("should extract the information out of a 2048-bits certificate ", () => {
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_2048.pem"));
 
-        // console.log(hexDump(certificate))
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(256);
-        should.exist(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier);
-        should(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).eql(1);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).toEqual(256);
+        expect(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier).toBeDefined();
+        expect(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).toEqual(1);
     });
 
     it("should extract the information out of a 4096-bits certificate - 1", () => {
-        //  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -config toto.cnf -nodes -subj '/CN=localhost' -sha256
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate_4096.pem"));
 
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(512);
-        should.exist(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier);
-        should(certificate_info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier?.length).eql(1);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).toEqual(512);
     });
 
     it("should read a V3 X509 self-certificate (with extensions)", () => {
         const filename = path.join(__dirname, "../test-fixtures/certs/demo_certificate.pem");
-        fs.existsSync(filename).should.equal(true);
+        expect(fs.existsSync(filename)).toBe(true);
 
         const certificate = readCertificate(filename);
-        //xx console.log(certificate.toString("base64"));
 
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
 
-        // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
-        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions.authorityCertIssuer,{colors:true,depth:10}));
-        should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer);
-        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.countryName).eql("FR");
-        should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName);
-        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).eql("Paris");
+        expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer).toBeDefined();
+        expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.countryName).toEqual("FR");
+        expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).toBeDefined();
+        expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).toEqual(
+            "Paris",
+        );
 
-        // console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
-
-        should.exist(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier);
-        should(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).eql(
+        expect(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).toBeDefined();
+        expect(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).toEqual(
             "74:38:FD:90:B1:F1:90:51:0E:9C:65:D6:AA:AC:63:9E:BC:DC:58:2F",
         );
 
         if (certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier) {
-            // when serial and keyIdentifier are provided the certificate is not self-signed
-            should.exist(certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.serial);
-            should.exist(certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.keyIdentifier);
+            expect(certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.serial).toBeDefined();
+            expect(certificate_info.tbsCertificate.extensions.authorityKeyIdentifier.keyIdentifier).toBeDefined();
         }
     });
     it("should read a V3 X509 certificate  signed by ta CA (with extensions)", () => {
         const filename = path.join(__dirname, "../test-fixtures/certsChain/1000.pem");
-        fs.existsSync(filename).should.equal(true);
+        expect(fs.existsSync(filename)).toBe(true);
 
         const certificate = readCertificate(filename);
-        //xx console.log(certificate.toString("base64"));
 
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
 
-        // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
-        //xx console.log("x => ",util.inspect(certificate_info.tbsCertificate.extensions.authorityCertIssuer,{colors:true,depth:10}));
-        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.countryName).eql("FR");
-        should(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).eql("Paris");
+        expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.countryName).toEqual("FR");
+        expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.localityName).toEqual(
+            "Paris",
+        );
 
-        //xx console.log(util.inspect(certificate_info, { colors: true, depth: 100 }));
-
-        should.exist(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier);
-        should(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).eql(
+        expect(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).toBeDefined();
+        expect(certificate_info.tbsCertificate.extensions?.subjectKeyIdentifier).toEqual(
             "B2:75:61:AF:63:66:27:96:94:52:3F:BD:03:DB:87:01:71:DD:94:19",
         );
 
         if (certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier) {
-            // when serial and keyIdentifier are provided the certificate is not self-signed
-            should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.serial);
-            should.exist(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier);
+            expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.serial).toBeDefined();
+            expect(certificate_info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier).toBeDefined();
         }
     });
 
     it("should read a V1 X509 certificate", () => {
-        // note : http://stackoverflow.com/questions/26788244/how-to-create-a-legacy-v1-or-v2-x-509-cert-for-testing
-
         const filename = path.join(__dirname, "../test-fixtures/certs/demo_certificate_x509_V1.pem");
-        fs.existsSync(filename).should.equal(true, "certificate file must exist");
+        expect(fs.existsSync(filename)).toBe(true);
 
         const certificate = readCertificate(filename);
-        //xx console.log(certificate.toString("base64"));
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(1);
-        should(certificate_info.tbsCertificate.extensions).eql(null);
-
-        // console.log(util.inspect(certificate_info,{colors:true,depth:10}));
+        expect(certificate_info.tbsCertificate.version).toEqual(1);
+        expect(certificate_info.tbsCertificate.extensions).toEqual(null);
     });
 
     it("investigate certificate with block problem 1", () => {
-        // this certificate is Version 3 but has no Extension.
         const filename = path.join(__dirname, "../test-fixtures/certs/certificate_with_block_issue.pem");
-        fs.existsSync(filename).should.equal(true, "certificate file must exist");
+        expect(fs.existsSync(filename)).toBe(true);
 
         const certificate = readCertificate(filename);
-        //xx console.log(certificate.toString("base64"));
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
-        should(certificate_info.tbsCertificate.extensions).eql(null);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
+        expect(certificate_info.tbsCertificate.extensions).toEqual(null);
     });
     it("investigate certificate with block problem 2", () => {
-        // this certificate is Version 3 but has no Extension.
         const filename = path.join(__dirname, "../test-fixtures/certs/certificate_with_block_issue2.pem");
-        fs.existsSync(filename).should.equal(true, "certificate file must exist");
+        expect(fs.existsSync(filename)).toBe(true);
 
         const certificate = readCertificate(filename);
-        //xx console.log(certificate.toString("base64"));
         const certificate_info = exploreCertificate(certificate);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
-        should(certificate_info.tbsCertificate.extensions).not.eql(null);
-
-        // console.log(JSON.stringify(certificate_info, null, " "));
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
+        expect(certificate_info.tbsCertificate.extensions).not.toEqual(null);
     });
 
     it("AFS-01 investigate certificate with block problem 3", () => {
@@ -245,22 +219,20 @@ describe("exploring certificate chains", () => {
         const cert1_name = path.join(__dirname, "../test-fixtures/certs/client_cert_1024.pem");
         const cert2_name = path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem");
 
-        fs.existsSync(cert1_name).should.eql(true);
-        fs.existsSync(cert2_name).should.eql(true);
+        expect(fs.existsSync(cert1_name)).toEqual(true);
+        expect(fs.existsSync(cert2_name)).toEqual(true);
 
         const cert1 = readCertificate(cert1_name);
         const cert2 = readCertificate(cert2_name);
-        //xx console.log("cert1 = ",cert1.toString("base64"));
-        //xx console.log("cert2 = ",cert2.toString("base64"));
 
         const combined = combine_der([cert1, cert2]);
-        combined.toString("hex").should.equal(cert1.toString("hex") + cert2.toString("hex"));
+        expect(combined.toString("hex")).toBe(cert1.toString("hex") + cert2.toString("hex"));
 
-        combined.length.should.eql(cert1.length + cert2.length);
+        expect(combined.length).toEqual(cert1.length + cert2.length);
 
         const chain = split_der(combined);
 
-        chain.length.should.eql(2);
+        expect(chain.length).toEqual(2);
 
         // biome-ignore lint/correctness/noConstantCondition: this is for debugging purpose
         if (false) {
@@ -270,11 +242,11 @@ describe("exploring certificate chains", () => {
             console.log(chain[1].toString("hex"));
             console.log(cert2.toString("hex"));
         }
-        chain[0].length.should.eql(cert1.length);
-        chain[1].length.should.eql(cert2.length);
+        expect(chain[0].length).toEqual(cert1.length);
+        expect(chain[1].length).toEqual(cert2.length);
 
-        chain[0].toString("hex").should.eql(cert1.toString("hex"));
-        chain[1].toString("hex").should.eql(cert2.toString("hex"));
+        expect(chain[0].toString("hex")).toEqual(cert1.toString("hex"));
+        expect(chain[1].toString("hex")).toEqual(cert2.toString("hex"));
     });
 
     it("should combine 3 certificates in a single block", () => {
@@ -282,22 +254,22 @@ describe("exploring certificate chains", () => {
         const cert2_name = path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem");
         const cert3_name = path.join(__dirname, "../test-fixtures/certs/client_cert_1024.pem");
 
-        fs.existsSync(cert1_name).should.eql(true);
-        fs.existsSync(cert2_name).should.eql(true);
-        fs.existsSync(cert3_name).should.eql(true);
+        expect(fs.existsSync(cert1_name)).toEqual(true);
+        expect(fs.existsSync(cert2_name)).toEqual(true);
+        expect(fs.existsSync(cert3_name)).toEqual(true);
 
         const cert1 = readCertificate(cert1_name);
         const cert2 = readCertificate(cert2_name);
         const cert3 = readCertificate(cert3_name);
 
         const combined = combine_der([cert1, cert2, cert3]);
-        combined.toString("hex").should.equal(cert1.toString("hex") + cert2.toString("hex") + cert3.toString("hex"));
+        expect(combined.toString("hex")).toBe(cert1.toString("hex") + cert2.toString("hex") + cert3.toString("hex"));
 
-        combined.length.should.eql(cert1.length + cert2.length + cert3.length);
+        expect(combined.length).toEqual(cert1.length + cert2.length + cert3.length);
 
         const chain = split_der(combined);
 
-        chain.length.should.eql(3);
+        expect(chain.length).toEqual(3);
 
         // biome-ignore lint/correctness/noConstantCondition: this is for debugging purpose
         if (false) {
@@ -310,55 +282,39 @@ describe("exploring certificate chains", () => {
             console.log(chain[2].toString("hex"));
             console.log(cert3.toString("hex"));
         }
-        chain[0].length.should.eql(cert1.length);
-        chain[1].length.should.eql(cert2.length);
-        chain[2].length.should.eql(cert3.length);
+        expect(chain[0].length).toEqual(cert1.length);
+        expect(chain[1].length).toEqual(cert2.length);
+        expect(chain[2].length).toEqual(cert3.length);
 
-        chain[0].toString("hex").should.eql(cert1.toString("hex"));
-        chain[1].toString("hex").should.eql(cert2.toString("hex"));
-        chain[2].toString("hex").should.eql(cert3.toString("hex"));
+        expect(chain[0].toString("hex")).toEqual(cert1.toString("hex"));
+        expect(chain[1].toString("hex")).toEqual(cert2.toString("hex"));
+        expect(chain[2].toString("hex")).toEqual(cert3.toString("hex"));
     });
 });
 
 describe("explore ECC certificates", () => {
     it("should extract information from a prime256v1 ECC certificate", () => {
-        //generated by following command lines
-        //openssl ecparam -name prime256v1 -genkey -noout -out private-key.pem
-        //openssl ec -in private-key.pem -pubout -out public-key.pem
-        //openssl req -new -x509 -key private-key.pem -out cert.pem -days 360
-
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/prime256_certif.pem"));
-        //xx console.log(hexDump(certificate));
         const certificate_info = exploreCertificate(certificate);
         console.log(" Version                   : ", certificate_info.tbsCertificate.version);
         console.log(" issuer.countryName        : ", certificate_info.tbsCertificate.issuer.countryName);
 
-        should(certificate_info.tbsCertificate.version).eql(3);
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(64);
+        expect(certificate_info.tbsCertificate.version).toEqual(3);
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).toEqual(64);
     });
     it("should do the same but with a brainpool256r1 certificate", () => {
-        //generated by following command lines
-        //openssl ecparam -name brainpoolP256r1 -genkey -noout -out private-key.pem
-        //openssl ec -in private-key.pem -pubout -out public-key.pem
-        //openssl req -new -x509 -key private-key.pem -out cert.pem -days 360
-
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/brainpool256_certif.pem"));
 
         const certificate_info = exploreCertificate(certificate);
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm).eql("brainpoolP256r1");
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(64);
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm).toEqual("brainpoolP256r1");
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).toEqual(64);
     });
     it("should do the same but with a brainpoolP384r1 certificate", () => {
-        //generated by following command lines
-        //openssl ecparam -name brainpoolP384r1 -genkey -noout -out private-key.pem
-        //openssl ec -in private-key.pem -pubout -out public-key.pem
-        //openssl req -new -x509 -key private-key.pem -out cert.pem -days 360
-
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/ecc_certificates/brainpoolP384r1_certif.pem"));
 
         const certificate_info = exploreCertificate(certificate);
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm).eql("brainpoolP384r1");
-        should(certificate_info.tbsCertificate.subject.organizationName).eql("Sterfive");
-        should(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).eql(96);
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.algorithm).toEqual("brainpoolP384r1");
+        expect(certificate_info.tbsCertificate.subject.organizationName).toEqual("Sterfive");
+        expect(certificate_info.tbsCertificate.subjectPublicKeyInfo.keyLength).toEqual(96);
     });
 });

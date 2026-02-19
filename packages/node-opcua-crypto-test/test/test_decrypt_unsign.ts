@@ -22,8 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 /* cspell: disable */
 
-import "should";
 import { PaddingAlgorithm, privateDecrypt_long, toPem, verifyChunkSignature } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 import { makebuffer_from_trace } from "./helpers/makebuffer_from_trace.js";
 
 const buffer = makebuffer_from_trace(
@@ -73,7 +73,7 @@ const buffer = makebuffer_from_trace(
 00000540: 31 1c 41 91 09 fa 81 46 18 84 bc 37 c6 37 17 c5 bb 08 28 6d fe 38 ca 52 bb 2b 8f 16 06 65 f2 be    1.A..z.F..<7F7.E;.(m~8JR;+...er>
 00000560: 89 4e 8f b6 40 1e b0 29 9a 4c c6 f0 64 0a e2 d6 54 e2 73 8e bb 8f 9a 3f eb 02 bf 8c 1c 89 87 40    .N.6@.0).LFpd.bVTbs.;..?k.?....@
 00000580: f6 f1 5f e1 2d e9 c0 d8 c3 6e e4 a5 6e 2a ce b3 8f dd 1d ed b0 51 9f 2d 6f ef 23 c6 2e 67 23 c4    vq_a-i@XCnd%n*N3.].m0Q.-oo#F.g#D
-000005a0: 2d 3f f3 95 ef 18 8a ac b3 0e 99 d6 84 c4 ec af 42 63 af 3a 01 8c 3c 0c 8e a2 10 ca bf d2 59 b0    -?s.o..,3..V.Dl/Bc/:..<..".J?RY0
+000005a0: 2d 3f f3 95 ef 18 8a ac b3 0e 99 d6 84 c4 ec af 42 63 af 3a 01 8c 3c 0c 8e a2 10 ca bf d2 59 b0    -?s.o..,3..V.Dl/Bc/:..< .".J?RY0
 000005c0: 00 bf 23 e1 9a 04 2b 0a 9c dc 12 62 21 30 cb ea a7 b4 81 ec f4 90 7d 76 39 b8 97 37 b8 cc 70 16    .?#a..+..\\.b!0Kj'4.lt.}v98.78Lp.
 000005e0: fb 6c e1 9d 11 ae 9a 88 41 ba 70 b1 7b c8 8d b5 04 4b 88 d1 05 d5 b8 ac 9b 10 54 45 c8 80 65 8d    {la.....A:p1{H.5.K.Q.U8,..TEH.e.
 00000600: 5f 1e 1e 58 bd 7b 33 7f fd 98 fd 20 9d 71 30 3a 3c 84 1e 87 b8 1b 2d 51 2b 55 62 41 e4 b9 a5 29    _..X={3.}.}..q0:<...8.-Q+UbAd9%)
@@ -130,7 +130,6 @@ describe("testing message decryption", () => {
         decrypted_part.copy(buffer, start);
 
         const my_buffer = buffer.subarray(0, start + decrypted_part.length);
-        // my_buffer.length.should.equal(start + 2 * (128 - 11));
 
         // verify signature
         const publicKey = toPem(senderCertificate, "CERTIFICATE");
@@ -141,7 +140,7 @@ describe("testing message decryption", () => {
         };
         const boolSignatureIsOK = verifyChunkSignature(my_buffer, options);
 
-        boolSignatureIsOK.should.eql(true);
+        expect(boolSignatureIsOK).toEqual(true);
 
         // now without knowledge of the signatureLength
         const options1 = {
@@ -151,6 +150,6 @@ describe("testing message decryption", () => {
         };
         const boolSignatureIsOK1 = verifyChunkSignature(my_buffer, options1);
 
-        boolSignatureIsOK1.should.eql(true);
+        expect(boolSignatureIsOK1).toEqual(true);
     });
 });

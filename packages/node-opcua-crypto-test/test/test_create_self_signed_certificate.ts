@@ -37,14 +37,12 @@ import {
     readCertificate,
     removeTrailingLF,
 } from "node-opcua-crypto";
-import should from "should";
+import { describe, expect, it } from "vitest";
 
 const tmpTestFolder = os.tmpdir();
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
-describe("creating X509 self-signed certificates", function () {
-    this.timeout(100000);
-
+describe("creating X509 self-signed certificates", { timeout: 100000 }, () => {
     it("should create a self-signed certificate", async () => {
         const { privateKey } = await generateKeyPair();
         const { cert } = await createSelfSignedCertificate({
@@ -56,25 +54,22 @@ describe("creating X509 self-signed certificates", function () {
         const tmpCertificatePemFile = path.join(tmpTestFolder, "_tmp_certificate.pem");
         await fs.promises.writeFile(tmpCertificatePemFile, cert);
 
-        // openssl asn1parse -in _tmp_certificate.pem -inform pem -i
-        // openssl x509 -in _tmp_certificate.pem -inform pem -out --text --noout
-
         const _certificate = readCertificate(tmpCertificatePemFile);
         const info = exploreCertificate(Buffer.from(x509.PemConverter.decode(cert)[0]));
 
         console.log(util.inspect(info, { depth: 4 }));
 
         const keyUsage = info.tbsCertificate.extensions?.keyUsage;
-        should.exist(keyUsage);
-        should(keyUsage?.dataEncipherment).eql(true);
-        should(keyUsage?.digitalSignature).eql(true);
-        should(keyUsage?.cRLSign).eql(false);
+        expect(keyUsage).toBeDefined();
+        expect(keyUsage?.dataEncipherment).toEqual(true);
+        expect(keyUsage?.digitalSignature).toEqual(true);
+        expect(keyUsage?.cRLSign).toEqual(false);
 
         const subjectKeyIdentifier = info.tbsCertificate.extensions?.subjectKeyIdentifier;
-        should.exist(subjectKeyIdentifier);
+        expect(subjectKeyIdentifier).toBeDefined();
         const authorityKeyIdentifier = info.tbsCertificate.extensions?.authorityKeyIdentifier;
-        should.exist(authorityKeyIdentifier);
-        should(authorityKeyIdentifier?.keyIdentifier).eql(subjectKeyIdentifier);
+        expect(authorityKeyIdentifier).toBeDefined();
+        expect(authorityKeyIdentifier?.keyIdentifier).toEqual(subjectKeyIdentifier);
     });
     it("should create a certificate with alternative names", async () => {
         const { privateKey } = await generateKeyPair();
@@ -112,8 +107,8 @@ describe("creating X509 self-signed certificates", function () {
         });
 
         const info = exploreCertificate(convertPEMtoDER(cert));
-        should.exist(info.tbsCertificate.extensions?.subjectAltName);
-        should(info.tbsCertificate.extensions?.subjectAltName).eql({
+        expect(info.tbsCertificate.extensions?.subjectAltName).toBeDefined();
+        expect(info.tbsCertificate.extensions?.subjectAltName).toEqual({
             dNSName: ["DNS1", "DNS2"],
             iPAddress: ["c0a80101"],
             uniformResourceIdentifier: ["urn:HOSTNAME:ServerDescription"],

@@ -23,6 +23,7 @@
 
 import path from "node:path";
 import { exploreCertificateSigningRequest, readCertificateSigningRequest } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 const doDebug = !!process.env.DEBUG;
 
@@ -33,7 +34,7 @@ describe("Explore Certificate Signing Request", () => {
 
         const csrInfo = exploreCertificateSigningRequest(csr1);
 
-        csrInfo.extensionRequest.subjectAltName.should.eql({
+        expect(csrInfo.extensionRequest.subjectAltName).toEqual({
             uniformResourceIdentifier: ["urn:Some-Fake-Server-1"],
             dNSName: ["DESKTOP-6P074LR"],
         });

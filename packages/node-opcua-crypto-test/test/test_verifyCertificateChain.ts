@@ -23,15 +23,16 @@
 
 import path from "node:path";
 import { readCertificate, verifyCertificateChain } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 describe("Test Certificate Chain", () => {
     it("DX should verify a certificate chain", async () => {
         const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
         const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
         const certificate3 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"));
-        (await verifyCertificateChain([certificate1, certificate2])).status.should.eql("Good");
-        (await verifyCertificateChain([certificate2, certificate1])).status.should.eql("BadCertificateInvalid");
-        (await verifyCertificateChain([certificate1, certificate3])).should.eql({
+        expect((await verifyCertificateChain([certificate1, certificate2])).status).toEqual("Good");
+        expect((await verifyCertificateChain([certificate2, certificate1])).status).toEqual("BadCertificateInvalid");
+        expect(await verifyCertificateChain([certificate1, certificate3])).toEqual({
             status: "BadCertificateInvalid",
             reason: "One of the certificate in the chain is not signing the previous certificate",
         });

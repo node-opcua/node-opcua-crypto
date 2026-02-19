@@ -34,14 +34,11 @@ import {
     removePadding,
     verifyChunkSignatureWithDerivedKeys,
 } from "node-opcua-crypto";
-import should from "should";
+import { describe, expect, it } from "vitest";
 
 const loremIpsum = loremIpsum1.loremIpsum({ count: 100 });
 
-// tslint:disable-next-line:unused-constant
-const _should = should;
-
-loremIpsum.length.should.be.greaterThan(100);
+expect(loremIpsum.length).toBeGreaterThan(100);
 
 function make_lorem_ipsum_buffer(): Buffer {
     return Buffer.from(loremIpsum);
@@ -79,26 +76,22 @@ describe("test derived key making", () => {
     it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA1", () => {
         const minLength = 256;
         const buf = makePseudoRandomBuffer(secret, seed, minLength, "SHA1");
-        buf.length.should.be.equal(minLength);
-        //xx console.log(hexDump(buf));
+        expect(buf.length).toBe(minLength);
     });
 
     it("should create a large enough p_HASH buffer (makePseudoRandomBuffer) - SHA256", () => {
         const min_length = 256;
         const buf = makePseudoRandomBuffer(secret, seed, min_length, "SHA256");
-        buf.length.should.be.equal(min_length);
-        //xx console.log(hexDump(buf));
+        expect(buf.length).toBe(min_length);
     });
 
-    function perform_symmetric_encryption_test(options: ComputeDerivedKeysOptions, done: (err?: Error | null) => void): void {
+    function perform_symmetric_encryption_test(options: ComputeDerivedKeysOptions): void {
         const derivedKeys = computeDerivedKeys(secret, seed, options);
 
-        derivedKeys.should.have.ownProperty("sha1or256");
-        derivedKeys.sha1or256.should.eql(options.sha1or256);
+        expect(derivedKeys).toHaveProperty("sha1or256");
+        expect(derivedKeys.sha1or256).toEqual(options.sha1or256);
 
         const clear_message = make_lorem_ipsum_buffer();
-        //xx Buffer.concat([make_lorem_ipsum_buffer(),make_lorem_ipsum_buffer(),make_lorem_ipsum_buffer()]);
-        //xx clear_message = Buffer.concat([clear_message,clear_message,clear_message,clear_message,clear_message]);
 
         // append padding
         const footer = computePaddingFooter(clear_message, derivedKeys);
@@ -109,58 +102,55 @@ describe("test derived key making", () => {
             clear_message_with_padding.length +
             " shall be a multiple of block size=" +
             options.encryptingBlockSize;
-        (clear_message_with_padding.length % options.encryptingBlockSize).should.equal(0, msg);
+        expect(clear_message_with_padding.length % options.encryptingBlockSize).toBe(0);
 
         const encrypted_message = encryptBufferWithDerivedKeys(clear_message_with_padding, derivedKeys);
 
-        clear_message_with_padding.length.should.equal(encrypted_message.length);
+        expect(clear_message_with_padding.length).toEqual(encrypted_message.length);
 
         let reconstructed_message = decryptBufferWithDerivedKeys(encrypted_message, derivedKeys);
 
         reconstructed_message = removePadding(reconstructed_message);
 
-        reconstructed_message.toString("ascii").should.eql(clear_message.toString("ascii"));
-
-        done();
+        expect(reconstructed_message.toString("ascii")).toEqual(clear_message.toString("ascii"));
     }
 
-    it("demonstrating how to use derived keys for symmetric encryption (aes-128-cbc)", (done) => {
-        perform_symmetric_encryption_test(options_AES_128_CBC, done);
+    it("demonstrating how to use derived keys for symmetric encryption (aes-128-cbc)", () => {
+        perform_symmetric_encryption_test(options_AES_128_CBC);
     });
 
-    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA1", (done) => {
-        perform_symmetric_encryption_test(options_AES_256_CBC, done);
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA1", () => {
+        perform_symmetric_encryption_test(options_AES_256_CBC);
     });
 
-    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA256", (done) => {
-        perform_symmetric_encryption_test(options_AES_256_CBC_SHA256, done);
+    it("demonstrating how to use derived keys for symmetric encryption (aes-256-cbc) - SHA256", () => {
+        perform_symmetric_encryption_test(options_AES_256_CBC_SHA256);
     });
 
     it("should produce a smaller buffer (reduceLength)", () => {
         const buffer = Buffer.from("Hello World", "ascii");
         const reduced = reduceLength(buffer, 6);
-        reduced.toString("ascii").should.equal("Hello");
+        expect(reduced.toString("ascii")).toBe("Hello");
     });
 
     function test_verifyChunkSignatureWithDerivedKeys(options: ComputeDerivedKeysOptions) {
         const derivedKeys = computeDerivedKeys(secret, seed, options);
 
         const clear_message = make_lorem_ipsum_buffer();
-        //xx console.log(clear_message.toString());
 
         const signature = makeMessageChunkSignatureWithDerivedKeys(clear_message, derivedKeys);
 
-        signature.length.should.eql(derivedKeys.signatureLength);
+        expect(signature.length).toEqual(derivedKeys.signatureLength);
 
         const signed_message = Buffer.concat([clear_message, signature]);
 
-        verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(true);
+        expect(verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys)).toBe(true);
 
         // let's corrupt the message ...
         signed_message.write("HELLO", 0x50);
 
         // ... and verify that signature verification returns a failure
-        verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys).should.equal(false);
+        expect(verifyChunkSignatureWithDerivedKeys(signed_message, derivedKeys)).toBe(false);
     }
 
     it("demonstrating how to use derived keys for signature - AES_128_CBC", () => {
@@ -173,21 +163,20 @@ describe("test derived key making", () => {
         test_verifyChunkSignatureWithDerivedKeys(options_AES_256_CBC_SHA256);
     });
 
-    it("should compute key using keysize, client and server keys.", (done) => {
+    it("should compute key using keysize, client and server keys.", () => {
         // see https://github.com/leandrob/node-psha1/blob/master/test/lib.index.js#L4
         const secret1 = Buffer.from("GS5olVevYMI4vW1Df/7FUpHcJJopTszp6sodlK4/rP8=", "base64");
         const seed1 = Buffer.from("LmF9Mjf9lYMa9YkxZDjaRFe6iMAfReKjzhLHDx376jA=", "base64");
         const key = makePseudoRandomBuffer(secret1, seed1, 256 / 8, "SHA1");
-        key.toString("base64").should.eql("ZMOP1NFa5VKTQ8I2awGXDjzKP+686eujiangAgf5N+Q=");
-        done();
+        expect(key.toString("base64")).toEqual("ZMOP1NFa5VKTQ8I2awGXDjzKP+686eujiangAgf5N+Q=");
     });
 
     it("should create derived keys (computeDerivedKeys)", () => {
         const options: ComputeDerivedKeysOptions = options_AES_128_CBC;
         const derivedKeys = computeDerivedKeys(secret, seed, options);
 
-        derivedKeys.signingKey.length.should.eql(options.signingKeyLength);
-        derivedKeys.encryptingKey.length.should.eql(options.encryptingKeyLength);
-        derivedKeys.initializationVector.length.should.eql(options.encryptingBlockSize);
+        expect(derivedKeys.signingKey.length).toEqual(options.signingKeyLength);
+        expect(derivedKeys.encryptingKey.length).toEqual(options.encryptingKeyLength);
+        expect(derivedKeys.initializationVector.length).toEqual(options.encryptingBlockSize);
     });
 });

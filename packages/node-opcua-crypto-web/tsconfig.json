@@ -8,9 +8,15 @@
         "strict": true,
         "listFiles": false,
         "traceResolution": false,
-        "types": ["node", "mocha", "should"],
-        "lib": ["ES2022"],
+        "types": [
+            "node"
+        ],
+        "lib": [
+            "ES2022"
+        ],
         "rootDir": "."
     },
-    "include": ["./web/main.ts"]
+    "include": [
+        "./web/main.ts"
+    ]
 }

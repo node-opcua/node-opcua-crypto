@@ -24,16 +24,17 @@
 import { createPublicKey } from "node:crypto";
 import path from "node:path";
 import { readCertificatePEM, rsaLengthPublicKey } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 describe("rsaLengthPublicKey", () => {
     it("rsaLengthPublicKey - 1024", () => {
         const key = readCertificatePEM(path.join(__dirname, "../test-fixtures/certs/client_cert_1024.pem"));
         const p = createPublicKey(key);
-        rsaLengthPublicKey(p).should.eql(128);
+        expect(rsaLengthPublicKey(p)).toEqual(128);
     });
     it("rsaLengthPublicKey - 2048", () => {
         const key = readCertificatePEM(path.join(__dirname, "../test-fixtures/certs/server_cert_2048.pem"));
         const p = createPublicKey(key);
-        rsaLengthPublicKey(p).should.eql(256);
+        expect(rsaLengthPublicKey(p)).toEqual(256);
     });
 });

@@ -34,14 +34,12 @@ import {
     privateKeyToPEM,
     readPrivateKey,
 } from "node-opcua-crypto";
-import should from "should";
+import { describe, expect, it } from "vitest";
 
 const tmpTestFolder = os.tmpdir();
 
 // https://kjur.github.io/jsrsasign/wikistatic/Tutorial-for-generating-X.509-certificate.html
-describe("creating X509 key pair", function () {
-    this.timeout(100000);
-
+describe("creating X509 key pair", { timeout: 100000 }, () => {
     it("should create a key pair", async () => {
         const { privateKey } = await generateKeyPair();
 
@@ -71,12 +69,12 @@ describe("creating X509 key pair", function () {
 
         const { privPem: privPem2 } = await privateKeyToPEM(privateKey2);
         console.log(privPem2);
-        privPem2.should.eql(privPem);
+        expect(privPem2).toEqual(privPem);
 
         const privateKeyFromKey = await pemToPrivateKey(privPem);
         const { privPem: privPem3 } = await privateKeyToPEM(privateKeyFromKey);
         console.log(privPem3);
-        privPem3.should.eql(privPem);
+        expect(privPem3).toEqual(privPem);
     });
     it("coercePEMorDerToPrivateKey", async () => {
         const privateKey = await generatePrivateKey();
@@ -85,6 +83,6 @@ describe("creating X509 key pair", function () {
         const _privateKey2 = await derToPrivateKey(privDer);
 
         const privateKey1 = await coercePEMorDerToPrivateKey(privPem);
-        should.exist(privateKey1.hidden);
+        expect(privateKey1.hidden).toBeDefined();
     });
 });

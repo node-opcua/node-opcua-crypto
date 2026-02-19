@@ -30,6 +30,7 @@ import {
     readCertificate,
     readPrivateKey,
 } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 const useCases = [1024, 2048];
 describe("Checking that public key (from certificate) and private key matches", () => {
@@ -47,13 +48,13 @@ describe("Checking that public key (from certificate) and private key matches", 
             const modulus1 = i.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.modulus;
             const modulus2 = j.modulus;
 
-            modulus1.length.should.eql(keyLength / 8);
-            modulus1.toString("hex").should.eql(modulus2.toString("hex"));
+            expect(modulus1.length).toEqual(keyLength / 8);
+            expect(modulus1.toString("hex")).toEqual(modulus2.toString("hex"));
 
-            publicKeyAndPrivateKeyMatches(certificate, privateKey).should.eql(true);
+            expect(publicKeyAndPrivateKeyMatches(certificate, privateKey)).toEqual(true);
         });
         it(`certificateMatchesPrivateKey: ${keyLength}`, () => {
-            certificateMatchesPrivateKey(certificate, privateKey).should.eql(true);
+            expect(certificateMatchesPrivateKey(certificate, privateKey)).toEqual(true);
         });
     });
 });

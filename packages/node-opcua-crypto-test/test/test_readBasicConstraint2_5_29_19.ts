@@ -1,5 +1,5 @@
-import assert from "node:assert";
 import { asn1, coerceCertificate, readTbsCertificate } from "node-opcua-crypto";
+import { describe, expect, it } from "vitest";
 
 /*
   The folowing test certificates should reflect the following configurations of
@@ -141,38 +141,42 @@ function extractBasicConstraintsExtension(certificate: string | Buffer) {
     return extensions?.basicConstraints;
 }
 
-describe("Testing basicConstraint field", function (this) {
+describe("Testing basicConstraint field", () => {
     it("Should parse if only CA:false is specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_1);
 
+        expect(basicConstraints).toBeDefined();
         if (basicConstraints) {
-            assert(basicConstraints.cA === false);
+            expect(basicConstraints.cA).toBe(false);
         }
     });
 
     it("Should parse if only pathlen:0 is specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_2);
 
+        expect(basicConstraints).toBeDefined();
         if (basicConstraints) {
-            assert(basicConstraints.pathLengthConstraint === 0);
+            expect(basicConstraints.pathLengthConstraint).toBe(0);
         }
     });
 
     it("Should parse if both CA:false and pathlen:0 are specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_3);
 
+        expect(basicConstraints).toBeDefined();
         if (basicConstraints) {
-            assert(basicConstraints.cA === false);
-            assert(basicConstraints.pathLengthConstraint === 0);
+            expect(basicConstraints.cA).toBe(false);
+            expect(basicConstraints.pathLengthConstraint).toBe(0);
         }
     });
 
     it("Should parse if both CA:true and pathlen:0 are specified", async () => {
         const basicConstraints = extractBasicConstraintsExtension(CERT_4);
 
+        expect(basicConstraints).toBeDefined();
         if (basicConstraints) {
-            assert(basicConstraints.cA === true);
-            assert(basicConstraints.pathLengthConstraint === 0);
+            expect(basicConstraints.cA).toBe(true);
+            expect(basicConstraints.pathLengthConstraint).toBe(0);
         }
     });
 });
