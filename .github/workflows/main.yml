@@ -15,7 +15,7 @@ jobs:
     prepare:
         strategy:
             matrix:
-                node-version: [20.x]
+                node-version: [24.x]
                 os: [ubuntu-latest, macos-latest, windows-latest]
         runs-on: ${{ matrix.os }}
 
@@ -36,7 +36,7 @@ jobs:
         needs: prepare
         strategy:
             matrix:
-                node-version: [20.x]
+                node-version: [24.x]
                 os: [ubuntu-latest]
         runs-on: ${{ matrix.os }}
         steps:
@@ -64,7 +64,7 @@ jobs:
         needs: build
         strategy:
             matrix:
-                node-version: [19.x, 20.x, 22.x]
+                node-version: [20.x, 22.x, 24.x]
                 os: [ubuntu-22.04, ubuntu-latest, macos-latest, windows-latest]
         runs-on: ${{ matrix.os }}
         steps:
@@ -95,44 +95,44 @@ jobs:
             - name: Run test
               run: npm test
 
-    test:
-        needs: build
-        strategy:
-            matrix:
-                node-version: [16.x, 18.x]
-                os: [ubuntu-22.04, ubuntu-latest, macos-latest, windows-latest]
-        runs-on: ${{ matrix.os }}
-        steps:
-            - name: checkout
-              uses: actions/checkout@v4.2.2
+    # test: legacy too 
+    #     needs: build
+    #     strategy:
+    #         matrix:
+    #             node-version: [16.x, 18.x]
+    #             os: [ubuntu-22.04, ubuntu-latest, macos-latest, windows-latest]
+    #     runs-on: ${{ matrix.os }}
+    #     steps:
+    #         - name: checkout
+    #           uses: actions/checkout@v4.2.2
 
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4.1.0
-              with:
-                  node-version: ${{ matrix.node-version }}
+    #         - name: Use Node.js ${{ matrix.node-version }}
+    #           uses: actions/setup-node@v4.1.0
+    #           with:
+    #               node-version: ${{ matrix.node-version }}
 
-            - name: nodejs
-              run: node --version
+    #         - name: nodejs
+    #           run: node --version
 
-            - name: Restore dependencies
-              uses: actions/cache@v4.2.0
-              with:
-                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
-                  path: node_modules
+    #         - name: Restore dependencies
+    #           uses: actions/cache@v4.2.0
+    #           with:
+    #               key: ${{ runner.os }}-node-modules-${{ github.sha }}
+    #               path: node_modules
 
-            - name: Restore build artifacts
-              uses: actions/cache@v4.2.0
-              with:
-                  enableCrossOsArchive: true
-                  key: dist-${{ github.sha }}
-                  path: |
-                      ./packages/node-opcua-crypto/dist*
-                      ./packages/node-opcua-crypto-test/dist*
+    #         - name: Restore build artifacts
+    #           uses: actions/cache@v4.2.0
+    #           with:
+    #               enableCrossOsArchive: true
+    #               key: dist-${{ github.sha }}
+    #               path: |
+    #                   ./packages/node-opcua-crypto/dist*
+    #                   ./packages/node-opcua-crypto-test/dist*
               
-            - name: Run test
-              run: npm test
-            - name: run esm test
-              run: npm run esm:test
+    #         - name: Run test
+    #           run: npm test
+    #         - name: run esm test
+    #           run: npm run esm:test
 
     # test-legacy:
     #     needs: build
