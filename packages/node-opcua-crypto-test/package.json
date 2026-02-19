@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-crypto-test",
     "private": true,
-    "version": "4.16.1",
+    "version": "4.17.0",
     "description": "Test suite for Crypto tools for Node-OPCUA",
     "scripts": {
         "build:tsup:esm": "tsup  ./test/test_*.ts  --shims --format esm --out-dir dist-esm --sourcemap --clean --dts",
@@ -38,7 +38,7 @@
         "cross-env": "^10.1.0",
         "jsrsasign": "^11.1.0",
         "lorem-ipsum": "^2.0.8",
-        "node-opcua-crypto": "^4.16.1",
+        "node-opcua-crypto": "^4.17.0",
         "sshpk": "^1.18.0"
     },
     "repository": {
