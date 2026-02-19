@@ -37,13 +37,14 @@ import {
     KeyObject,
 } from "crypto";
 
-import pkg_hexy from "hexy";
-const { hexy } = pkg_hexy;
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import { Certificate, CertificatePEM, DER, PEM, PublicKeyPEM, Signature, PrivateKey } from "./common.js";
 import { combine_der } from "./crypto_explore_certificate.js";
 import jsrsasign from "jsrsasign";
+import { hexy } from "./hexy.js";
+
+
 
 const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n?)/gm;
 

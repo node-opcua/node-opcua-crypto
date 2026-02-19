@@ -9,7 +9,7 @@ const doDebug = false;
 export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string | Buffer): PrivateKey {
     if (typeof privateKeyInDerOrPem === "string") {
         const hidden = createPrivateKeyFromNodeJSCrypto(privateKeyInDerOrPem);
-        return { hidden };
+        return { hidden: hidden as any };
     }
     //istanbul ignore next
     throw new Error("not implemented");

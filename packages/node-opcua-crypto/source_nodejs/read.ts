@@ -25,7 +25,7 @@ import assert from "assert";
 import fs from "node:fs";
 import path from "node:path";
 import { createPrivateKey, createPublicKey } from "crypto";
-import { Certificate, CertificatePEM, DER, PEM, PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey } from "../source/common.js";
+import { Certificate, CertificatePEM, DER, PEM, PublicKey, PublicKeyPEM, PrivateKeyPEM, PrivateKey, KeyObject } from "../source/common.js";
 import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 import sshpk from "sshpk";
 
@@ -52,7 +52,7 @@ export function readCertificate(filename: string): Certificate {
 /**
  * read a DER or PEM certificate from file
  */
-export function readPublicKey(filename: string): PublicKey {
+export function readPublicKey(filename: string): KeyObject {
     if (filename.match(/.*\.der/)) {
         const der = fs.readFileSync(filename) as Buffer;
         return createPublicKey(der);
