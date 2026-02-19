@@ -45,7 +45,7 @@
     "dependencies": {
         "@types/node": "^24.0.1",
         "cross-env": "^10.1.0",
-        "eslint": "^9.39.2",
+        "eslint": "^10.0.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "glob": "^13.0.0",
