@@ -3,6 +3,23 @@ name: publish
 # Controls when the workflow will run
 on:
   workflow_dispatch:
+    inputs:
+      dist-tag:
+        description: 'dist-tag'
+        required: true
+        default: 'latest'
+        type: choice
+        options:
+          - latest
+          - next
+          - rc
+          - beta
+          - alpha
+          - 0.0.0-hack
+
+permissions:
+  id-token: write  # Required for OIDC token generation
+  contents: read   # Required for actions/checkout
 
 jobs:
   publish:
@@ -10,12 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4.1.0
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm install
@@ -33,8 +51,11 @@ jobs:
             npm set "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}"
 
       - name: Run lerna publish
-        run: npx lerna publish minor -y
+        run: |
+          npx lerna publish from-package \
+            --yes \
+            --dist-tag ${{ github.event.inputs.dist-tag }} \
+            --concurrency 1
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
