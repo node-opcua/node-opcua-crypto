@@ -25,10 +25,17 @@ import { type BlockInfo, findBlockAtIndex, getBlock, readObjectIdentifier, readS
 
 import { type BasicConstraints, readExtension, type X509KeyUsage } from "./crypto_explore_certificate.js";
 
+
+export interface SubjectAltName {
+    uniformResourceIdentifier: string[];
+    dNSName: string[];
+    iPAddress: string[];
+    [key: string]: unknown;
+}
 export interface ExtensionRequest {
     basicConstraints: BasicConstraints;
     keyUsage: X509KeyUsage;
-    subjectAltName: string;
+    subjectAltName: SubjectAltName;
 }
 export interface CertificateSigningRequestInfo {
     extensionRequest: ExtensionRequest;
@@ -50,7 +57,7 @@ function _readExtensionRequest(buffer: Buffer): ExtensionRequest {
                 result.keyUsage = e.value as X509KeyUsage;
                 break;
             case "subjectAltName":
-                result.subjectAltName = e.value as string;
+                result.subjectAltName = e.value as SubjectAltName;
                 break;
             default:
                 // ignore unknown extensions
