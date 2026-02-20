@@ -51,16 +51,14 @@
         "node": ">=18.0"
     },
     "devDependencies": {
+        "@types/jsrsasign": "^10.5.15",
         "@types/node": "^24.0.1",
+        "@types/sshpk": "^1.17.4",
         "lorem-ipsum": "^2.0.8"
     },
     "dependencies": {
         "@peculiar/webcrypto": "^1.5.0",
         "@peculiar/x509": "^1.14.2",
-        "@types/jsrsasign": "^10.5.15",
-        "@types/sshpk": "^1.17.4",
-        "assert": "^2.1.0",
-        "chalk": "^4.1.2",
         "jsrsasign": "^11.1.0",
         "sshpk": "^1.18.0"
     },
