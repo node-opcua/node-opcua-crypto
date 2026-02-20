@@ -23,6 +23,7 @@
 
 //xx export * from "./asn1.js";
 export * from "./common.js";
+export * from "./crl_utils.js";
 export * from "./crypto_explore_certificate.js";
 export * from "./crypto_utils.js";
 export * from "./crypto_utils2.js";

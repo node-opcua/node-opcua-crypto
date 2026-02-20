@@ -25,11 +25,13 @@ import path from "node:path";
 import {
     exploreCertificate,
     exploreCertificateRevocationList,
+    isCrlIssuedByCertificate,
     readCertificate,
     readCertificateRevocationList,
     toPem,
     verifyCertificateRevocationListSignature,
     verifyCertificateSignature,
+    verifyCrlIssuedByCertificate,
 } from "node-opcua-crypto";
 import { describe, expect, it } from "vitest";
 
@@ -109,5 +111,50 @@ describe("Explore Certificate Revocation List", () => {
         const crl = await readCertificateRevocationList(crlFilename);
         const crlInfo = exploreCertificateRevocationList(crl);
         expect(crlInfo.tbsCertList.revokedCertificates.length).toEqual(0);
+    });
+});
+
+describe("CRL-to-Issuer Matching", () => {
+    const crl1Filename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list1.crl");
+    const crl3Filename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list3.pem");
+    const issuerCertFilename = path.join(__dirname, "../test-fixtures/crl/ctt_ca1I.der");
+    const unrelatedCertFilename = path.join(__dirname, "../test-fixtures/certs/demo_certificate.pem");
+
+    it("isCrlIssuedByCertificate should return true for matching CRL and issuer", async () => {
+        const crl = await readCertificateRevocationList(crl1Filename);
+        const issuerCert = await readCertificate(issuerCertFilename);
+        expect(isCrlIssuedByCertificate(crl, issuerCert)).toBe(true);
+    });
+
+    it("isCrlIssuedByCertificate should return false for non-matching certificate", async () => {
+        const crl = await readCertificateRevocationList(crl1Filename);
+        const unrelatedCert = await readCertificate(unrelatedCertFilename);
+        expect(isCrlIssuedByCertificate(crl, unrelatedCert)).toBe(false);
+    });
+
+    it("isCrlIssuedByCertificate should return false when CRL has different issuer", async () => {
+        const crl = await readCertificateRevocationList(crl3Filename);
+        const issuerCert = await readCertificate(issuerCertFilename);
+        // crl3 has issuerFingerprint 67:EB:... while ctt_ca1I has AF:FE:...
+        expect(isCrlIssuedByCertificate(crl, issuerCert)).toBe(false);
+    });
+
+    it("verifyCrlIssuedByCertificate should return true for matching CRL with valid signature", async () => {
+        const crl = await readCertificateRevocationList(crl1Filename);
+        const issuerCert = await readCertificate(issuerCertFilename);
+        expect(verifyCrlIssuedByCertificate(crl, issuerCert)).toBe(true);
+    });
+
+    it("verifyCrlIssuedByCertificate should return false for non-matching certificate", async () => {
+        const crl = await readCertificateRevocationList(crl1Filename);
+        const unrelatedCert = await readCertificate(unrelatedCertFilename);
+        // Fingerprint mismatch: short-circuits before signature check
+        expect(verifyCrlIssuedByCertificate(crl, unrelatedCert)).toBe(false);
+    });
+
+    it("verifyCrlIssuedByCertificate should return false when CRL has different issuer", async () => {
+        const crl = await readCertificateRevocationList(crl3Filename);
+        const issuerCert = await readCertificate(issuerCertFilename);
+        expect(verifyCrlIssuedByCertificate(crl, issuerCert)).toBe(false);
     });
 });
