@@ -41,6 +41,8 @@ dist-*/
 
 
 test/tmp*
+tmp_private_key.pem
+node_modules_bak/
 
 *.tar.gz
 *.tgz
