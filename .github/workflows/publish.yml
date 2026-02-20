@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       dist-tag:
-        description: 'dist-tag'
+        description: "dist-tag"
         required: true
-        default: 'latest'
+        default: "latest"
         type: choice
         options:
           - latest
@@ -18,8 +18,8 @@ on:
           - 0.0.0-hack
 
 permissions:
-  id-token: write  # Required for OIDC token generation
-  contents: read   # Required for actions/checkout
+  id-token: write # Required for OIDC token generation
+  contents: read # Required for actions/checkout
 
 jobs:
   publish:
@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: npm install
@@ -43,13 +43,19 @@ jobs:
 
       - name: Set up Git user
         run: |
-            git config user.name "${{ github.actor }}"
-            git config user.email "${{ github.actor}}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor}}@users.noreply.github.com"
 
       - name: "Setup npm" # Add our registry to npm config
         run: | # Custom action
-            npm set "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}"
+          npm set "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}"
 
+      - name: "detect unwanted changes"
+        run: |
+          git status
+      - name: "stash unwanted changes"
+        run: |
+          git stash
       - name: Run lerna publish
         run: |
           npx lerna publish from-package \
