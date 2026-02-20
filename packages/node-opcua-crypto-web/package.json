@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-crypto-web",
     "private": true,
-    "version": "5.0.0",
+    "version": "5.1.0",
     "description": "Crypto tools for Node-OPCUA",
     "scripts": {
         "build:tsup": "tsup  --config tsup.config.mjs --clean",
@@ -25,7 +25,7 @@
         "node": ">=18.0"
     },
     "dependencies": {
-        "node-opcua-crypto": "^5.0.0"
+        "node-opcua-crypto": "^5.1.0"
     },
     "repository": {
         "type": "git",
