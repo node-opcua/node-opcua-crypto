@@ -29,6 +29,7 @@ import assert from "node:assert";
 import constants from "node:constants";
 import {
     createHash,
+    createPublicKey,
     createSign,
     createVerify,
     type KeyLike,
@@ -36,7 +37,6 @@ import {
     privateDecrypt as privateDecrypt1,
     publicEncrypt as publicEncrypt1,
 } from "node:crypto";
-import jsrsasign from "jsrsasign";
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import type { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKeyPEM, Signature } from "./common.js";
 import { combine_der } from "./crypto_explore_certificate.js";
@@ -302,8 +302,8 @@ export function coerceCertificatePem(certificate: Certificate | CertificatePEM):
 
 export function extractPublicKeyFromCertificateSync(certificate: Certificate | CertificatePEM): PublicKeyPEM {
     certificate = coerceCertificatePem(certificate);
-    const key = jsrsasign.KEYUTIL.getKey(certificate);
-    const publicKeyAsPem = jsrsasign.KEYUTIL.getPEM(key);
+    const publicKeyObject = createPublicKey(certificate);
+    const publicKeyAsPem = publicKeyObject.export({ format: "pem", type: "spki" }).toString();
     assert(typeof publicKeyAsPem === "string");
     return publicKeyAsPem;
 }

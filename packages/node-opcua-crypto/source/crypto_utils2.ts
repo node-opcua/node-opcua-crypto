@@ -21,28 +21,26 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-// tslint:disabled:no-var-requires
 /**
  * @module node_opcua_crypto
  */
 import assert from "node:assert";
-import jsrsasign from "jsrsasign";
+import { createPrivateKey, createPublicKey } from "node:crypto";
 import { isKeyObject, type KeyObject, type PrivateKey, type PrivateKeyPEM, type PublicKey, type PublicKeyPEM } from "./common.js";
 import { removeTrailingLF, toPem } from "./crypto_utils.js";
 
 /***
  * @method rsaLengthPrivateKey
- * A very expensive way to determine the rsa key length ( i.e 2048bits or 1024bits)
+ * A method to determine the rsa key length ( i.e 2048bits or 1024bits)
  * @param key  a PEM public key or a PEM rsa private key
  * @return the key length in bytes.
  */
 export function rsaLengthPrivateKey(key: PrivateKey): number {
     const keyPem = typeof key.hidden === "string" ? key.hidden : key.hidden.export({ type: "pkcs1", format: "pem" }).toString();
-    // in node 16 and above :
-    // return o.asymmetricKeyDetails.modulusLength/8
-    // in node <16 :
-    const a = jsrsasign.KEYUTIL.getKey(keyPem) as unknown as { n: { toString(radix?: number): string } };
-    return a.n.toString(16).length / 2;
+    const keyObject = createPrivateKey(keyPem);
+    const modulusLength = keyObject.asymmetricKeyDetails?.modulusLength;
+    assert(modulusLength, "Cannot determine modulus length from private key");
+    return modulusLength / 8;
 }
 
 /**
@@ -78,19 +76,6 @@ export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: s
 
 export function coercePrivateKeyPem(privateKey: PrivateKey): PrivateKeyPEM {
     return toPem2(privateKey, "PRIVATE KEY");
-    /*
-    if (Buffer.isBuffer(privateKey.hidden)) {
-        const o = createPrivateKeyFromNodeJSCrypto({ key: privateKey.hidden, format: "der", type: "pkcs1" });
-        const e = o.export({ format: "der", type: "pkcs1" });
-        return toPem(e, "RSA PRIVATE KEY");
-    } else if (privateKey.hidden instanceof KeyObject) {
-        const o = privateKey.hidden.export({ format: "pem", type: "pkcs1" });
-        return o.toString();
-    } else if (typeof privateKey.hidden === "string") {
-        return privateKey.hidden;
-    }
-    throw new Error("Invalid privateKey");
-    */
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
@@ -111,12 +96,16 @@ export function coerceRsaPublicKeyPem(publicKey: PublicKey | KeyObject | PublicK
 export function rsaLengthPublicKey(key: PublicKeyPEM | PublicKey): number {
     key = coercePublicKeyPem(key);
     assert(typeof key === "string");
-    const a = jsrsasign.KEYUTIL.getKey(key) as unknown as { n: { toString(radix?: number): string } };
-    return a.n.toString(16).length / 2;
+    const keyObject = createPublicKey(key);
+    const modulusLength = keyObject.asymmetricKeyDetails?.modulusLength;
+    assert(modulusLength, "Cannot determine modulus length from public key");
+    return modulusLength / 8;
 }
 export function rsaLengthRsaPublicKey(key: PublicKeyPEM | PublicKey): number {
     key = coerceRsaPublicKeyPem(key);
     assert(typeof key === "string");
-    const a = jsrsasign.KEYUTIL.getKey(key) as unknown as { n: { toString(radix?: number): string } };
-    return a.n.toString(16).length / 2;
+    const keyObject = createPublicKey(key);
+    const modulusLength = keyObject.asymmetricKeyDetails?.modulusLength;
+    assert(modulusLength, "Cannot determine modulus length from public key");
+    return modulusLength / 8;
 }

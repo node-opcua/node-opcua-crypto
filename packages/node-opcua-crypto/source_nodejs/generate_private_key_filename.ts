@@ -21,8 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
+import { generateKeyPairSync } from "node:crypto";
 import fs from "node:fs";
-import jsrsasign from "jsrsasign";
 import { generateKeyPair, privateKeyToPEM } from "../source/index.js";
 export async function generatePrivateKeyFile(privateKeyFilename: string, modulusLength: 1024 | 2048 | 3072 | 4096) {
     const keys = await generateKeyPair(modulusLength);
@@ -33,15 +33,16 @@ export async function generatePrivateKeyFile(privateKeyFilename: string, modulus
 }
 
 /**
- * alternate function to generate PrivateKeyFile, using jsrsasign.
+ * alternate function to generate PrivateKeyFile, using native
+ * node:crypto.
  *
  * This function is slower than generatePrivateKeyFile
  */
 export async function generatePrivateKeyFileAlternate(privateKeyFilename: string, modulusLength: 2048 | 3072 | 4096) {
-    const kp = jsrsasign.KEYUTIL.generateKeypair("RSA", modulusLength);
-    const prv = kp.prvKeyObj;
-    const _pub = kp.pubKeyObj;
-    const prvpem = jsrsasign.KEYUTIL.getPEM(prv, "PKCS8PRV");
-    // const pubpem = jsrsasign.KEYUTIL.getPEM(pub, "PKCS8PUB");
-    await fs.promises.writeFile(privateKeyFilename, prvpem, "utf-8");
+    const { privateKey } = generateKeyPairSync("rsa", {
+        modulusLength,
+        privateKeyEncoding: { type: "pkcs8", format: "pem" },
+        publicKeyEncoding: { type: "spki", format: "pem" },
+    });
+    await fs.promises.writeFile(privateKeyFilename, privateKey, "utf-8");
 }
