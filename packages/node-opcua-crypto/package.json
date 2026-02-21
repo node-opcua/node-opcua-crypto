@@ -22,7 +22,7 @@
         }
     },
     "scripts": {
-        "build:tsup": "tsup  ./index.ts ./index_web.ts ./source/index.ts ./source/index_web.ts  ./source_nodejs/index.ts --shims --format esm,cjs --out-dir dist  --sourcemap  --clean --dts ",
+        "build:tsup": "tsup ./index.ts ./source/index_web.ts ./source_nodejs/index.ts --shims --format esm,cjs --out-dir dist --clean --dts",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:types": "tsc -p tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
@@ -67,5 +67,10 @@
     "bugs": {
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
     },
+    "files": [
+        "dist",
+        "LICENSE",
+        "README.md"
+    ],
     "gitHead": "32e5c2e92f1ab76caf6166a6049736e2ac77a9f4"
 }
