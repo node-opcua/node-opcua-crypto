@@ -3,13 +3,12 @@
     "private": true,
     "version": "5.1.0",
     "description": "Crypto tools for Node-OPCUA",
+    "type": "module",
     "scripts": {
-        "build:tsup": "tsup  --config tsup.config.mjs --clean",
-        "build": "npx vite build",
-        "tslint": "tslint --project . --fix",
-        "lint": "eslint . --ext .ts",
-        "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
-        "demo": "npx http-server ."
+        "build": "node build-web.mjs",
+        "lint": "biome check",
+        "format": "biome format --write",
+        "demo": "http-server ./dist"
     },
     "keywords": [
         "OPCUA",
@@ -33,5 +32,18 @@
     },
     "bugs": {
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+    },
+    "devDependencies": {
+        "assert": "^2.1.0",
+        "buffer": "^6.0.3",
+        "constants-browserify": "^1.0.0",
+        "crypto-browserify": "^3.12.1",
+        "esbuild": "^0.27.3",
+        "events": "^3.3.0",
+        "process": "^0.11.10",
+        "stream-browserify": "^3.0.0",
+        "string_decoder": "^1.1.1",
+        "util": "^0.12.5",
+        "vm-browserify": "^1.1.2"
     }
 }

@@ -1,5 +1,10 @@
 /* eslint-disable no-undef */
-// declare const global: any;
+
+// Make Buffer available globally for polyfilled crypto code
+// (process is injected by esbuild via inject-buffer.js)
+import { Buffer } from "buffer";
+
+(globalThis as Record<string, unknown>).Buffer = Buffer;
 
 import {
     type Certificate,
@@ -52,27 +57,23 @@ export async function makeSelfSignedCertificate({
 
 console.log("Hello World! Let's  create a Private key in PKCS8 PEM Format and a X509 OPCUA Self-Signed Certificate! ");
 
-type HTMLElement = {
-    addEventListener: (event: string, callback: (event: Event) => void | Promise<void>) => void;
-    value: string;
-    innerHTML: string;
-};
-declare const window: { addEventListener: (event: string, callback: (event: Event) => void | Promise<void>) => void };
-declare const document: { getElementById: (id: string) => (HTMLElement & { value: string }) | null };
-declare const alert: (message: string) => void;
-
 window.addEventListener("load", (_event) => {
     console.log("page is fully loaded");
-    document.getElementById("generate")?.addEventListener("click", generate);
+    const form = document.querySelector("form");
+    form?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        generate().catch(console.error);
+    });
 });
 
-async function generate(event: Event) {
-    (event as Event).preventDefault();
-    const keySize = document.getElementById("keySize")?.value;
-    const applicationUri = document.getElementById("applicationUri")?.value;
-    const subject = document.getElementById("subject")?.value;
-    const dns = (document.getElementById("dns")?.value || "").split(";").filter((a: string) => !!a);
-    const ip = (document.getElementById("ip")?.value || "").split(";").filter((a: string) => !!a);
+type KeySize = 1024 | 2048 | 4096 | 3072;
+
+async function generate() {
+    const keySize = (document.getElementById("keySize") as HTMLInputElement)?.value;
+    const applicationUri = (document.getElementById("applicationUri") as HTMLInputElement)?.value;
+    const subject = (document.getElementById("subject") as HTMLInputElement)?.value;
+    const dns = ((document.getElementById("dns") as HTMLInputElement)?.value || "").split(";").filter((a: string) => !!a);
+    const ip = ((document.getElementById("ip") as HTMLInputElement)?.value || "").split(";").filter((a: string) => !!a);
     const validKeySizes = ["1024", "2048", "4096", "3072"];
     if (validKeySizes.indexOf(keySize || "0") === -1) {
         alert(`Invalid key size "${keySize}"\n expected ${validKeySizes.join(" , ")}`);
@@ -84,7 +85,7 @@ async function generate(event: Event) {
     console.log("ipAddresses    =", ip);
 
     if (!privateKey) {
-        privateKey = await generatePrivateKey(keySize);
+        privateKey = await generatePrivateKey(Number(keySize) as KeySize);
     }
     const { selfSignedCertificate } = await makeSelfSignedCertificate({
         subject: subject || "",
@@ -107,7 +108,7 @@ async function generate(event: Event) {
 
     const info = exploreCertificate(convertPEMtoDER(selfSignedCertificate));
     const subjectPublicKey = info.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey;
-    subjectPublicKey.modulus = subjectPublicKey.modulus.toString("hex");
+    subjectPublicKey.modulus = subjectPublicKey.modulus ?? Buffer.from("0");
 
     const infoElement = document.getElementById("info");
     if (infoElement) {

@@ -21,13 +21,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Browser-native exports — these work in the browser without any Node.js crypto shim.
+// They use ASN1 parsing, @peculiar/x509, and pure JS only.
+// ---------------------------------------------------------------------------------------------------------------------
+
 //xx export * from "./asn1.js";
 export * from "./common.js";
 export * from "./crl_utils.js";
 export * from "./crypto_explore_certificate.js";
-export * from "./crypto_utils.js";
-export * from "./crypto_utils2.js";
-export * from "./derived_keys.js";
 export type { DirectoryName } from "./directory_name.js";
 export * from "./explore_asn1.js";
 export * from "./explore_certificate.js";
@@ -36,18 +38,30 @@ export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
 export * from "./explore_private_key.js";
 export * from "./identify_der.js";
-export * from "./make_private_key_from_pem.js";
-export * from "./make_private_key_thumbprint.js";
-/**
- * @module node_opcua_crypto
- */
-export { certificateMatchesPrivateKey, publicKeyAndPrivateKeyMatches } from "./public_private_match.js";
 export * from "./subject.js";
 export * from "./verify_certificate_signature.js";
 export * from "./x509/coerce_private_key.js";
 export * from "./x509/create_certificate_signing_request.js";
 export * from "./x509/create_key_pair.js";
 export * from "./x509/create_self_signed_certificate.js";
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Exports that require a node:crypto shim in the browser.
+// On Node.js these use native crypto. In the browser, the bundler must alias
+// node:crypto → a shim providing createPublicKey, createPrivateKey,
+// createSign, createVerify, publicEncrypt, privateDecrypt, etc.
+// (see node-opcua-crypto-web/node-crypto-shim.js)
+// ---------------------------------------------------------------------------------------------------------------------
+
+export * from "./crypto_utils.js";
+export * from "./crypto_utils2.js";
+export * from "./derived_keys.js";
+export * from "./make_private_key_from_pem.js";
+export * from "./make_private_key_thumbprint.js";
+/**
+ * @module node_opcua_crypto
+ */
+export { certificateMatchesPrivateKey, publicKeyAndPrivateKeyMatches } from "./public_private_match.js";
 
 import { readAlgorithmIdentifier, readSignatureValueBin, readStruct, readTag } from "./asn1.js";
 import { readDirectoryName } from "./directory_name.js";
