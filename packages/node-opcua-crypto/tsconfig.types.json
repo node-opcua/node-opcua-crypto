@@ -6,5 +6,5 @@
         "declaration": true,
         "outDir": "dist-types"
     },
-    "include": ["index.ts", "src/**/*.ts"]
+    "include": ["index.ts", "source/**/*.ts", "source_nodejs/**/*.ts"]
 }

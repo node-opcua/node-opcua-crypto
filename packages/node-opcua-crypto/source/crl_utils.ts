@@ -40,16 +40,10 @@ import { verifyCertificateRevocationListSignature } from "./verify_certificate_s
  * @returns `true` if the CRL's issuer fingerprint matches the
  *          certificate's subject fingerprint
  */
-export function isCrlIssuedByCertificate(
-    crl: CertificateRevocationList,
-    certificate: Certificate,
-): boolean {
+export function isCrlIssuedByCertificate(crl: CertificateRevocationList, certificate: Certificate): boolean {
     const crlInfo = exploreCertificateRevocationList(crl);
     const certInfo = exploreCertificate(certificate);
-    return (
-        crlInfo.tbsCertList.issuerFingerprint ===
-        certInfo.tbsCertificate.subjectFingerPrint
-    );
+    return crlInfo.tbsCertList.issuerFingerprint === certInfo.tbsCertificate.subjectFingerPrint;
 }
 
 /**
@@ -63,10 +57,7 @@ export function isCrlIssuedByCertificate(
  *          **and** the CRL's signature is valid against the
  *          certificate's public key
  */
-export function verifyCrlIssuedByCertificate(
-    crl: CertificateRevocationList,
-    certificate: Certificate,
-): boolean {
+export function verifyCrlIssuedByCertificate(crl: CertificateRevocationList, certificate: Certificate): boolean {
     if (!isCrlIssuedByCertificate(crl, certificate)) {
         return false;
     }

@@ -1,21 +1,17 @@
 {
     "compilerOptions": {
-        "target": "es2020",
+        "target": "es2022",
         "esModuleInterop": true,
-        "skipLibCheck": false,
+        "skipLibCheck": true,
         "moduleResolution": "node",
+        "module": "esnext",
+        "verbatimModuleSyntax": true,
         "sourceMap": true,
         "strict": true,
         "listFiles": false,
         "traceResolution": false,
-        "types": [
-            "node"
-            ],
+        "types": ["node"],
         "rootDir": "."
     },
-    "include": [
-        "./source/*.ts",
-        "./source_nodejs/*.ts",
-        "source/x509/*.ts"
-    ]
+    "include": ["index.ts", "source/**/*.ts", "source_nodejs/**/*.ts"]
 }

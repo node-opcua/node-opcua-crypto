@@ -155,10 +155,7 @@ export function identifyDERContent(buffer: Buffer): DERContentType {
             //   thisUpdate      Time (UTCTime or GeneralizedTime)
             if (intVal === 1 && tbsBlocks.length >= 4) {
                 const tag3 = tbsBlocks[3].tag;
-                if (
-                    tag3 === TagType.UTCTime ||
-                    tag3 === TagType.GeneralizedTime
-                ) {
+                if (tag3 === TagType.UTCTime || tag3 === TagType.GeneralizedTime) {
                     return "CertificateRevocationList";
                 }
             }
@@ -184,15 +181,9 @@ export function identifyDERContent(buffer: Buffer): DERContentType {
         //   signature   AlgorithmIdentifier (SEQUENCE)
         //   issuer      Name                (SEQUENCE)
         //   thisUpdate  Time                (UTCTime or GeneralizedTime)
-        if (
-            tbsBlocks[0].tag === TagType.SEQUENCE &&
-            tbsBlocks.length >= 3
-        ) {
+        if (tbsBlocks[0].tag === TagType.SEQUENCE && tbsBlocks.length >= 3) {
             const tag2 = tbsBlocks[2].tag;
-            if (
-                tag2 === TagType.UTCTime ||
-                tag2 === TagType.GeneralizedTime
-            ) {
+            if (tag2 === TagType.UTCTime || tag2 === TagType.GeneralizedTime) {
                 return "CertificateRevocationList";
             }
         }

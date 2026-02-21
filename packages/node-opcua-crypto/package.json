@@ -1,39 +1,39 @@
 {
     "name": "node-opcua-crypto",
     "version": "5.1.0",
+    "type": "module",
     "description": "Crypto tools for Node-OPCUA",
     "types": "./dist/index.d.ts",
     "main": "./dist/index.js",
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.js"
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
         },
         "./web": {
             "types": "./dist/source/index_web.d.ts",
-            "import": "./dist/source/index_web.mjs",
-            "require": "./dist/source/index_web.js"
+            "import": "./dist/source/index_web.js",
+            "require": "./dist/source/index_web.cjs"
         },
         "./node": {
             "types": "./dist/source_nodejs/index.d.ts",
-            "import": "./dist/source_nodejs/index.mjs",
-            "require": "./dist/source_nodejs/index.js"
+            "import": "./dist/source_nodejs/index.js",
+            "require": "./dist/source_nodejs/index.cjs"
         }
     },
     "scripts": {
-        "build:tsup": "tsup ./index.ts ./source/index_web.ts ./source_nodejs/index.ts --shims --format esm,cjs --out-dir dist --clean --dts",
+        "build:tsup": "tsup",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:types": "tsc -p tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
         "build": "npm run build:tsup",
         "prepare": "npm run build",
-        "tslint": "tslint --project . --fix",
-        "lint": "eslint . --ext .ts",
+        "tslint": "biome lint --fix",
+        "lint": "biome check",
         "makedoc": "npx typedoc  index.ts --excludeNotDocumented --exclude \"_*\" --excludePrivate --excludeProtected --excludeExternals -out doc",
-        "cost-of-modules": "npx cost-of-modules --no-install",
-        "prettier-format": "prettier --config .prettierrc.js source/**/*.ts test/**/*.ts --write",
-        "ncu": "npx npm-check-updates -u -x env-paths,chalk",
+        "cost-of-modules": "npx -y slow-deps",
+        "format": "biome format --write",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
     },
     "keywords": [
@@ -51,9 +51,8 @@
         "node": ">=18.0"
     },
     "devDependencies": {
-        "@types/node": "^24.0.1",
-        "@types/sshpk": "^1.17.4",
-        "lorem-ipsum": "^2.0.8"
+        "@types/node": "^24.10.1",
+        "@types/sshpk": "^1.17.4"
     },
     "dependencies": {
         "@peculiar/webcrypto": "^1.5.0",

@@ -25,7 +25,6 @@ import { type BlockInfo, findBlockAtIndex, getBlock, readObjectIdentifier, readS
 
 import { type BasicConstraints, readExtension, type X509KeyUsage } from "./crypto_explore_certificate.js";
 
-
 export interface SubjectAltName {
     uniformResourceIdentifier: string[];
     dNSName: string[];
