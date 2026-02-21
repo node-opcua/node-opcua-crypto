@@ -16,6 +16,10 @@
             "import": "./dist/source/index_web.js",
             "require": "./dist/source/index_web.cjs"
         },
+        "./bundled-web": {
+            "types": "./dist/source/index_web.d.ts",
+            "import": "./dist-web-bundle/index_web.js"
+        },
         "./node": {
             "types": "./dist/source_nodejs/index.d.ts",
             "import": "./dist/source_nodejs/index.js",
@@ -23,6 +27,8 @@
         }
     },
     "scripts": {
+        "build:bundle": "tsup --config tsup.config.bundle.ts",
+        "build:web-bundle": "tsup --config tsup.config.web-bundle.ts",
         "build:tsup": "tsup",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:types": "tsc -p tsconfig.types.json",
@@ -52,7 +58,16 @@
     },
     "devDependencies": {
         "@types/node": "^24.10.1",
-        "@types/sshpk": "^1.17.4"
+        "@types/sshpk": "^1.17.4",
+        "assert": "^2.1.0",
+        "buffer": "^6.0.3",
+        "constants-browserify": "^1.0.0",
+        "crypto-browserify": "^3.12.1",
+        "events": "^3.3.0",
+        "stream-browserify": "^3.0.0",
+        "string_decoder": "^1.1.1",
+        "util": "^0.12.5",
+        "vm-browserify": "^1.1.2"
     },
     "dependencies": {
         "@peculiar/webcrypto": "^1.5.0",
