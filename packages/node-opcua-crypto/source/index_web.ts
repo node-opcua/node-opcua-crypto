@@ -35,6 +35,7 @@ export * from "./explore_certificate.js";
 export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
 export * from "./explore_private_key.js";
+export * from "./identify_der.js";
 export * from "./make_private_key_from_pem.js";
 export * from "./make_private_key_thumbprint.js";
 /**
