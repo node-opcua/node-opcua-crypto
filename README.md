@@ -9,15 +9,16 @@ NodeOPCUA Crypto is a powerful JavaScript module for handling security and crypt
 [![Coverage Status](https://coveralls.io/repos/github/node-opcua/node-opcua-crypto/badge.svg?branch=master)](https://coveralls.io/github/node-opcua/node-opcua-crypto?branch=master)
 [![install size](https://packagephobia.com/badge?p=node-opcua-crypto)](https://packagephobia.com/result?p=node-opcua-crypto)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B20248%2Fgithub.com%2Fnode-opcua%2Fnode-opcua-crypto.svg?type=shield)](https://app.fossa.com/projects/custom%2B20248%2Fgithub.com%2Fnode-opcua%2Fnode-opcua-crypto?ref=badge_shield)
+[![Dependency graph](https://img.shields.io/badge/dependency-graph-blue)](https://npmgraph.js.org/?q=node-opcua-crypto#sizing=&color=moduleType&zoom=w)
 
 <!-- [![Test Coverage](https://codeclimate.com/github/node-opcua/node-opcua-crypto/badges/coverage.svg)](https://codeclimate.com/github/node-opcua/node-opcua-crypto/coverage) -->
 
 ## Features
 
--   a comprehensive set of cryptographic functionalities.
--   supports both Node.js and browser environments.
--   compatible with TypeScript for robust, type-safe coding.
--   implements advanced security standards for OPCUA.
+- a comprehensive set of cryptographic functionalities.
+- supports both Node.js and browser environments.
+- compatible with TypeScript for robust, type-safe coding.
+- implements advanced security standards for OPCUA.
 
 ## Getting Started
 
@@ -85,11 +86,11 @@ or contact [sterfive](https://www.sterfive.com) for dedicated consulting and mor
 
 We appreciate contributions from the community. To contribute:
 
--   Fork the repository.
--   Create a new branch.
--   Commit your changes.
--   Submit a pull request.
--   Sign the CLA (Contributor Licence Agreement) form
+- Fork the repository.
+- Create a new branch.
+- Commit your changes.
+- Submit a pull request.
+- Sign the CLA (Contributor Licence Agreement) form
 
 For more detailed instructions, refer to the CONTRIBUTING.md file.
 
