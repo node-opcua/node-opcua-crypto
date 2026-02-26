@@ -60,6 +60,20 @@ export function readCertificate(filename: string): Certificate {
 }
 
 /**
+ * Async version of {@link readCertificate}.
+ * Uses `fs.promises.readFile` so the event loop is not blocked
+ * during I/O.
+ */
+export async function readCertificateAsync(filename: string): Promise<Certificate> {
+    const buf = await fs.promises.readFile(filename);
+    if (filename.match(/.*\.der/)) {
+        return buf as Certificate;
+    }
+    const raw_key = removeTrailingLF(buf.toString("utf-8"));
+    return convertPEMtoDER(raw_key) as Certificate;
+}
+
+/**
  * read a DER or PEM certificate from file
  */
 export function readPublicKey(filename: string): KeyObject {
@@ -70,6 +84,17 @@ export function readPublicKey(filename: string): KeyObject {
         const raw_key: string = _readPemFile(filename);
         return createPublicKey(raw_key);
     }
+}
+
+/**
+ * Async version of {@link readPublicKey}.
+ */
+export async function readPublicKeyAsync(filename: string): Promise<KeyObject> {
+    const buf = await fs.promises.readFile(filename);
+    if (filename.match(/.*\.der/)) {
+        return createPublicKey(buf);
+    }
+    return createPublicKey(removeTrailingLF(buf.toString("utf-8")));
 }
 
 // console.log("createPrivateKey", (crypto as any).createPrivateKey, process.env.NO_CREATE_PRIVATEKEY);
@@ -108,12 +133,39 @@ export function readPrivateKey(filename: string): PrivateKey {
     }
 }
 
+/**
+ * Async version of {@link readPrivateKey}.
+ */
+export async function readPrivateKeyAsync(filename: string): Promise<PrivateKey> {
+    const buf = await fs.promises.readFile(filename);
+    if (filename.match(/.*\.der/)) {
+        return myCreatePrivateKey(buf);
+    }
+    return myCreatePrivateKey(removeTrailingLF(buf.toString("utf-8")));
+}
+
 export function readCertificatePEM(filename: string): CertificatePEM {
     return _readPemFile(filename);
 }
 
+/**
+ * Async version of {@link readCertificatePEM}.
+ */
+export async function readCertificatePEMAsync(filename: string): Promise<CertificatePEM> {
+    const buf = await fs.promises.readFile(filename, "utf-8");
+    return removeTrailingLF(buf);
+}
+
 export function readPublicKeyPEM(filename: string): PublicKeyPEM {
     return _readPemFile(filename);
+}
+
+/**
+ * Async version of {@link readPublicKeyPEM}.
+ */
+export async function readPublicKeyPEMAsync(filename: string): Promise<PublicKeyPEM> {
+    const buf = await fs.promises.readFile(filename, "utf-8");
+    return removeTrailingLF(buf);
 }
 /**
  *
@@ -121,6 +173,15 @@ export function readPublicKeyPEM(filename: string): PublicKeyPEM {
  */
 export function readPrivateKeyPEM(filename: string): PrivateKeyPEM {
     return _readPemFile(filename);
+}
+
+/**
+ * Async version of {@link readPrivateKeyPEM}.
+ * @deprecated
+ */
+export async function readPrivateKeyPEMAsync(filename: string): Promise<PrivateKeyPEM> {
+    const buf = await fs.promises.readFile(filename, "utf-8");
+    return removeTrailingLF(buf);
 }
 
 let _g_certificate_store: string = "";
