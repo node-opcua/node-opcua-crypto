@@ -96,7 +96,7 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         if (!certInfo.tbsCertificate.extensions) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "Cannot find X409 Extension 3 in certificate",
+                reason: "Cannot find X509 Extension 3 in certificate",
             };
         }
 
@@ -104,7 +104,7 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         if (!certParentInfo.tbsCertificate.extensions || !certInfo.tbsCertificate.extensions.authorityKeyIdentifier) {
             return {
                 status: "BadCertificateInvalid",
-                reason: "Cannot find X409 Extension 3 in certificate (parent)",
+                reason: "Cannot find X509 Extension 3 in certificate (parent)",
             };
         }
 
