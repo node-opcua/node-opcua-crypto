@@ -48,11 +48,12 @@ node_modules_bak/
 *.tgz
 
 # Prevent accidental tsc output in source dirs (project uses tsup -> dist/)
-source/**/*.js
-source/**/*.js.map
-source/**/*.d.ts
-source/**/*.d.ts.map
-source_nodejs/**/*.js
-source_nodejs/**/*.js.map
-source_nodejs/**/*.d.ts
-source_nodejs/**/*.d.ts.map
+**/source/**/*.js
+**/source/**/*.js.map
+**/source/**/*.d.ts
+**/source/**/*.d.ts.map
+**/source_nodejs/**/*.js
+**/source_nodejs/**/*.js.map
+**/source_nodejs/**/*.d.ts
+**/source_nodejs/**/*.d.ts.map
+commit_message.txt

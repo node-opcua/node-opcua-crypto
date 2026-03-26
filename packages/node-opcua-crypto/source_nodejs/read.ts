@@ -37,6 +37,7 @@ import type {
     PublicKey,
     PublicKeyPEM,
 } from "../source/common.js";
+import { split_der } from "../source/crypto_explore_certificate.js";
 import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 
 function _readPemFile(filename: string): PEM {
@@ -52,17 +53,93 @@ function _readPemOrDerFileAsDER(filename: string): DER {
     return convertPEMtoDER(raw_key);
 }
 
+function _countPemCertBlocks(pem: string): number {
+    const matches = pem.match(/-----BEGIN CERTIFICATE-----/g);
+    return matches ? matches.length : 0;
+}
+
 /**
- * read a DER or PEM certificate from file
+ * Read a DER or PEM certificate from file.
+ *
+ * **Note:** If the PEM file contains multiple certificate blocks
+ * (e.g. a leaf cert + CA chain), only the **first** certificate
+ * is returned. Use {@link readCertificateChain} to read all
+ * certificates individually.
+ *
+ * @deprecated Use {@link readCertificateChain} instead, which
+ * returns each certificate as a separate DER buffer.
  */
 export function readCertificate(filename: string): Certificate {
-    return _readPemOrDerFileAsDER(filename) as Certificate;
+    if (filename.match(/.*\.der/)) {
+        return fs.readFileSync(filename) as Certificate;
+    }
+    const pem = _readPemFile(filename);
+    const count = _countPemCertBlocks(pem);
+    if (count > 1) {
+        console.warn(
+            `[node-opcua-crypto] readCertificate: "${path.basename(filename)}"` +
+            ` contains ${count} PEM certificate block(s) but only the first` +
+            ` will be used. Use readCertificateChain() to read all certificates.`,
+        );
+    }
+    return convertPEMtoDER(pem) as Certificate;
+}
+
+/**
+ * Read a PEM or DER certificate file that may contain multiple
+ * certificates (e.g. a leaf cert + CA issuer chain) and return
+ * each certificate as a separate DER `Buffer`.
+ *
+ * - For a DER file, returns a single-element array.
+ * - For a PEM file with N certificate blocks, returns N elements
+ *   in the same order they appear in the file (leaf first).
+ */
+export function readCertificateChain(filename: string): Certificate[] {
+    if (filename.match(/.*\.der/)) {
+        return split_der(fs.readFileSync(filename) as Certificate);
+    }
+    const pem = _readPemFile(filename);
+    return _extractAllPemDerCertificates(pem);
+}
+
+/**
+ * Async version of {@link readCertificateChain}.
+ */
+export async function readCertificateChainAsync(filename: string): Promise<Certificate[]> {
+    const buf = await fs.promises.readFile(filename);
+    if (filename.match(/.*\.der/)) {
+        return split_der(buf as Certificate);
+    }
+    const pem = removeTrailingLF(buf.toString("utf-8"));
+    return _extractAllPemDerCertificates(pem);
+}
+
+/**
+ * Extract all CERTIFICATE PEM blocks from a PEM string and
+ * return each as a separate DER `Buffer`.
+ */
+function _extractAllPemDerCertificates(pem: string): Certificate[] {
+    const certs: Certificate[] = [];
+    const regex = /-----BEGIN CERTIFICATE-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END CERTIFICATE-----/g;
+    let match: RegExpExecArray | null;
+    match = regex.exec(pem);
+    while (match !== null) {
+        const base64 = match[1].replace(/\r?\n/g, "");
+        certs.push(Buffer.from(base64, "base64") as Certificate);
+        match = regex.exec(pem);
+    }
+    return certs;
 }
 
 /**
  * Async version of {@link readCertificate}.
  * Uses `fs.promises.readFile` so the event loop is not blocked
  * during I/O.
+ *
+ * **Note:** If the PEM file contains multiple certificate blocks,
+ * only the first is returned. Use {@link readCertificateChainAsync}.
+ *
+ * @deprecated Use {@link readCertificateChainAsync} instead.
  */
 export async function readCertificateAsync(filename: string): Promise<Certificate> {
     const buf = await fs.promises.readFile(filename);
@@ -70,6 +147,14 @@ export async function readCertificateAsync(filename: string): Promise<Certificat
         return buf as Certificate;
     }
     const raw_key = removeTrailingLF(buf.toString("utf-8"));
+    const count = _countPemCertBlocks(raw_key);
+    if (count > 1) {
+        console.warn(
+            `[node-opcua-crypto] readCertificateAsync: "${path.basename(filename)}"` +
+            ` contains ${count} PEM certificate block(s) but only the first` +
+            ` will be used. Use readCertificateChainAsync() to read all certificates.`,
+        );
+    }
     return convertPEMtoDER(raw_key) as Certificate;
 }
 
