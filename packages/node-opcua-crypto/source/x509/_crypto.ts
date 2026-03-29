@@ -1,5 +1,7 @@
 import nativeCrypto from "node:crypto";
 import { Crypto as PeculiarWebCrypto } from "@peculiar/webcrypto";
+// @peculiar/x509 v2+ uses tsyringe which requires this polyfill
+import "reflect-metadata";
 import * as x509 from "@peculiar/x509";
 
 const doDebug = false;
