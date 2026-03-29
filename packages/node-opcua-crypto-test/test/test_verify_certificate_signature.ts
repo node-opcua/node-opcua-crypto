@@ -26,11 +26,10 @@ import path from "node:path";
 import {
     asn1,
     type Certificate,
-    type PrivateKey,
-    readCertificate,
+    type PrivateKey, readCertificateChain,
     readPrivateKey,
     toPem2,
-    verifyCertificateSignature,
+    verifyCertificateSignature
 } from "node-opcua-crypto";
 import { describe, expect, it } from "vitest";
 
@@ -82,23 +81,29 @@ function investigateCertificateSignature(certificate: Certificate, caPrivateKey?
 
 describe("Verify Certificate Signature", () => {
     it("WW investigate how certificate signature is build", () => {
-        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
+        const certificate1 = readCertificateChain(
+            path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
         const caPrivateKey = readPrivateKey(path.join(__dirname, "../test-fixtures/certsChain/cakey.pem"));
         investigateCertificateSignature(certificate1, caPrivateKey);
     });
 
     it("WW should verify the signature of certificate signed by a CA", () => {
-        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
-        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
+        const certificate1 = readCertificateChain(
+            path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
+        const certificate2 = readCertificateChain(
+            path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"))[0];
         expect(verifyCertificateSignature(certificate1, certificate2)).toEqual(true);
     });
     it("WW should verify the signature of a self-signed certificate", () => {
-        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"));
+        const certificate2 = readCertificateChain(
+            path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"))[0];
         expect(verifyCertificateSignature(certificate2, certificate2)).toEqual(true);
     });
     it("WW should fail when verifying a signature with the wrong parent certificate ", () => {
-        const certificate1 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"));
-        const certificate2 = readCertificate(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"));
+        const certificate1 = readCertificateChain(
+            path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
+        const certificate2 = readCertificateChain(
+            path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"))[0];
         expect(verifyCertificateSignature(certificate1, certificate2)).toEqual(false);
     });
 });

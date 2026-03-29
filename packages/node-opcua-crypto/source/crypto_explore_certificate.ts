@@ -760,9 +760,46 @@ export interface CertificateInternals {
     signatureValue: SignatureValue;
 }
 
-interface CertificatePriv extends Certificate {
-    _exploreCertificate_cache?: CertificateInternals;
+class LRUCache<K, V> {
+    private map = new Map<K, V>();
+    constructor(private maxSize: number) {}
+
+    public get(key: K): V | undefined {
+        if (!this.map.has(key)) {
+            return undefined;
+        }
+        const val = this.map.get(key);
+        if (val !== undefined) {
+            this.map.delete(key);
+            this.map.set(key, val);
+            return val;
+        }
+        return undefined;
+    }
+
+    public set(key: K, value: V): void {
+        if (this.map.has(key)) {
+            this.map.delete(key);
+        } else if (this.map.size >= this.maxSize) {
+            const oldestKey = this.map.keys().next().value;
+            if (oldestKey !== undefined) {
+                this.map.delete(oldestKey);
+            }
+        }
+        this.map.set(key, value);
+    }
+
+    public clear(): void {
+        this.map.clear();
+    }
 }
+
+const exploreCertificateCache = new LRUCache<string, CertificateInternals>(1000);
+
+export function clearExploreCertificateCache(): void {
+    exploreCertificateCache.clear();
+}
+
 /**
  * explore a certificate structure
  * @param certificate
@@ -771,17 +808,22 @@ interface CertificatePriv extends Certificate {
 export function exploreCertificate(certificate: Certificate): CertificateInternals {
     assert(Buffer.isBuffer(certificate));
 
-    const certificate_priv = certificate as CertificatePriv;
-    if (!certificate_priv._exploreCertificate_cache) {
+    const key = certificate.toString("base64");
+    let cached = exploreCertificateCache.get(key);
+
+    if (!cached) {
+        verify_certificate_der_structure(certificate);
         const block_info = readTag(certificate, 0);
         const blocks = readStruct(certificate, block_info);
-        certificate_priv._exploreCertificate_cache = {
+        cached = {
             tbsCertificate: readTbsCertificate(certificate, blocks[0]),
             signatureAlgorithm: readAlgorithmIdentifier(certificate, blocks[1]),
             signatureValue: readSignatureValue(certificate, blocks[2]),
         };
+        exploreCertificateCache.set(key, cached);
     }
-    return certificate_priv._exploreCertificate_cache;
+
+    return cached;
 }
 
 /**
@@ -796,11 +838,36 @@ export function split_der(certificateChain: Certificate): Certificate[] {
     do {
         const block_info = readTag(certificateChain, 0);
         const length = block_info.position + block_info.length;
+        if (length > certificateChain.length) {
+            throw new Error("Invalid certificate chain: block length exceeds buffer length");
+        }
         const der_certificate = certificateChain.subarray(0, length);
         certificate_chain.push(der_certificate);
         certificateChain = certificateChain.subarray(length);
     } while (certificateChain.length > 0);
     return certificate_chain;
+}
+
+/**
+ * @method verify_certificate_der_structure
+ * Verify that a certificate or certificate chain is structurally well-formed DER.
+ * Ensures the blocks parse correctly and the length exactly matches the buffer length.
+ * @param cert the DER certificate or chain to verify
+ * @throws {Error} if the structure is invalid or truncated
+ */
+export function verify_certificate_der_structure(cert: Certificate): void {
+    const blocks = split_der(cert);
+    let sum = 0;
+    for (const block of blocks) {
+        const block_info = readTag(block, 0);
+        if (block_info.position + block_info.length !== block.length) {
+            throw new Error("Invalid certificate buffer: block length doesn't match");
+        }
+        sum += block.length;
+    }
+    if (sum !== cert.length) {
+        throw new Error("Invalid certificate buffer: total block length doesn't match buffer length");
+    }
 }
 
 /**
@@ -812,16 +879,7 @@ export function split_der(certificateChain: Certificate): Certificate[] {
 export function combine_der(certificates: Certificate[]): Certificate {
     // perform some sanity check
     for (const cert of certificates) {
-        const b = split_der(cert);
-        let sum = 0;
-        b.forEach((block) => {
-            const block_info = readTag(block, 0);
-            //xx console.log("xxxx" ,cert.length,block_info);
-            //xx console.log(cert.toString("base64"));
-            assert(block_info.position + block_info.length === block.length);
-            sum += block.length;
-        });
-        assert(sum === cert.length);
+        verify_certificate_der_structure(cert);
     }
     return Buffer.concat(certificates);
 }
