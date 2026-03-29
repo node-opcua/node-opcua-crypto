@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-crypto",
-    "version": "5.3.1",
+    "version": "5.3.2",
     "type": "module",
     "description": "Crypto tools for Node-OPCUA",
     "types": "./dist/index.d.ts",
