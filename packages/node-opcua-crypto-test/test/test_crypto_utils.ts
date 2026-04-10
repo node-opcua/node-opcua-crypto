@@ -30,6 +30,7 @@ import {
     exploreCertificateInfo,
     makeSHA1Thumbprint,
     readCertificate,
+    readCertificateChain,
     readCertificatePEM,
     removeTrailingLF,
     split_der,
@@ -76,24 +77,31 @@ describe("Crypto utils", () => {
         );
     });
 
-    it("should read a certificate chain", () => {
+    it("should read a certificate combo (legacay)", () => {
         const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
 
         const arrayCertificate = split_der(certificate);
 
         expect(arrayCertificate.length).toEqual(3);
     });
+    it("should read a certificate chain", () => {
+        const arrayCertificate = readCertificateChain(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
+        expect(arrayCertificate.length).toEqual(3);
+    });
 
     it("ZZ should read a certificate chain - write and read it again", () => {
-        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
+        const certificateChain = readCertificateChain(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
 
-        const t = toPem(certificate, "CERTIFICATE");
+        const t = toPem(certificateChain, "CERTIFICATE");
+        expect(t.match(/-----BEGIN CERTIFICATE-----/g)?.length).toEqual(3);
 
         const certificate_one_blob = path.join(os.tmpdir(), "./tmp.pem");
         fs.writeFileSync(certificate_one_blob, t, "ascii");
-        const certificate2 = readCertificate(certificate_one_blob);
 
-        expect(certificate.toString("base64")).toEqual(certificate2.toString("base64"));
+
+        const certificateChain2 = readCertificateChain(certificate_one_blob);
+
+        expect(certificateChain.map((c) => c.toString("base64"))).toEqual(certificateChain2.map((c) => c.toString("base64")));
     });
 
     it("makeSHA1Thumbprint should produce a 20-byte thumbprint ", () => {
@@ -117,18 +125,44 @@ describe("Crypto utils", () => {
         const pemCertificate = toPem(certificate, "CERTIFICATE");
         expect(pemCertificate).toEqual(removeTrailingLF(certificate));
     });
+
+    it("toPem should handle buffer containing PEM string", () => {
+        const certificateBuf = fs.readFileSync(path.join(__dirname, "../test-fixtures/certs/cert1.pem"));
+        const pemCertificate = toPem(certificateBuf, "CERTIFICATE");
+        expect(typeof pemCertificate).toBe("string");
+        expect(pemCertificate).toMatch(/-----BEGIN CERTIFICATE-----/);
+    });
+
+    it("toPem edge cases (assertions, empty buffer, invalid pem string)", () => {
+        expect(() => {
+            toPem(/* intentionally null */ null as unknown as string, "CERTIFICATE");
+        }).toThrow(/expecting a key/);
+
+        expect(() => {
+            toPem(Buffer.from("abc"), 123 as unknown as string);
+        }).toThrow();
+
+        expect(() => {
+            toPem(Buffer.from("abc"), "INVALID_TYPE");
+        }).toThrow();
+
+        const emptyPem = toPem(Buffer.alloc(0), "CERTIFICATE");
+        expect(emptyPem).toEqual("-----BEGIN CERTIFICATE-----\n\n-----END CERTIFICATE-----");
+    });
 });
 
 describe("exploreCertificate", () => {
     it("should explore a 1024 bits RSA certificate", () => {
-        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem"));
+        const certificateChain = readCertificateChain(path.join(__dirname, "../test-fixtures/certs/server_cert_1024.pem"));
+        const certificate = certificateChain[0];
         const data = exploreCertificateInfo(certificate);
         expect(data.publicKeyLength).toEqual(128);
         expect(data.notAfter).toBeInstanceOf(Date);
         expect(data.notBefore).toBeInstanceOf(Date);
     });
     it("should explore a 2048 bits RSA certificate", () => {
-        const certificate = readCertificate(path.join(__dirname, "../test-fixtures/certs/server_cert_2048.pem"));
+        const certificateChain = readCertificateChain(path.join(__dirname, "../test-fixtures/certs/server_cert_2048.pem"));
+        const certificate = certificateChain[0];
         const data = exploreCertificateInfo(certificate);
         expect(data.publicKeyLength).toEqual(256);
         expect(data.notAfter).toBeInstanceOf(Date);

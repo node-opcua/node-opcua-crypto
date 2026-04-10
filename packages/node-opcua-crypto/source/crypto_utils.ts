@@ -53,7 +53,10 @@ const PEM_TYPE_REGEX = /^(-----BEGIN (.*)-----)/m;
  * buffer. Returns the extracted type string or undefined if the
  * buffer doesn't seem to be any sort of PEM format file.
  */
-export function identifyPemType(rawKey: Buffer | string): undefined | string {
+export function identifyPemType(rawKey: Certificate | Certificate[] | string): undefined | string {
+    if (Array.isArray(rawKey)) {
+        return undefined; // we only support Certificate DER array => no PEM type
+    }
     if (Buffer.isBuffer(rawKey)) {
         rawKey = rawKey.toString("utf8");
     }
@@ -66,29 +69,36 @@ export function removeTrailingLF(str: string): string {
     return tmp;
 }
 
-export function toPem(raw_key: Buffer | string, pem: string): string {
+export function toPem(raw_key: Certificate | Certificate[] | string, pem: string): string {
     assert(raw_key, "expecting a key");
     assert(typeof pem === "string");
+
+    if (Array.isArray(raw_key)) {
+        return raw_key.map((cert) => toPem(cert, pem)).join("\n");
+    }
+
     let pemType = identifyPemType(raw_key);
     if (pemType) {
+        // provided raw_key is already a pem string or a buffer containing a pem string
         return Buffer.isBuffer(raw_key)
             ? removeTrailingLF((raw_key as Buffer).toString("utf8"))
             : removeTrailingLF(raw_key as string);
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
-        let b = (raw_key as Buffer).toString("base64");
-        let str = `-----BEGIN ${pemType}-----\n`;
-        while (b.length) {
-            str += `${b.substring(0, 64)}\n`;
-            b = b.substring(64);
-        }
-        str += `-----END ${pemType}-----`;
-        // no leading \n
-        return str;
+        const b = (raw_key as Buffer).toString("base64");
+        const strBody = b.match(/.{1,64}/g)?.join("\n") || "";
+        return `-----BEGIN ${pemType}-----\n${strBody}\n-----END ${pemType}-----`;
     }
 }
 
+/**
+ * Convert a PEM string to DER format.
+ * If the PEM string contains multiple certificates, they will be concatenated in DER format.
+ * 
+ * @param raw_key The PEM string to convert.
+ * @returns The DER buffer.
+ */
 export function convertPEMtoDER(raw_key: PEM): DER {
     let match: RegExpExecArray | null;
     let _pemType: string;

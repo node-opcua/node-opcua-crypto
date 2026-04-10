@@ -49,5 +49,5 @@ export async function buildPublicKey(privateKey: CryptoKey): Promise<CryptoKey> 
         // "wrapKey",
     ]);
 
-    return publicKey;
+    return publicKey as unknown as CryptoKey;
 }

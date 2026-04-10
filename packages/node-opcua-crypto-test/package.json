@@ -48,5 +48,8 @@
     },
     "bugs": {
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+    },
+    "devDependencies": {
+        "@vitest/coverage-v8": "^4.1.4"
     }
 }
