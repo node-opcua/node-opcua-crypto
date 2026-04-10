@@ -86,7 +86,7 @@ export function toPem(raw_key: Certificate | Certificate[] | string, pem: string
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
-        
+
         const buffer = raw_key as Buffer;
         if (pemType === "CERTIFICATE" && buffer.length > 0) {
             try {
@@ -94,7 +94,7 @@ export function toPem(raw_key: Certificate | Certificate[] | string, pem: string
                 if (parts.length > 1) {
                     return parts.map((cert) => toPem(cert, pem)).join("\n");
                 }
-            } catch (err) {
+            } catch (_err) {
                 // Ignore parsing errors and format it as a single block
             }
         }
