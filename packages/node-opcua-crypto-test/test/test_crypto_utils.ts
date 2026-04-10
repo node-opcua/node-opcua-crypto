@@ -38,6 +38,8 @@ import {
 } from "node-opcua-crypto";
 import { describe, expect, it } from "vitest";
 
+import { toPemBuggy } from "./helpers/toPemBuggy";
+
 const loremIpsumTxt = loremIpsum.loremIpsum({ units: "words", count: 100 });
 expect(loremIpsumTxt.length).toBeGreaterThan(100);
 
@@ -148,6 +150,20 @@ describe("Crypto utils", () => {
 
         const emptyPem = toPem(Buffer.alloc(0), "CERTIFICATE");
         expect(emptyPem).toEqual("-----BEGIN CERTIFICATE-----\n\n-----END CERTIFICATE-----");
+    });
+
+    it("toPem should convert a concatenated DER buffer into multiple PEM blocks", () => {
+        const certificateChain = readCertificateChain(path.join(__dirname, "../test-fixtures/certs/demo_certificate_chain.pem"));
+        const concatenatedBuffer = Buffer.concat(certificateChain as Buffer[]);
+        
+        const generatedPemBuggy = toPemBuggy(concatenatedBuffer, "CERTIFICATE");
+        // The old buggy behaviour generated only 1 block
+        expect(generatedPemBuggy.match(/-----BEGIN CERTIFICATE-----/g)?.length).toEqual(1);
+        
+        const generatedPem = toPem(concatenatedBuffer, "CERTIFICATE");
+        
+        // It should contain exactly 3 separate BEGIN CERTIFICATE markers (since demo chain has 3)
+        expect(generatedPem.match(/-----BEGIN CERTIFICATE-----/g)?.length).toEqual(3);
     });
 });
 

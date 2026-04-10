@@ -14,6 +14,7 @@ import {
     writeCertificateChainDer,
 } from "node-opcua-crypto";
 import { beforeAll, describe, expect, it } from "vitest";
+import { toPemBuggy } from "./helpers/toPemBuggy";
 
 const fixturesDir = path.join(__dirname, "../test-fixtures");
 const certsChainDir = path.join(fixturesDir, "certsChain");
@@ -64,6 +65,24 @@ describe("readCertificateChain", () => {
         // Second cert should be the CA (cacert.pem)
         const caDer = readCertificate(path.join(certsChainDir, "cacert.pem"));
         expect(Buffer.compare(certs[1], caDer)).toBe(0);
+    });
+
+    it("should extract multiple certificates from a single unified PEM block (auto-healing)", () => {
+        // Create an artificially mangled PEM with a single Base64 block containing two concatenated DERs
+        const certs = readCertificateChain(multiCertPemFile);
+        expect(certs).toHaveLength(2);
+
+        const concatenatedBuffer = Buffer.concat(certs);
+        const unifiedPem = toPemBuggy(concatenatedBuffer, "CERTIFICATE");
+        
+        const mangledFile = path.join(__dirname, "../tmp/mangled_chain.pem");
+        fs.writeFileSync(mangledFile, unifiedPem, "utf-8");
+        
+        // Assert that readCertificateChain effectively unwraps it using split_der internally
+        const extractedCerts = readCertificateChain(mangledFile);
+        expect(extractedCerts).toHaveLength(2);
+        expect(Buffer.compare(certs[0], extractedCerts[0])).toBe(0);
+        expect(Buffer.compare(certs[1], extractedCerts[1])).toBe(0);
     });
 
     it("should produce certificates verifiable by verifyCertificateChain", async () => {

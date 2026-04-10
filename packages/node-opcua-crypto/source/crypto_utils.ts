@@ -39,7 +39,7 @@ import {
 } from "node:crypto";
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import type { Certificate, CertificatePEM, DER, PEM, PrivateKey, PublicKeyPEM, Signature } from "./common.js";
-import { combine_der } from "./crypto_explore_certificate.js";
+import { combine_der, split_der } from "./crypto_explore_certificate.js";
 import { hexy } from "./hexy.js";
 
 const PEM_REGEX = /^(-----BEGIN (.*)-----\r?\n([/+=a-zA-Z0-9\r\n]*)\r?\n-----END \2-----\r?\n?)/gm;
@@ -86,7 +86,20 @@ export function toPem(raw_key: Certificate | Certificate[] | string, pem: string
     } else {
         pemType = pem;
         assert(["CERTIFICATE REQUEST", "CERTIFICATE", "RSA PRIVATE KEY", "PUBLIC KEY", "X509 CRL"].indexOf(pemType) >= 0);
-        const b = (raw_key as Buffer).toString("base64");
+        
+        const buffer = raw_key as Buffer;
+        if (pemType === "CERTIFICATE" && buffer.length > 0) {
+            try {
+                const parts = split_der(buffer);
+                if (parts.length > 1) {
+                    return parts.map((cert) => toPem(cert, pem)).join("\n");
+                }
+            } catch (err) {
+                // Ignore parsing errors and format it as a single block
+            }
+        }
+
+        const b = buffer.toString("base64");
         const strBody = b.match(/.{1,64}/g)?.join("\n") || "";
         return `-----BEGIN ${pemType}-----\n${strBody}\n-----END ${pemType}-----`;
     }

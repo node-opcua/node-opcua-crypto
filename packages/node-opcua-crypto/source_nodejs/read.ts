@@ -125,7 +125,16 @@ function _extractAllPemDerCertificates(pem: string): Certificate[] {
     match = regex.exec(pem);
     while (match !== null) {
         const base64 = match[1].replace(/\r?\n/g, "");
-        certs.push(Buffer.from(base64, "base64") as Certificate);
+        const derBuffer = Buffer.from(base64, "base64") as Certificate;
+        try {
+            const separatedCerts = split_der(derBuffer);
+            for (const c of separatedCerts) {
+                certs.push(c);
+            }
+        } catch (_err) {
+            // Fallback: push buffer as is if it fails parsing
+            certs.push(derBuffer);
+        }
         match = regex.exec(pem);
     }
     return certs;
