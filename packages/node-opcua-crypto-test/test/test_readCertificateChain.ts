@@ -74,10 +74,10 @@ describe("readCertificateChain", () => {
 
         const concatenatedBuffer = Buffer.concat(certs);
         const unifiedPem = toPemBuggy(concatenatedBuffer, "CERTIFICATE");
-        
+
         const mangledFile = path.join(__dirname, "../tmp/mangled_chain.pem");
         fs.writeFileSync(mangledFile, unifiedPem, "utf-8");
-        
+
         // Assert that readCertificateChain effectively unwraps it using split_der internally
         const extractedCerts = readCertificateChain(mangledFile);
         expect(extractedCerts).toHaveLength(2);
