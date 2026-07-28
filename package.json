@@ -17,7 +17,9 @@
         "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk,@types/node,typescript && npx npm-check-updates --deep -u -t minor",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext",
         "release": "npx -y lerna publish",
-        "esm:test": "cd packages/node-opcua-crypto-test && npm run test:esm2"
+        "esm:test": "cd packages/node-opcua-crypto-test && npm run test:esm2",
+        "//check:package": "verifies the published shape of node-opcua-crypto: exports map, files globs, and the per-condition types a CommonJS consumer resolves. attw is what catches a CJS consumer being handed ESM types (TS1479 / FalseESM); a runtime require() smoke test does not. Run after build - it packs the real dist.",
+        "check:package": "cd packages/node-opcua-crypto && npx -y publint && npx -y @arethetypeswrong/cli --pack ."
     },
     "keywords": [
         "OPCUA",

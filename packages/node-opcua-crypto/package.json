@@ -3,28 +3,47 @@
     "version": "5.3.6",
     "type": "module",
     "description": "Crypto tools for Node-OPCUA",
+    "//main": "main/types are the pre-'exports' fallback, used only by resolvers that ignore the exports map (TypeScript's classic 'node' resolution, older bundlers). They are deliberately left as the ESM pair so that path behaves exactly as it did before - do not 'fix' one without the other, or that fallback becomes a CJS file described by ESM types.",
     "types": "./dist/index.d.ts",
     "main": "./dist/index.js",
+    "//exports-bundled-web": "./bundled-web keeps the single shared \"types\" key on purpose, and it is NOT the defect described below: the hazard only exists when a \"require\" condition is present, and this subpath has none - it is a pre-bundled browser build with no .cjs counterpart. Nesting its types under \"import\" instead leaves the require condition with nothing, so a CommonJS consumer doing `await import(...)` loses types altogether. NOTE: keep notes like this OUTSIDE the exports object - every key in there is a subpath pattern, and a non-'.' key alongside '.' keys invalidates the whole map.",
+    "//exports": "types are declared PER CONDITION on purpose. A single shared \"types\" key is resolved for BOTH import and require; since this package is \"type\": \"module\", a bare .d.ts is an ES module, so a CommonJS consumer got ESM types describing the real .cjs it requires. TypeScript reports that as TS1479 under module: node16, and attw as FalseESM. The .d.cts files already existed - tsup emits them from dts:true with format esm+cjs - the map simply never pointed at them.",
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "require": "./dist/index.cjs"
+            "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
         },
         "./web": {
-            "types": "./dist/source/index_web.d.ts",
-            "import": "./dist/source/index_web.js",
-            "require": "./dist/source/index_web.cjs"
+            "import": {
+                "types": "./dist/source/index_web.d.ts",
+                "default": "./dist/source/index_web.js"
+            },
+            "require": {
+                "types": "./dist/source/index_web.d.cts",
+                "default": "./dist/source/index_web.cjs"
+            }
         },
         "./bundled-web": {
             "types": "./dist/source/index_web.d.ts",
             "import": "./dist-web-bundle/index_web.js"
         },
         "./node": {
-            "types": "./dist/source_nodejs/index.d.ts",
-            "import": "./dist/source_nodejs/index.js",
-            "require": "./dist/source_nodejs/index.cjs"
-        }
+            "import": {
+                "types": "./dist/source_nodejs/index.d.ts",
+                "default": "./dist/source_nodejs/index.js"
+            },
+            "require": {
+                "types": "./dist/source_nodejs/index.d.cts",
+                "default": "./dist/source_nodejs/index.cjs"
+            }
+        },
+        "./package.json": "./package.json"
     },
     "scripts": {
         "build:bundle": "tsup --config tsup.config.bundle.ts",
