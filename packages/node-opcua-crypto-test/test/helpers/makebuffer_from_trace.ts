@@ -21,7 +21,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-// tslint:disable-next-line:ban-types
 export function inlineText(f: (() => void) | string): string {
     let k =
         typeof f === "function"
@@ -74,7 +73,6 @@ export function hexString(str: string): string {
     return hexLine;
 }
 
-// tslint:disable-next-line:ban-types
 export function makebuffer_from_trace(func: (() => void) | string): Buffer {
     return makeBuffer(hexString(inlineText(func)));
 }

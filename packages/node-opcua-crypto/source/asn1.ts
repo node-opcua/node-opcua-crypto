@@ -52,7 +52,6 @@ export function readTag(buf: Buffer, pos: number): BlockInfo {
     let length = buf.readUInt8(pos);
     pos += 1;
 
-    // tslint:disable:no-bitwise
     if (length > 127) {
         const nbBytes = length & 0x7f;
         length = 0;
@@ -173,12 +172,10 @@ function parseOID(buffer: Buffer, start: number, end: number): string {
     for (let i = start; i < end; ++i) {
         const v = buffer.readUInt8(i);
 
-        // tslint:disable-next-line: no-bitwise
         n = n * 128 + (v & 0x7f);
         bits += 7;
 
         // noinspection JSBitwiseOperatorUsage
-        // tslint:disable-next-line: no-bitwise
         if (!(v & 0x80)) {
             // finished
             if (s === "") {

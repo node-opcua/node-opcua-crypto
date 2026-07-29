@@ -1,0 +1,49 @@
+{
+    "name": "node-opcua-crypto-web-demo",
+    "private": true,
+    "version": "5.3.6",
+    "description": "Browser demo page for node-opcua-crypto (not published)",
+    "type": "module",
+    "scripts": {
+        "build": "node build-web.mjs",
+        "lint": "biome check",
+        "format": "biome format --write",
+        "demo": "http-server ./dist"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "engine": {
+        "node": ">=18.0"
+    },
+    "dependencies": {
+        "node-opcua-crypto": "^5.3.6"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua-crypto.git"
+    },
+    "bugs": {
+        "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
+    },
+    "devDependencies": {
+        "assert": "^2.1.0",
+        "buffer": "^6.0.3",
+        "constants-browserify": "^1.0.0",
+        "crypto-browserify": "^3.12.1",
+        "esbuild": "^0.28.1",
+        "events": "^3.3.0",
+        "process": "^0.11.10",
+        "stream-browserify": "^3.0.0",
+        "string_decoder": "^1.3.0",
+        "util": "^0.12.5",
+        "vm-browserify": "^1.1.2"
+    }
+}

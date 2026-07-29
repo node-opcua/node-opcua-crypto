@@ -1,14 +1,28 @@
 {
     "name": "node-opcua-crypto-web",
-    "private": true,
     "version": "5.3.6",
-    "description": "Crypto tools for Node-OPCUA",
     "type": "module",
+    "description": "Pre-bundled, zero-config browser build of node-opcua-crypto",
+    "//why": "This package exists so node-opcua-crypto can stay lean for Node. The pre-bundled browser build inlines its polyfills (crypto-browserify, stream-browserify, ...) and weighs ~344 KB gzip - more than the entire node-opcua-crypto tarball. Shipping it there would make every Node consumer download a browser bundle they never import. Browser consumers install this package explicitly, or let node-opcua-crypto's \"browser\" export condition redirect to it (see node-opcua-crypto/browser/index.js).",
+    "types": "./dist/index_web.d.ts",
+    "main": "./dist/index_web.js",
+    "//exports": "there is no \"require\" condition on purpose: this is an ESM-only browser bundle with no .cjs counterpart, so a single shared \"types\" key is correct here and cannot produce the CJS-gets-ESM-types hazard (attw FalseESM) that node-opcua-crypto's map guards against.",
+    "exports": {
+        ".": {
+            "types": "./dist/index_web.d.ts",
+            "default": "./dist/index_web.js"
+        },
+        "./package.json": "./package.json"
+    },
     "scripts": {
-        "build": "node build-web.mjs",
+        "build:bundle": "node build.mjs",
+        "build:types": "tsup",
+        "build": "npm run build:bundle && npm run build:types",
+        "build:clean": "npx rimraf ./dist *.tsbuildinfo",
+        "prepare": "npm run build",
         "lint": "biome check",
-        "format": "biome format --write",
-        "demo": "http-server ./dist"
+        "lint:fix": "biome lint --fix",
+        "format": "biome format --write"
     },
     "keywords": [
         "OPCUA",
@@ -16,15 +30,27 @@
         "m2m",
         "iot",
         "opc ua",
-        "internet of things"
+        "internet of things",
+        "browser"
     ],
     "author": "Etienne Rossignon",
     "license": "MIT",
-    "engine": {
-        "node": ">=18.0"
-    },
-    "dependencies": {
-        "node-opcua-crypto": "^5.3.6"
+    "//devDependencies": "every one of these is inlined into dist/ at build time (tsup noExternal), so this package has no runtime dependencies at all.",
+    "devDependencies": {
+        "@types/node": "^24.13.3",
+        "assert": "^2.1.0",
+        "buffer": "^6.0.3",
+        "constants-browserify": "^1.0.0",
+        "crypto-browserify": "^3.12.1",
+        "esbuild": "^0.28.1",
+        "events": "^3.3.0",
+        "node-opcua-crypto": "^5.3.6",
+        "path-browserify": "^1.0.1",
+        "process": "^0.11.10",
+        "stream-browserify": "^3.0.0",
+        "string_decoder": "^1.3.0",
+        "util": "^0.12.5",
+        "vm-browserify": "^1.1.2"
     },
     "repository": {
         "type": "git",
@@ -33,17 +59,12 @@
     "bugs": {
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
     },
-    "devDependencies": {
-        "assert": "^2.1.0",
-        "buffer": "^6.0.3",
-        "constants-browserify": "^1.0.0",
-        "crypto-browserify": "^3.12.1",
-        "esbuild": "^0.28.0",
-        "events": "^3.3.0",
-        "process": "^0.11.10",
-        "stream-browserify": "^3.0.0",
-        "string_decoder": "^1.3.0",
-        "util": "^0.12.5",
-        "vm-browserify": "^1.1.2"
-    }
+    "//files": "the .map is excluded deliberately: it gzips to ~662 KB, nearly twice the bundle itself and ~65% of the tarball. The bundle is not minified, so it stays readable without one. index_web.d.cts is excluded for the same reason - there is no CJS build for it to describe. Both are still generated locally for debugging.",
+    "files": [
+        "dist",
+        "!dist/*.map",
+        "!dist/*.d.cts",
+        "LICENSE",
+        "README.md"
+    ]
 }

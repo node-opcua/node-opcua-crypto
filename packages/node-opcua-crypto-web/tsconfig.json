@@ -1,5 +1,8 @@
 {
     "compilerOptions": {
+        // see packages/node-opcua-crypto/tsconfig.common.json: tsup's dts build injects
+        // a deprecated `baseUrl` (TS5101 under TypeScript 6.0).
+        "ignoreDeprecations": "6.0",
         "target": "es2022",
         "module": "esnext",
         "moduleResolution": "bundler",
@@ -7,17 +10,14 @@
         "skipLibCheck": true,
         "sourceMap": true,
         "strict": true,
-        "lib": [
-            "ES2022",
-            "DOM",
-            "DOM.Iterable"
-        ],
-        "types": [
-            "node"
-        ],
-        "rootDir": "."
+        "verbatimModuleSyntax": true,
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        // node-opcua-crypto's public API is typed in terms of Buffer, so the declaration
+        // rollup needs @types/node even though the runtime Buffer here is the polyfill.
+        "types": ["node"],
+        // no rootDir: the entry deliberately reaches into ../node-opcua-crypto/source
+        // (see source/index_web.ts). Nothing is emitted by tsc here - tsup owns the output.
+        "noEmit": true
     },
-    "include": [
-        "web/main.ts"
-    ]
+    "include": ["source/**/*.ts"]
 }

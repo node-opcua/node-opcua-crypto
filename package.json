@@ -5,21 +5,27 @@
     "description": "Crypto tools for Node-OPCUA",
     "scripts": {
         "build:crypto": "cd packages/node-opcua-crypto && npm run build",
+        "//build:web": "must run after build:crypto - tsup rolls up types from node-opcua-crypto/web, which only exist once dist/ is built.",
+        "build:web": "cd packages/node-opcua-crypto-web && npm run build",
         "build:test": "cd packages/node-opcua-crypto-test && npm run build",
-        "build": "npm run build:crypto && npm run build:test",
+        "build": "npm run build:crypto && npm run build:web && npm run build:test",
         "test": "npx vitest run --root packages/node-opcua-crypto-test",
         "lint": "biome lint",
         "format": "biome format --write",
         "check": "biome check",
         "makedoc": "cd packages/node-opcua-crypto && npm run makedoc",
         "cost-of-modules": "npx cost-of-modules --no-install",
-        "prettier-format": "prettier --config .prettierrc.js packages/**/source/**/*.ts packages/**/test/**/*.ts --write",
         "ncu": "npx npm-check-updates --deep -u -x env-paths,chalk,@types/node,typescript && npx npm-check-updates --deep -u -t minor",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext",
         "release": "npx -y lerna publish",
         "esm:test": "cd packages/node-opcua-crypto-test && npm run test:esm2",
-        "//check:package": "verifies the published shape of node-opcua-crypto: exports map, files globs, and the per-condition types a CommonJS consumer resolves. attw is what catches a CJS consumer being handed ESM types (TS1479 / FalseESM); a runtime require() smoke test does not. Run after build - it packs the real dist.",
-        "check:package": "cd packages/node-opcua-crypto && npx -y publint && npx -y @arethetypeswrong/cli --pack ."
+        "//check:package": "verifies the published shape of both publishable packages: exports map, files globs, and the per-condition types a CommonJS consumer resolves. attw is what catches a CJS consumer being handed ESM types (TS1479 / FalseESM); a runtime require() smoke test does not. Run after build - it packs the real dist.",
+        "//ignore-rules": "scoped deliberately - do NOT widen. crypto ignores no-resolution because (a) node10 is TypeScript's pre-'exports' resolution, where subpath exports cannot resolve at all, and (b) the browser condition points at the OPTIONAL node-opcua-crypto-web peer, absent by design. web ignores cjs-resolves-to-esm because it is an ESM-only browser bundle with no .cjs counterpart. Everything else stays enforced - in particular false-esm/false-cjs, the CJS-gets-ESM-types bug this gate exists to catch.",
+        "check:package:crypto": "cd packages/node-opcua-crypto && npx -y publint && npx -y @arethetypeswrong/cli --pack . --ignore-rules no-resolution",
+        "check:package:web": "cd packages/node-opcua-crypto-web && npx -y publint && npx -y @arethetypeswrong/cli --pack . --ignore-rules cjs-resolves-to-esm",
+        "check:package": "npm run check:package:crypto && npm run check:package:web",
+        "//check:browser": "proves through a real bundler that the \"browser\" export condition redirects to node-opcua-crypto-web and that the Node build stays polyfill-free. Neither tsc nor the vitest suite can see this - it only manifests during bundling. Run after build.",
+        "check:browser": "node scripts/check-browser-redirect.mjs"
     },
     "keywords": [
         "OPCUA",
@@ -44,21 +50,23 @@
     "workspaces": [
         "packages/node-opcua-crypto-test",
         "packages/node-opcua-crypto",
-        "packages/node-opcua-crypto-web"
+        "packages/node-opcua-crypto-web",
+        "packages/node-opcua-crypto-web-demo"
     ],
     "dependencies": {
-        "@types/node": "^24.12.4",
+        "@types/node": "^24.13.3",
         "cross-env": "^10.1.0",
         "glob": "^13.0.6",
         "ts-node": "^10.9.2",
         "tsup": "^8.5.1",
-        "typescript": "^5.9.3"
+        "typescript": "^6.0.3"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.4.15",
+        "@biomejs/biome": "^2.5.6",
         "@rollup/plugin-node-resolve": "^16.0.3",
+        "esbuild": "^0.28.1",
         "rollup-plugin-polyfill-node": "^0.13.0",
-        "vite-plugin-node-polyfills": "^0.26.0",
-        "vitest": "^4.1.6"
+        "vite-plugin-node-polyfills": "^0.28.0",
+        "vitest": "^4.1.10"
     }
 }

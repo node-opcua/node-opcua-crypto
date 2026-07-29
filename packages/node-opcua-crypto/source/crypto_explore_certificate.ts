@@ -36,7 +36,6 @@
 // PERFORMANCE OF THIS SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 /*jslint bitwise: true */
-// tslint:disable:no-shadowed-variable
 
 // references:
 //  - http://tools.ietf.org/html/rfc5280
@@ -296,9 +295,7 @@ function _readGeneralNames(buffer: Buffer, block: BlockInfo) {
 
     const n: { [key: string]: string[] } = {};
     for (const block of blocks) {
-        // tslint:disable-next-line: no-bitwise
         assert((block.tag & 0x80) === 0x80);
-        // tslint:disable-next-line: no-bitwise
         const t = block.tag & 0x7f;
         const type = _data[t] as { name: string; type: string } | undefined;
         // istanbul ignore next
@@ -377,23 +374,14 @@ function readKeyUsage(_oid: string, buffer: Buffer): X509KeyUsage {
 
     // set flags
     return {
-        // tslint:disable-next-line: no-bitwise
         digitalSignature: (b2 & 0x80) === 0x80,
-        // tslint:disable-next-line: no-bitwise
         nonRepudiation: (b2 & 0x40) === 0x40,
-        // tslint:disable-next-line: no-bitwise
         keyEncipherment: (b2 & 0x20) === 0x20,
-        // tslint:disable-next-line: no-bitwise
         dataEncipherment: (b2 & 0x10) === 0x10,
-        // tslint:disable-next-line: no-bitwise
         keyAgreement: (b2 & 0x08) === 0x08,
-        // tslint:disable-next-line: no-bitwise
         keyCertSign: (b2 & 0x04) === 0x04,
-        // tslint:disable-next-line: no-bitwise
         cRLSign: (b2 & 0x02) === 0x02,
-        // tslint:disable-next-line: no-bitwise
         encipherOnly: (b2 & 0x01) === 0x01,
-        // tslint:disable-next-line: no-bitwise
         decipherOnly: (b3 & 0x80) === 0x80,
     };
 }
@@ -734,7 +722,6 @@ export function readTbsCertificate(buffer: Buffer, block: BlockInfo): TbsCertifi
 
         const extensionBlock = findBlockAtIndex(blocks, 3);
         if (!extensionBlock) {
-            // tslint:disable-next-line: no-console
             doDebug && console.log(`X509 certificate is invalid : cannot find extension block version = ${version_block}`);
             extensions = null;
         } else {

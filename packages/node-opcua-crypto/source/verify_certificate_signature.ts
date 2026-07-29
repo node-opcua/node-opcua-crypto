@@ -21,7 +21,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-// tslint:disable: no-console
 
 // Now that we got a hash of the original certificate,
 // we need to verify if we can obtain the same hash by using the same hashing function

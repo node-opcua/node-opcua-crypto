@@ -60,6 +60,51 @@ jobs:
                       ./packages/node-opcua-crypto/dist*
                       ./packages/node-opcua-crypto-test/dist*
 
+    # Guards the published shape of node-opcua-crypto: the exports map, the files globs,
+    # and the per-condition types a CommonJS consumer actually resolves. attw is what
+    # catches a CJS consumer being handed ESM types (TS1479 / FalseESM); a require()
+    # smoke test does not. Runs against the real `npm pack` output, so it needs a build.
+    check-package:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4.2.2
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4.1.0
+              with:
+                  node-version: 24.x
+
+            - name: Restore dependencies
+              uses: actions/cache@v4.2.0
+              with:
+                  key: ${{ runner.os }}-node-modules-${{ github.sha }}
+                  path: node_modules
+
+            - name: Restore build artifacts
+              uses: actions/cache@v4.2.0
+              with:
+                  enableCrossOsArchive: true
+                  key: dist-${{ github.sha }}
+                  path: |
+                      ./packages/node-opcua-crypto/dist*
+                      ./packages/node-opcua-crypto-test/dist*
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Build
+              run: npm run build
+
+            - name: Check published package shape
+              run: npm run check:package
+
+            # Proves through a real bundler that the "browser" export condition still
+            # redirects to node-opcua-crypto-web and that the Node build stays
+            # polyfill-free. Invisible to tsc and to the vitest suite.
+            - name: Check browser/node split
+              run: npm run check:browser
+
     test-new:
         needs: build
         strategy:

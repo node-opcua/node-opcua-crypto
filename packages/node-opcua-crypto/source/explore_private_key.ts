@@ -25,7 +25,6 @@ import { type BlockInfo, readStruct, readTag, TagType } from "./asn1.js";
 import type { PrivateKey } from "./common.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
 
-// tslint:disable:no-empty-interface
 export interface PrivateKeyInternals {
     /***/
     version: Buffer;
@@ -89,11 +88,9 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
     }
     /* istanbul ignore next */
     if (doDebug) {
-        // tslint:disable:no-console
         console.log("-------------------- private key:");
         console.log(block_info);
 
-        // tslint:disable:no-console
         console.log(
             blocks.map((b) => ({
                 tag: `${TagType[b.tag]} 0x${b.tag.toString(16)}`,
@@ -111,7 +108,6 @@ export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals 
 
     /* istanbul ignore next */
     if (doDebug) {
-        // tslint:disable:no-console
         console.log(
             blocks1.map((b) => ({
                 tag: `${TagType[b.tag]} 0x${b.tag.toString(16)}`,

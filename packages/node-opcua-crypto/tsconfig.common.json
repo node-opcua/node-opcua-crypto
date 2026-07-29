@@ -1,9 +1,14 @@
 {
     "compilerOptions": {
+        // tsup's dts build injects `baseUrl: "."` into the compiler options it hands to
+        // TypeScript (see node_modules/tsup/dist/rollup.js), and baseUrl is deprecated in
+        // TS 6.0 (TS5101). We can't drop an option we never set, so silence it here.
+        // Remove once tsup stops injecting baseUrl.
+        "ignoreDeprecations": "6.0",
         "target": "es2022",
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "module": "esnext",
         "verbatimModuleSyntax": true,
         "sourceMap": true,

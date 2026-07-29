@@ -8,8 +8,9 @@
         "build:tsup:cjs": "tsup  ./test/test_*.ts  --shims --format cjs --out-dir dist-cjs --sourcemap --clean --dts",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build": "npm run build:tsup:esm && npm run build:tsup:cjs",
-        "tslint": "tslint --project . --fix",
-        "lint": "eslint . --ext .ts",
+        "lint": "biome check",
+        "lint:fix": "biome lint --fix",
+        "format": "biome format --write",
         "test": "npx vitest run",
         "test:no-createkey": "cross-env NO_CREATE_PRIVATEKEY=1 npx vitest run",
         "test:direct:cjs": "node test-cjs/test_cjs.js",
@@ -34,7 +35,7 @@
         "@peculiar/webcrypto": "^1.7.1",
         "@peculiar/x509": "^2.0.0",
         "@types/jsrsasign": "^10.5.15",
-        "@types/node": "^24.12.4",
+        "@types/node": "^24.13.3",
         "cross-env": "^10.1.0",
         "jsrsasign": "^11.1.3",
         "lorem-ipsum": "^3.0.0",
@@ -50,6 +51,6 @@
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
     },
     "devDependencies": {
-        "@vitest/coverage-v8": "^4.1.6"
+        "@vitest/coverage-v8": "^4.1.10"
     }
 }

@@ -22,7 +22,6 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import assert from "node:assert";
-// tslint:disabled:no-var-requires
 /**
  * @module node_opcua_crypto
  */

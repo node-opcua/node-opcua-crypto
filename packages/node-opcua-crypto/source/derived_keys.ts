@@ -96,7 +96,6 @@ export function makePseudoRandomBuffer(secret: Nonce, seed: Nonce, minLength: nu
     let index = 1;
     let p_hash = createFastUninitializedBuffer(0);
     while (p_hash.length <= minLength) {
-        /* eslint  new-cap:0 */
         a[index] = HMAC_HASH(sha1or256, secret, a[index - 1]);
         p_hash = plus(p_hash, HMAC_HASH(sha1or256, secret, plus(a[index], seed)));
         index += 1;

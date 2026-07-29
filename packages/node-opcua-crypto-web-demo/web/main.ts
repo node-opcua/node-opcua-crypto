@@ -1,5 +1,3 @@
-/* eslint-disable no-undef */
-
 // Make Buffer available globally for polyfilled crypto code
 // (process is injected by esbuild via inject-buffer.js)
 import { Buffer } from "buffer";

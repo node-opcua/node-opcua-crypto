@@ -6,10 +6,15 @@
     "//main": "main/types are the pre-'exports' fallback, used only by resolvers that ignore the exports map (TypeScript's classic 'node' resolution, older bundlers). They are deliberately left as the ESM pair so that path behaves exactly as it did before - do not 'fix' one without the other, or that fallback becomes a CJS file described by ESM types.",
     "types": "./dist/index.d.ts",
     "main": "./dist/index.js",
-    "//exports-bundled-web": "./bundled-web keeps the single shared \"types\" key on purpose, and it is NOT the defect described below: the hazard only exists when a \"require\" condition is present, and this subpath has none - it is a pre-bundled browser build with no .cjs counterpart. Nesting its types under \"import\" instead leaves the require condition with nothing, so a CommonJS consumer doing `await import(...)` loses types altogether. NOTE: keep notes like this OUTSIDE the exports object - every key in there is a subpath pattern, and a non-'.' key alongside '.' keys invalidates the whole map.",
-    "//exports": "types are declared PER CONDITION on purpose. A single shared \"types\" key is resolved for BOTH import and require; since this package is \"type\": \"module\", a bare .d.ts is an ES module, so a CommonJS consumer got ESM types describing the real .cjs it requires. TypeScript reports that as TS1479 under module: node16, and attw as FalseESM. The .d.cts files already existed - tsup emits them from dts:true with format esm+cjs - the map simply never pointed at them.",
+    "//exports-web": "./web is the browser entry, and it is deliberately NOT pre-bundled: it shares chunk-BGGEFTMF.js with the Node entry, so it costs this package almost nothing. It does still import assert/constants/crypto/path/url, so the consumer's bundler must supply those. Anyone wanting a zero-config, fully pre-bundled browser build installs the separate node-opcua-crypto-web package instead - inlining it here would add ~344 KB gzip to every Node install for something Node consumers never import. NOTE: keep notes like this OUTSIDE the exports object - every key in there is a subpath pattern, and a non-'.' key alongside '.' keys invalidates the whole map.",
+    "//exports":"types are declared PER CONDITION on purpose. A single shared \"types\" key is resolved for BOTH import and require; since this package is \"type\": \"module\", a bare .d.ts is an ES module, so a CommonJS consumer got ESM types describing the real .cjs it requires. TypeScript reports that as TS1479 under module: node16, and attw as FalseESM. The .d.cts files already existed - tsup emits them from dts:true with format esm+cjs - the map simply never pointed at them.",
+    "//exports-browser": "the \"browser\" condition MUST stay first - conditions are matched in declaration order, and import/require would otherwise win and hand a browser bundler the Node build. It resolves to a ~60 byte stub that re-exports the optional node-opcua-crypto-web peer, so Node consumers pay nothing for it. If a browser consumer has not installed that peer, their bundler fails at build time with an unresolved 'node-opcua-crypto-web' - that is the intended signal; ./web remains available as the bring-your-own-polyfills path that needs no peer.",
     "exports": {
         ".": {
+            "browser": {
+                "types": "./browser/index.d.ts",
+                "default": "./browser/index.js"
+            },
             "import": {
                 "types": "./dist/index.d.ts",
                 "default": "./dist/index.js"
@@ -29,10 +34,6 @@
                 "default": "./dist/source/index_web.cjs"
             }
         },
-        "./bundled-web": {
-            "types": "./dist/source/index_web.d.ts",
-            "import": "./dist-web-bundle/index_web.js"
-        },
         "./node": {
             "import": {
                 "types": "./dist/source_nodejs/index.d.ts",
@@ -46,16 +47,14 @@
         "./package.json": "./package.json"
     },
     "scripts": {
-        "build:bundle": "tsup --config tsup.config.bundle.ts",
-        "build:web-bundle": "tsup --config tsup.config.web-bundle.ts",
         "build:tsup": "tsup",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:types": "tsc -p tsconfig.types.json",
         "build:demo": "node web/esbuild.mjs",
         "build": "npm run build:tsup",
         "prepare": "npm run build",
-        "tslint": "biome lint --fix",
         "lint": "biome check",
+        "lint:fix": "biome lint --fix",
         "makedoc": "npx typedoc  index.ts --excludeNotDocumented --exclude \"_*\" --excludePrivate --excludeProtected --excludeExternals -out doc",
         "cost-of-modules": "npx -y slow-deps",
         "format": "biome format --write",
@@ -76,8 +75,8 @@
         "node": ">=18.0"
     },
     "devDependencies": {
-        "@types/node": "^24.12.4",
-        "@types/sshpk": "^1.17.4",
+        "@types/node": "^24.13.3",
+        "@types/sshpk": "^1.17.5",
         "assert": "^2.1.0",
         "buffer": "^6.0.3",
         "constants-browserify": "^1.0.0",
@@ -94,6 +93,15 @@
         "reflect-metadata": "^0.2.2",
         "sshpk": "^1.18.0"
     },
+    "//peerDependencies": "optional on purpose: only browser consumers resolving the \"browser\" condition need it, and npm must not pull it into a Node install. See browser/index.js.",
+    "peerDependencies": {
+        "node-opcua-crypto-web": "^5.3.6"
+    },
+    "peerDependenciesMeta": {
+        "node-opcua-crypto-web": {
+            "optional": true
+        }
+    },
     "repository": {
         "type": "git",
         "url": "git://github.com/node-opcua/node-opcua-crypto.git"
@@ -103,6 +111,7 @@
     },
     "files": [
         "dist",
+        "browser",
         "LICENSE",
         "README.md"
     ],

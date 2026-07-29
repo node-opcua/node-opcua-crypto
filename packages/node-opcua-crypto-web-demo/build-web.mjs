@@ -29,8 +29,8 @@ async function build() {
             // so esbuild bundles it from scratch (the pre-built dist/ has Node-only imports)
             "node-opcua-crypto/web": path.resolve(__dirname, "..", "node-opcua-crypto", "source", "index_web.ts"),
             // Node built-in → browser polyfill (with createPublicKey/createPrivateKey shims)
-            "crypto": path.resolve(__dirname, "node-crypto-shim.js"),
-            "node:crypto": path.resolve(__dirname, "node-crypto-shim.js"),
+            "crypto": path.resolve(__dirname, "..", "node-opcua-crypto-web", "shims", "node-crypto-shim.js"),
+            "node:crypto": path.resolve(__dirname, "..", "node-opcua-crypto-web", "shims", "node-crypto-shim.js"),
             assert: "assert",
             "node:assert": "assert",
             buffer: "buffer",
@@ -50,7 +50,7 @@ async function build() {
             // Redirect safe-buffer to buffer polyfill
             "safe-buffer": "buffer",
             // Use native browser crypto instead of @peculiar/webcrypto
-            "@peculiar/webcrypto": path.resolve(__dirname, "webcrypto-shim.js"),
+            "@peculiar/webcrypto": path.resolve(__dirname, "..", "node-opcua-crypto-web", "shims", "webcrypto-shim.js"),
         },
         define: {
             "global": "globalThis",
@@ -60,7 +60,7 @@ async function build() {
             "process.env.NODE_DEBUG": "undefined",
             "process.env.NODE_ENV": JSON.stringify("production"),
         },
-        inject: [path.join(__dirname, "inject-buffer.js")],
+        inject: [path.join(__dirname, "..", "node-opcua-crypto-web", "shims", "inject-buffer.js")],
         logLevel: "info",
     });
 

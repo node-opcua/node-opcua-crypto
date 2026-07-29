@@ -1,6 +1,5 @@
 import { exploreCertificateInfo } from "node-opcua-crypto/web";
 
-// eslint-disable-next-line no-undef
 
 try {
     exploreCertificateInfo(Buffer.from("123"));
