@@ -333,6 +333,86 @@ function _readSubjectAltNames(buffer: Buffer) {
     return _readGeneralNames(buffer, block_info);
 }
 
+// ---------------------------------------------------------------------------
+//  CRL Distribution Points  -- RFC 5280 4.2.1.13, OID 2.5.29.31
+// ---------------------------------------------------------------------------
+//
+//   CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
+//   DistributionPoint ::= SEQUENCE {
+//        distributionPoint       [0] DistributionPointName OPTIONAL,
+//        reasons                 [1] ReasonFlags OPTIONAL,
+//        cRLIssuer               [2] GeneralNames OPTIONAL }
+//   DistributionPointName ::= CHOICE {
+//        fullName                [0] GeneralNames,
+//        nameRelativeToCRLIssuer [1] RelativeDistinguishedName }
+//
+// Only the fullName form is decoded; it is the one certificate authorities
+// emit. The result has the same shape as subjectAltName, so a caller reads a
+// URI from `uniformResourceIdentifier` in both places.
+function _readCrlDistributionPoints(buffer: Buffer): { [key: string]: string[] } {
+    const result: { [key: string]: string[] } = {};
+    const outer = readTag(buffer, 0);
+    for (const distributionPoint of readStruct(buffer, outer)) {
+        for (const member of readStruct(buffer, distributionPoint)) {
+            // [0] distributionPoint; skip reasons and cRLIssuer
+            if ((member.tag & 0x1f) !== 0) continue;
+            for (const choice of readStruct(buffer, member)) {
+                // [0] fullName; nameRelativeToCRLIssuer is not decoded
+                if ((choice.tag & 0x1f) !== 0) continue;
+                const names = _readGeneralNames(buffer, choice);
+                for (const key of Object.keys(names)) {
+                    result[key] = (result[key] || []).concat(names[key]);
+                }
+            }
+        }
+    }
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+//  Authority Information Access  -- RFC 5280 4.2.2.1, OID 1.3.6.1.5.5.7.1.1
+// ---------------------------------------------------------------------------
+
+/** id-ad-ocsp, RFC 5280 4.2.2.1 */
+const OID_AD_OCSP = "1.3.6.1.5.5.7.48.1";
+/** id-ad-caIssuers, RFC 5280 4.2.2.1 */
+const OID_AD_CA_ISSUERS = "1.3.6.1.5.5.7.48.2";
+
+export interface AuthorityInformationAccess {
+    /** Where to ask for revocation status online (RFC 6960). */
+    ocsp?: string[];
+    /** Where to fetch the issuer certificate, for chain repair. */
+    caIssuers?: string[];
+}
+
+//   AuthorityInfoAccessSyntax ::= SEQUENCE SIZE (1..MAX) OF AccessDescription
+//   AccessDescription ::= SEQUENCE {
+//        accessMethod          OBJECT IDENTIFIER,
+//        accessLocation        GeneralName }
+//
+// Each leg is identified by the OID that precedes it, never by its position:
+// the order of the legs is not fixed, and reading them positionally points
+// chain repair at the OCSP responder.
+function _readAuthorityInformationAccess(buffer: Buffer): AuthorityInformationAccess {
+    const result: AuthorityInformationAccess = {};
+    const outer = readTag(buffer, 0);
+    for (const accessDescription of readStruct(buffer, outer)) {
+        const parts = readStruct(buffer, accessDescription);
+        if (parts.length < 2 || parts[0].tag !== TagType.OBJECT_IDENTIFIER) continue;
+        const accessMethod = readObjectIdentifier(buffer, parts[0]);
+        const accessLocation = parts[1];
+        // uniformResourceIdentifier [6]; other GeneralName forms carry no URL.
+        if ((accessLocation.tag & 0x1f) !== 6) continue;
+        const uri = buffer.subarray(accessLocation.position, accessLocation.position + accessLocation.length).toString("ascii");
+        if (accessMethod.oid === OID_AD_OCSP) {
+            result.ocsp = (result.ocsp || []).concat(uri);
+        } else if (accessMethod.oid === OID_AD_CA_ISSUERS) {
+            result.caIssuers = (result.caIssuers || []).concat(uri);
+        }
+    }
+    return result;
+}
+
 // named X509KeyUsage not to confuse with DOM KeyUsage
 export interface X509KeyUsage {
     digitalSignature: boolean;
@@ -476,7 +556,14 @@ export function readExtension(
     block: BlockInfo,
 ): {
     identifier: { oid: string; name: string };
-    value: string | X509KeyUsage | X509ExtKeyUsage | AuthorityKeyIdentifier | BasicConstraints | { [key: string]: string[] };
+    value:
+        | string
+        | X509KeyUsage
+        | X509ExtKeyUsage
+        | AuthorityKeyIdentifier
+        | BasicConstraints
+        | AuthorityInformationAccess
+        | { [key: string]: string[] };
 } {
     const inner_blocks = readStruct(buffer, block);
 
@@ -493,6 +580,7 @@ export function readExtension(
         | X509ExtKeyUsage
         | AuthorityKeyIdentifier
         | BasicConstraints
+        | AuthorityInformationAccess
         | { [key: string]: string[] }
         | null = null;
     switch (identifier.name) {
@@ -529,6 +617,12 @@ export function readExtension(
         case "extKeyUsage":
             value = readExtKeyUsage(identifier.oid, buf);
             break;
+        case "cRLDistributionPoints":
+            value = _readCrlDistributionPoints(buf);
+            break;
+        case "authorityInfoAccess":
+            value = _readAuthorityInformationAccess(buf);
+            break;
         case "keyUsage":
             value = readKeyUsage(identifier.oid, buf);
             break;
@@ -551,7 +645,13 @@ function _readExtensions(buffer: Buffer, block: BlockInfo): CertificateExtension
 
     const result: Record<
         string,
-        string | AuthorityKeyIdentifier | BasicConstraints | X509KeyUsage | X509ExtKeyUsage | { [key: string]: string[] }
+        | string
+        | AuthorityKeyIdentifier
+        | BasicConstraints
+        | AuthorityInformationAccess
+        | X509KeyUsage
+        | X509ExtKeyUsage
+        | { [key: string]: string[] }
     > = {};
     for (const e of extensions) {
         result[e.identifier.name] = e.value;
@@ -651,6 +751,10 @@ export interface CertificateExtension {
     keyUsage?: X509KeyUsage;
     extKeyUsage?: X509ExtKeyUsage;
     subjectAltName?: { [key: string]: string[] };
+    /** RFC 5280 4.2.1.13 -- where the CRL for this certificate is published. */
+    cRLDistributionPoints?: { [key: string]: string[] };
+    /** RFC 5280 4.2.2.1 -- OCSP responder and issuer-certificate locations. */
+    authorityInfoAccess?: AuthorityInformationAccess;
 }
 
 export interface TbsCertificate {

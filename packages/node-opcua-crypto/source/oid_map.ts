@@ -69,6 +69,8 @@ export const oid_map: { [key: string]: { d: string; c: string; w?: boolean } } =
 
     "1.3.6.1.4.1.311.20.2.3": { d: "1.3.6.1.4.1.311.20.2.3", c: "id-on-personalData" },
 
+    "1.3.6.1.5.5.7.1.1": { d: "authorityInfoAccess", c: "PKIX private extension", w: false },
+
     "1.3.6.1.5.5.7.3.17": { d: "1.3.6.1.5.5.7.3.17", c: "Internet Key Exchange (IKE)" },
 
     "1.3.6.1.5.5.7.3.1": { d: "serverAuth", c: "PKIX key purpose" },
