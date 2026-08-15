@@ -41,7 +41,17 @@ import { makeSHA1Thumbprint } from "./crypto_utils.js";
 import { type DirectoryName, readDirectoryName } from "./directory_name.js";
 
 export type Version = string;
-export type Name = string;
+/**
+ * A Name is an RDNSequence, not a string.
+ *
+ * This was declared `string` while `readNameForCrl` has always returned a
+ * {@link DirectoryName} object — the `as TBSCertList` casts below hid the
+ * mismatch, so `tbsCertList.issuer` type-checked as a string while being an
+ * object at runtime. Correcting the declaration is a breaking *type* change and
+ * no behaviour change at all: callers reading `issuer` as a string were already
+ * getting an object.
+ */
+export type Name = DirectoryName;
 export type CertificateSerialNumber = string;
 export type Extensions = Record<string, unknown>;
 export interface RevokedCertificate {

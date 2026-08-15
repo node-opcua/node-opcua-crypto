@@ -112,22 +112,19 @@ function _readAttributeTypeAndValue(buffer: Buffer, block: BlockInfo): Attribute
     return result;
 }
 
-interface RelativeDistinguishedName {
-    [prop: string]: unknown;
-}
-
-function _readRelativeDistinguishedName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
-    const inner_blocks = readStruct(buffer, block);
-    const data = inner_blocks.map((block) => _readAttributeTypeAndValue(buffer, block));
-    const result: RelativeDistinguishedName = {};
-    for (const e of data) {
-        result[e.identifier as string] = e.value;
-    }
-    return result;
-}
-
-function _readName(buffer: Buffer, block: BlockInfo): RelativeDistinguishedName {
-    return _readRelativeDistinguishedName(buffer, block);
+/**
+ * Read a Name (RDNSequence) from a certificate.
+ *
+ * Delegates to {@link readDirectoryName} rather than parsing the structure a
+ * second time. There were two implementations of this in the package and they
+ * shared the same two defects: a repeated attribute silently overwrote the
+ * previous one, and only the first attribute of a multi-valued RDN was read.
+ * Callers that must reproduce a DN faithfully — OPC UA Part 18 §4.4.3
+ * `X509Subject` role criteria, for one — need the ordered `entries` this now
+ * carries.
+ */
+function _readName(buffer: Buffer, block: BlockInfo): DirectoryName {
+    return readDirectoryName(buffer, block);
 }
 
 export interface Validity {

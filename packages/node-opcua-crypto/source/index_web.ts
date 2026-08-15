@@ -30,7 +30,7 @@
 export * from "./common.js";
 export * from "./crl_utils.js";
 export * from "./crypto_explore_certificate.js";
-export type { DirectoryName } from "./directory_name.js";
+export type { DirectoryName, DistinguishedNameAttribute } from "./directory_name.js";
 export * from "./explore_asn1.js";
 export * from "./explore_certificate.js";
 export * from "./explore_certificate.js";
