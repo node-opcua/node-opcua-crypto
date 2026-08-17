@@ -21,9 +21,26 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-export * from "./generate_private_key_filename.js";
-export * from "./permissions.js";
-export * from "./read.js";
-export * from "./read_certificate_revocation_list.js";
-export * from "./read_certificate_signing_request.js";
-export * from "./write.js";
+import fs from "node:fs";
+
+/**
+ * Restrict a private key file to owner-only access (mode 0600).
+ *
+ * `fs.chmod` only toggles the read-only attribute on Windows and cannot
+ * express POSIX-style owner-only permissions, so this is a no-op there
+ * rather than a false sense of protection. Errors are logged, not thrown:
+ * a read-only mount or an unexpected ownership mismatch should not prevent
+ * a caller from starting up.
+ */
+export async function restrictPrivateKeyFilePermissions(filename: string): Promise<void> {
+    // istanbul ignore if
+    if (process.platform === "win32") {
+        return;
+    }
+    try {
+        await fs.promises.chmod(filename, 0o600);
+    } catch (err) {
+        // istanbul ignore next
+        console.warn(`could not restrict permissions on ${filename}: ${(err as Error).message}`);
+    }
+}

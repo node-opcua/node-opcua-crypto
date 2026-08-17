@@ -22,6 +22,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 import { getCrypto, x509 } from "./_crypto.js";
 
+const ENCRYPTED_PEM_HEADER = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
+
 export async function generateKeyPair(modulusLength: 1024 | 2048 | 3072 | 4096 = 2048): Promise<CryptoKeyPair> {
     const crypto = getCrypto();
 
@@ -79,6 +81,17 @@ export async function derToPrivateKey(privDer: ArrayBuffer): Promise<CryptoKey> 
 }
 
 export async function pemToPrivateKey(pem: string): Promise<CryptoKey> {
+    // WebCrypto's SubtleCrypto.importKey("pkcs8", ...) has no notion of an
+    // encrypted PKCS#8 key, so this path can never decrypt one — fail with a
+    // clear message instead of the confusing DER-parsing error that would
+    // otherwise come from feeding EncryptedPrivateKeyInfo DER to importKey.
+    if (pem.includes(ENCRYPTED_PEM_HEADER)) {
+        throw new Error(
+            "This private key is encrypted (PKCS#8 ENCRYPTED PRIVATE KEY). " +
+                "Encrypted private keys are not supported by the WebCrypto-based browser build; " +
+                "use the Node.js build's readPrivateKey()/readPrivateKeyAsync() with a passphrase instead.",
+        );
+    }
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
     const privDer = x509.PemConverter.decode(pem);
     return derToPrivateKey(privDer[0]);

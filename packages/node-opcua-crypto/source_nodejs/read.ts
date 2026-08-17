@@ -37,6 +37,7 @@ import type {
     PublicKey,
     PublicKeyPEM,
 } from "../source/common.js";
+import { PrivateKeyPassphraseRequiredError } from "../source/common.js";
 import { split_der } from "../source/crypto_explore_certificate.js";
 import { convertPEMtoDER, identifyPemType, removeTrailingLF, toPem } from "../source/crypto_utils.js";
 
@@ -78,8 +79,8 @@ export function readCertificate(filename: string): Certificate {
     if (count > 1) {
         console.warn(
             `[node-opcua-crypto] readCertificate: "${path.basename(filename)}"` +
-            ` contains ${count} PEM certificate block(s) but only the first` +
-            ` will be used. Use readCertificateChain() to read all certificates.`,
+                ` contains ${count} PEM certificate block(s) but only the first` +
+                ` will be used. Use readCertificateChain() to read all certificates.`,
         );
     }
     return convertPEMtoDER(pem) as Certificate;
@@ -160,8 +161,8 @@ export async function readCertificateAsync(filename: string): Promise<Certificat
     if (count > 1) {
         console.warn(
             `[node-opcua-crypto] readCertificateAsync: "${path.basename(filename)}"` +
-            ` contains ${count} PEM certificate block(s) but only the first` +
-            ` will be used. Use readCertificateChainAsync() to read all certificates.`,
+                ` contains ${count} PEM certificate block(s) but only the first` +
+                ` will be used. Use readCertificateChainAsync() to read all certificates.`,
         );
     }
     return convertPEMtoDER(raw_key) as Certificate;
@@ -193,9 +194,26 @@ export async function readPublicKeyAsync(filename: string): Promise<KeyObject> {
 
 // console.log("createPrivateKey", (crypto as any).createPrivateKey, process.env.NO_CREATE_PRIVATEKEY);
 
-function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
+const ENCRYPTED_PEM_HEADER = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
+
+function isEncryptedPem(rawKey: string | Buffer): boolean {
+    return typeof rawKey === "string" && rawKey.includes(ENCRYPTED_PEM_HEADER);
+}
+
+function myCreatePrivateKey(rawKey: string | Buffer, passphrase?: string | Buffer): PrivateKey {
+    const encrypted = isEncryptedPem(rawKey);
+
     if (!createPrivateKey || process.env.NO_CREATE_PRIVATEKEY) {
-        // we are not running nodejs or createPrivateKey is not supported in the environment
+        // we are not running nodejs or createPrivateKey is not supported in the environment:
+        // this fallback path never decrypts anything, so it must fail closed rather than
+        // silently returning the still-encrypted PEM text as if it were usable key material.
+        if (encrypted || passphrase !== undefined) {
+            throw new PrivateKeyPassphraseRequiredError(
+                "This private key is encrypted, and encrypted private keys are not supported " +
+                    "when node:crypto.createPrivateKey is unavailable (NO_CREATE_PRIVATEKEY is set, " +
+                    "or this environment does not provide it).",
+            );
+        }
         if (Buffer.isBuffer(rawKey)) {
             const pemKey = toPem(rawKey, "PRIVATE KEY");
             assert(["RSA PRIVATE KEY", "PRIVATE KEY"].indexOf(identifyPemType(pemKey) as string) >= 0);
@@ -203,10 +221,23 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
         }
         return { hidden: ensureTrailingLF(rawKey as string) };
     }
+
+    if (encrypted && passphrase === undefined) {
+        throw new PrivateKeyPassphraseRequiredError();
+    }
+    if (passphrase !== undefined && Buffer.isBuffer(rawKey)) {
+        // encrypted DER (as opposed to encrypted PEM) is out of scope: this
+        // package only generates/reads encrypted keys in PKCS#8 PEM form.
+        throw new PrivateKeyPassphraseRequiredError("Passphrase-protected DER private keys are not supported; use PEM.");
+    }
+
     // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
     const backup = process.env.OPENSSL_CONF;
     process.env.OPENSSL_CONF = "/dev/null";
-    const retValue = createPrivateKey(rawKey);
+    const retValue =
+        passphrase !== undefined
+            ? createPrivateKey({ key: rawKey as string, format: "pem", passphrase })
+            : createPrivateKey(rawKey);
     process.env.OPENSSL_CONF = backup;
     return { hidden: retValue };
 }
@@ -216,26 +247,32 @@ function ensureTrailingLF(str: string): string {
 }
 /**
  * read a DER or PEM certificate from file
+ *
+ * @param filename
+ * @param passphrase — required if the key is an encrypted PKCS#8 PEM
+ *   (`-----BEGIN ENCRYPTED PRIVATE KEY-----`). Throws
+ *   {@link PrivateKeyPassphraseRequiredError} if the key is encrypted and
+ *   no passphrase is supplied.
  */
-export function readPrivateKey(filename: string): PrivateKey {
+export function readPrivateKey(filename: string, passphrase?: string | Buffer): PrivateKey {
     if (filename.match(/.*\.der/)) {
         const der: Buffer = fs.readFileSync(filename);
-        return myCreatePrivateKey(der);
+        return myCreatePrivateKey(der, passphrase);
     } else {
         const raw_key: string = _readPemFile(filename);
-        return myCreatePrivateKey(raw_key);
+        return myCreatePrivateKey(raw_key, passphrase);
     }
 }
 
 /**
  * Async version of {@link readPrivateKey}.
  */
-export async function readPrivateKeyAsync(filename: string): Promise<PrivateKey> {
+export async function readPrivateKeyAsync(filename: string, passphrase?: string | Buffer): Promise<PrivateKey> {
     const buf = await fs.promises.readFile(filename);
     if (filename.match(/.*\.der/)) {
-        return myCreatePrivateKey(buf);
+        return myCreatePrivateKey(buf, passphrase);
     }
-    return myCreatePrivateKey(removeTrailingLF(buf.toString("utf-8")));
+    return myCreatePrivateKey(removeTrailingLF(buf.toString("utf-8")), passphrase);
 }
 
 export function readCertificatePEM(filename: string): CertificatePEM {

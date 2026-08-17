@@ -22,10 +22,11 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
-
-import type { Certificate } from "../source/common.js";
+import type { Certificate, KeyExportOptions, KeyObject, PrivateKey } from "../source/common.js";
+import { createPrivateKeyFromNodeJSCrypto, isKeyObject } from "../source/common.js";
 import { combine_der } from "../source/crypto_explore_certificate.js";
 import { toPem } from "../source/crypto_utils.js";
+import { restrictPrivateKeyFilePermissions } from "./permissions.js";
 
 // ── PEM ──────────────────────────────────────────────────────
 
@@ -86,4 +87,47 @@ export function writeCertificateChainDer(filename: string, certificates: Certifi
  */
 export async function writeCertificateChainDerAsync(filename: string, certificates: Certificate | Certificate[]): Promise<void> {
     await fs.promises.writeFile(filename, certificatesToDer(certificates));
+}
+
+// ── Private key ──────────────────────────────────────────────
+
+export interface WritePrivateKeyFileOptions {
+    /** Encrypt the key with this passphrase (PKCS#8, aes-256-cbc). Omit to write the key unencrypted. */
+    passphrase?: string | Buffer;
+}
+
+function toExportableKeyObject(privateKey: PrivateKey): KeyObject {
+    const hidden = (privateKey as { hidden: unknown }).hidden;
+    if (isKeyObject(hidden)) {
+        return hidden as KeyObject;
+    }
+    // `hidden` is a raw PEM string (e.g. produced by the createPrivateKey-unavailable
+    // fallback read path) rather than a real KeyObject — turn it into one so it can
+    // be exported/encrypted.
+    return createPrivateKeyFromNodeJSCrypto(hidden as string) as unknown as KeyObject;
+}
+
+/**
+ * Write a private key to disk as PKCS#8 PEM, optionally encrypted with a
+ * passphrase (`aes-256-cbc`). The file is created — and repaired, if it
+ * already existed with looser permissions — with owner-only permissions
+ * (mode 0600 on POSIX; no-op on Windows).
+ *
+ * Node.js only: encrypted PKCS#8 export requires `node:crypto`, which is
+ * not available in the browser build.
+ */
+export async function writePrivateKeyFile(
+    filename: string,
+    privateKey: PrivateKey,
+    options: WritePrivateKeyFileOptions = {},
+): Promise<void> {
+    const { passphrase } = options;
+    const keyObject = toExportableKeyObject(privateKey);
+    const exportOptions: KeyExportOptions<"pem"> =
+        passphrase !== undefined
+            ? { type: "pkcs8", format: "pem", cipher: "aes-256-cbc", passphrase }
+            : { type: "pkcs8", format: "pem" };
+    const pem = keyObject.export(exportOptions) as string;
+    await fs.promises.writeFile(filename, pem, { encoding: "utf-8", mode: 0o600 });
+    await restrictPrivateKeyFilePermissions(filename);
 }
