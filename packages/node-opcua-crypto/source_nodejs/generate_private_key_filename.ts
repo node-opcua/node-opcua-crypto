@@ -24,10 +24,42 @@
 import { generateKeyPairSync } from "node:crypto";
 import fs from "node:fs";
 import { generateKeyPair, privateKeyToPEM } from "../source/index.js";
-export async function generatePrivateKeyFile(privateKeyFilename: string, modulusLength: 1024 | 2048 | 3072 | 4096) {
+import { restrictPrivateKeyFilePermissions } from "./permissions.js";
+
+export interface GeneratePrivateKeyFileOptions {
+    /** Encrypt the generated key with this passphrase (PKCS#8, aes-256-cbc). Omit to write it unencrypted. */
+    passphrase?: string | Buffer;
+}
+
+export async function generatePrivateKeyFile(
+    privateKeyFilename: string,
+    modulusLength: 1024 | 2048 | 3072 | 4096,
+    options: GeneratePrivateKeyFileOptions = {},
+) {
+    const { passphrase } = options;
+    if (passphrase !== undefined) {
+        // The default path below exports via WebCrypto, which cannot produce
+        // encrypted PKCS#8; use native node:crypto instead, same as
+        // generatePrivateKeyFileAlternate.
+        //
+        // Note: generateKeyPairSync's privateKeyEncoding.passphrase is typed
+        // as `string` only (not `string | Buffer`, unlike createPrivateKey's
+        // passphrase option elsewhere in this file/package), so a Buffer
+        // passphrase is converted here.
+        const passphraseString: string = Buffer.isBuffer(passphrase) ? passphrase.toString("utf-8") : passphrase;
+        const { privateKey } = generateKeyPairSync("rsa", {
+            modulusLength,
+            privateKeyEncoding: { type: "pkcs8", format: "pem", cipher: "aes-256-cbc", passphrase: passphraseString },
+            publicKeyEncoding: { type: "spki", format: "pem" },
+        });
+        await fs.promises.writeFile(privateKeyFilename, privateKey, { encoding: "utf-8", mode: 0o600 });
+        await restrictPrivateKeyFilePermissions(privateKeyFilename);
+        return;
+    }
     const keys = await generateKeyPair(modulusLength);
     const privateKeyPem = await privateKeyToPEM(keys.privateKey);
-    await fs.promises.writeFile(privateKeyFilename, privateKeyPem.privPem, "utf-8");
+    await fs.promises.writeFile(privateKeyFilename, privateKeyPem.privPem, { encoding: "utf-8", mode: 0o600 });
+    await restrictPrivateKeyFilePermissions(privateKeyFilename);
     privateKeyPem.privPem = "";
     privateKeyPem.privDer = new ArrayBuffer(0);
 }
@@ -44,5 +76,6 @@ export async function generatePrivateKeyFileAlternate(privateKeyFilename: string
         privateKeyEncoding: { type: "pkcs8", format: "pem" },
         publicKeyEncoding: { type: "spki", format: "pem" },
     });
-    await fs.promises.writeFile(privateKeyFilename, privateKey, "utf-8");
+    await fs.promises.writeFile(privateKeyFilename, privateKey, { encoding: "utf-8", mode: 0o600 });
+    await restrictPrivateKeyFilePermissions(privateKeyFilename);
 }

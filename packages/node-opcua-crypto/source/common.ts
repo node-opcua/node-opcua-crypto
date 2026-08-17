@@ -28,7 +28,7 @@ export const { createPrivateKey: createPrivateKeyFromNodeJSCrypto } = __crypto;
 
 type KeyFormat = "pem" | "der" | "jwk";
 type KeyObjectType = "secret" | "public" | "private";
-interface KeyExportOptions<T extends KeyFormat> {
+export interface KeyExportOptions<T extends KeyFormat> {
     type: "pkcs1" | "spki" | "pkcs8" | "sec1";
     format: T;
     cipher?: string | undefined;
@@ -52,6 +52,19 @@ export function isKeyObject(mayBeKeyObject: unknown): boolean {
 }
 export type PrivateKey = { hidden: string } | { hidden: KeyObject };
 export type PublicKey = KeyObject;
+
+/**
+ * Thrown when a private key is encrypted (PKCS#8 `ENCRYPTED PRIVATE KEY`)
+ * and the caller did not supply a passphrase to decrypt it. Reading an
+ * encrypted key without a passphrase always fails closed — it never falls
+ * back to treating the key as unencrypted or skipping it.
+ */
+export class PrivateKeyPassphraseRequiredError extends Error {
+    constructor(message = "This private key is encrypted and requires a passphrase to be read") {
+        super(message);
+        this.name = "PrivateKeyPassphraseRequiredError";
+    }
+}
 
 export type Nonce = Buffer;
 export type PEM = string;

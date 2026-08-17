@@ -1,4 +1,10 @@
-import { createPrivateKeyFromNodeJSCrypto, isKeyObject, type KeyObject, type PrivateKey } from "../common.js";
+import {
+    createPrivateKeyFromNodeJSCrypto,
+    isKeyObject,
+    type KeyObject,
+    type PrivateKey,
+    PrivateKeyPassphraseRequiredError,
+} from "../common.js";
 import { getCrypto } from "./_crypto.js";
 import { derToPrivateKey, pemToPrivateKey } from "./create_key_pair.js";
 
@@ -6,9 +12,25 @@ const crypto = getCrypto();
 
 const doDebug = false;
 
-export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string | Buffer): PrivateKey {
+const ENCRYPTED_PEM_HEADER = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
+
+/**
+ * @param privateKeyInDerOrPem
+ * @param passphrase — required if the PEM is an encrypted PKCS#8 key
+ *   (`-----BEGIN ENCRYPTED PRIVATE KEY-----`). Throws
+ *   {@link PrivateKeyPassphraseRequiredError} if the key is encrypted and
+ *   no passphrase is supplied. Unencrypted input is unaffected by this
+ *   parameter.
+ */
+export function coercePEMorDerToPrivateKey(privateKeyInDerOrPem: string | Buffer, passphrase?: string | Buffer): PrivateKey {
     if (typeof privateKeyInDerOrPem === "string") {
-        const hidden = createPrivateKeyFromNodeJSCrypto(privateKeyInDerOrPem);
+        if (privateKeyInDerOrPem.includes(ENCRYPTED_PEM_HEADER) && passphrase === undefined) {
+            throw new PrivateKeyPassphraseRequiredError();
+        }
+        const hidden =
+            passphrase !== undefined
+                ? createPrivateKeyFromNodeJSCrypto({ key: privateKeyInDerOrPem, format: "pem", passphrase })
+                : createPrivateKeyFromNodeJSCrypto(privateKeyInDerOrPem);
         return { hidden: hidden as unknown as KeyObject };
     }
     //istanbul ignore next
