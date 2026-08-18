@@ -146,6 +146,41 @@ try {
         path.join(outDir, "with_friendly_name.pfx"),
     );
 
+    // ── Interop / regression fixtures ────────────────────────────────
+    // Each of these exercises a layout the "OpenSSL default" fixtures above
+    // cannot; they exist because parsePfx once silently mishandled them.
+
+    // G) Certificate SafeContents left UNENCRYPTED (plain Data envelope).
+    //    RFC 7292 does not tie bag types to envelopes; a parser that only
+    //    looks for cert bags inside EncryptedData drops these entirely.
+    console.log("G. Creating PFX with an unencrypted certificate safe (-certpbe NONE)...");
+    ssl(
+        "pkcs12 -export -in leaf_cert.pem -inkey leaf_key.pem -certpbe NONE -out certpbe_none.pfx -passout pass:secret",
+    );
+    fs.copyFileSync(
+        path.join(tmpDir, "certpbe_none.pfx"),
+        path.join(outDir, "certpbe_none.pfx"),
+    );
+
+    // H) Legacy PBE (pre-OpenSSL-3 defaults): key bag under PBE-SHA1-3DES,
+    //    cert safe under PBE-SHA1-RC2-40, SHA-1 MAC. Node's createPrivateKey
+    //    decrypts the 3DES key natively; the RC2-40 cert safe is NOT
+    //    supported by this build (RC2 needs OpenSSL's legacy provider), so
+    //    the parser must fail loudly with Pkcs12UnsupportedAlgorithmError,
+    //    never with a wrong answer.
+    console.log("H. Creating legacy-PBE PFX (-legacy: 3DES key, RC2-40 certs)...");
+    ssl(
+        "pkcs12 -export -legacy -in leaf_cert.pem -inkey leaf_key.pem -out legacy.pfx -passout pass:secret",
+    );
+    fs.copyFileSync(path.join(tmpDir, "legacy.pfx"), path.join(outDir, "legacy.pfx"));
+
+    // NOTE: a "CA cert ordered before the leaf" fixture cannot be produced
+    // with the openssl CLI — it always emits the cert matching -inkey first,
+    // whatever order the input PEM has. That layout (common in Windows /
+    // keytool exports) is instead constructed programmatically in
+    // test_pkcs12.ts, which builds a PFX with the leaf deliberately second
+    // and asserts parsePfx pairs it to the key via localKeyId, not position.
+
     console.log("\n=== All PFX fixtures generated successfully ===");
     console.log(`Output directory: ${outDir}`);
     console.log("Files:");

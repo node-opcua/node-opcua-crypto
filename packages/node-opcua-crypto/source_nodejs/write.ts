@@ -23,7 +23,7 @@
 
 import fs from "node:fs";
 import type { Certificate, KeyExportOptions, KeyObject, PrivateKey } from "../source/common.js";
-import { createPrivateKeyFromNodeJSCrypto, isKeyObject } from "../source/common.js";
+import { createPrivateKeyFromNodeJSCrypto, isKeyObject, PrivateKeyPassphraseRequiredError } from "../source/common.js";
 import { combine_der } from "../source/crypto_explore_certificate.js";
 import { toPem } from "../source/crypto_utils.js";
 import { restrictPrivateKeyFilePermissions } from "./permissions.js";
@@ -96,15 +96,32 @@ export interface WritePrivateKeyFileOptions {
     passphrase?: string | Buffer;
 }
 
-function toExportableKeyObject(privateKey: PrivateKey): KeyObject {
+/**
+ * Normalize a {@link PrivateKey}'s opaque `hidden` field (either a real
+ * `KeyObject` or a raw PEM string produced by the createPrivateKey-unavailable
+ * fallback read path) into a `KeyObject` that can be exported/encrypted.
+ *
+ * Fails closed, like `readPrivateKey`, if the raw PEM turns out to be an
+ * *encrypted* PKCS#8 key: such a value can reach here unguarded via
+ * `makePrivateKeyFromPem(pem)` (a bare wrapper that performs no validation),
+ * and without this check the caller would see a raw OpenSSL decoder error
+ * instead of the package's typed {@link PrivateKeyPassphraseRequiredError}.
+ *
+ * @internal Not part of the public API (leading underscore + `--exclude "_*"`
+ * in the makedoc config); it hands out a raw `KeyObject` for an opaque
+ * `PrivateKey`. Consumers should go through `readPrivateKey` /
+ * `coercePrivateKeyPem` instead.
+ */
+export function _toExportableKeyObject(privateKey: PrivateKey): KeyObject {
     const hidden = (privateKey as { hidden: unknown }).hidden;
     if (isKeyObject(hidden)) {
         return hidden as KeyObject;
     }
-    // `hidden` is a raw PEM string (e.g. produced by the createPrivateKey-unavailable
-    // fallback read path) rather than a real KeyObject — turn it into one so it can
-    // be exported/encrypted.
-    return createPrivateKeyFromNodeJSCrypto(hidden as string) as unknown as KeyObject;
+    const pem = hidden as string;
+    if (pem.includes("-----BEGIN ENCRYPTED PRIVATE KEY-----")) {
+        throw new PrivateKeyPassphraseRequiredError();
+    }
+    return createPrivateKeyFromNodeJSCrypto(pem) as unknown as KeyObject;
 }
 
 /**
@@ -122,7 +139,7 @@ export async function writePrivateKeyFile(
     options: WritePrivateKeyFileOptions = {},
 ): Promise<void> {
     const { passphrase } = options;
-    const keyObject = toExportableKeyObject(privateKey);
+    const keyObject = _toExportableKeyObject(privateKey);
     const exportOptions: KeyExportOptions<"pem"> =
         passphrase !== undefined
             ? { type: "pkcs8", format: "pem", cipher: "aes-256-cbc", passphrase }

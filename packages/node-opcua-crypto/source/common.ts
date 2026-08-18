@@ -66,6 +66,52 @@ export class PrivateKeyPassphraseRequiredError extends Error {
     }
 }
 
+// ── PKCS#12 (PFX) errors ────────────────────────────────────────────────
+// Defined here, alongside PrivateKeyPassphraseRequiredError, so every
+// PKCS#12 module and every consumer imports them from one place. They are
+// deliberately distinct classes so a caller can tell "wrong password" from
+// "structurally invalid file" from "algorithm this build cannot handle"
+// without matching on message text.
+
+/**
+ * PKCS#12 integrity check failed: the password is wrong, or the file has
+ * been corrupted or tampered with. Raised on a `MacData` HMAC mismatch and
+ * on a bag-decryption failure (both are the observable symptom of a wrong
+ * password; PKCS#12 does not let the two be distinguished reliably).
+ */
+export class PfxIntegrityError extends Error {
+    constructor(message = "PFX integrity check failed: wrong password, or the file is corrupted or has been tampered with") {
+        super(message);
+        this.name = "PfxIntegrityError";
+    }
+}
+
+/**
+ * The PKCS#12 file parsed and (where applicable) decrypted correctly, but
+ * is not a bundle this API can represent — for example it carries no
+ * private key, or no certificate. Distinct from {@link PfxIntegrityError}:
+ * the password was fine; the content is what is missing or malformed.
+ */
+export class PfxMalformedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "PfxMalformedError";
+    }
+}
+
+/**
+ * The PKCS#12 file uses an encryption or digest algorithm this build does
+ * not implement (for example the legacy RC2-40 PBE scheme, which neither
+ * WebCrypto nor a default Node build exposes). Not a data error — the file
+ * may be perfectly valid; it just needs a capability this code lacks.
+ */
+export class Pkcs12UnsupportedAlgorithmError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "Pkcs12UnsupportedAlgorithmError";
+    }
+}
+
 export type Nonce = Buffer;
 export type PEM = string;
 export type DER = Buffer;
