@@ -20,6 +20,7 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
+import { buildPublicKey } from "./_build_public_key.js";
 import { getCrypto } from "./_crypto.js";
 
 /**
@@ -170,7 +171,7 @@ export async function webCryptoFromSigner(
 }
 
 /** True when `value` implements {@link CaSigner} rather than being a raw `CryptoKey`. */
-function isCaSigner(value: CryptoKey | CaSigner): value is CaSigner {
+export function isCaSigner(value: CryptoKey | CaSigner): value is CaSigner {
     // a CryptoKey never carries methods — only `type`/`extractable`/`algorithm`/`usages`.
     return typeof (value as CaSigner).sign === "function" && typeof (value as CaSigner).getPublicKey === "function";
 }
@@ -198,4 +199,42 @@ export async function resolveCaSigningKey(
         return { crypto: adapted.crypto, signingKey: adapted.privateKeyHandle };
     }
     return { crypto: baseCrypto as Crypto, signingKey };
+}
+
+/**
+ * What a `@peculiar/x509` generator needs when it must sign with a key AND
+ * embed that same key's public half — a CSR, or a self-signed certificate.
+ * {@link resolveCaSigningKey} is not enough there: it yields no public key.
+ */
+export interface ResolvedCaKeyPair {
+    crypto: Crypto;
+    keys: { privateKey: CryptoKey; publicKey: CryptoKey };
+    signingAlgorithm: CaSignAlgorithm;
+}
+
+/**
+ * Resolves a `CryptoKey | CaSigner` into the key pair and per-call `crypto`
+ * a CSR or self-signed-certificate generator needs.
+ *
+ * For a raw `CryptoKey` the public half is derived from the private one.
+ * For a {@link CaSigner} it comes from `getPublicKey()` — the only way to
+ * obtain it when the private key lives in an HSM and cannot be exported.
+ */
+export async function resolveCaKeyPair(
+    key: CryptoKey | CaSigner,
+    baseCrypto: Pick<Crypto, "subtle" | "getRandomValues"> = getCrypto() as unknown as Crypto,
+): Promise<ResolvedCaKeyPair> {
+    if (isCaSigner(key)) {
+        const adapted = await webCryptoFromSigner(key, baseCrypto);
+        return {
+            crypto: adapted.crypto,
+            keys: { privateKey: adapted.privateKeyHandle, publicKey: adapted.publicKey },
+            signingAlgorithm: key.algorithm,
+        };
+    }
+    return {
+        crypto: baseCrypto as Crypto,
+        keys: { privateKey: key, publicKey: await buildPublicKey(key) },
+        signingAlgorithm: { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } },
+    };
 }

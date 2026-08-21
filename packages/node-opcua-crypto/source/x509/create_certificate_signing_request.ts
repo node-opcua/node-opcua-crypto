@@ -23,12 +23,18 @@
 
 import type { CertificatePurpose } from "../common.js";
 import { Subject } from "../subject.js";
-import { buildPublicKey } from "./_build_public_key.js";
-import { ensurePemTrailingNewline, getCrypto, x509 } from "./_crypto.js";
+import { ensurePemTrailingNewline, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
+import { type CaSigner, resolveCaKeyPair } from "./ca_signer.js";
 
 interface CreateCertificateSigningRequestOptions {
-    privateKey: CryptoKey;
+    /**
+     * The requester's key. A raw `CryptoKey`, or a {@link CaSigner} when the
+     * private key lives in an HSM/KMS and cannot be exported - the public
+     * half is then taken from `getPublicKey()` and the proof-of-possession
+     * signature is produced by `sign()`.
+     */
+    privateKey: CryptoKey | CaSigner;
     notBefore?: Date;
     notAfter?: Date;
     validity?: number;
@@ -46,23 +52,7 @@ export async function createCertificateSigningRequest({
     applicationUri,
     purpose,
 }: CreateCertificateSigningRequestOptions) {
-    const crypto = getCrypto();
-
-    const modulusLength = 2048;
-
-    const alg = {
-        name: "RSASSA-PKCS1-v1_5",
-        hash: { name: "SHA-256" },
-        publicExponent: new Uint8Array([1, 0, 1]),
-        modulusLength,
-    };
-
-    const publicKey = await buildPublicKey(privateKey);
-
-    const keys = {
-        privateKey,
-        publicKey,
-    };
+    const { crypto, keys, signingAlgorithm } = await resolveCaKeyPair(privateKey);
 
     const alternativeNameExtensions: x509.JsonGeneralName[] = [];
     for (const d of dns ?? []) {
@@ -85,14 +75,14 @@ export async function createCertificateSigningRequest({
         {
             name,
             keys,
-            signingAlgorithm: alg,
+            signingAlgorithm,
             extensions: [
                 basicConstraints,
                 new x509.KeyUsagesExtension(usages, true),
                 new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
             ],
         },
-        crypto as Crypto,
+        crypto,
     );
     return { csr: ensurePemTrailingNewline(csr.toString("pem")), der: csr };
 }

@@ -35,8 +35,12 @@ export interface CreateCrlEntryOptions {
 }
 
 export interface CreateCrlOptions {
-    /** The issuing CA's subject, e.g. `"CN=MyCA"`. */
-    issuerName: string;
+    /**
+     * The issuing CA's subject. Prefer the issuer certificate's parsed
+     * `subjectName` over a string: a CRL whose issuer is not byte-identical
+     * to the issuer certificate's subject will not be matched to it.
+     */
+    issuerName: x509.X509CertificateCreateParamsName;
     /** The issuing CA's public key, used to derive the Authority Key Identifier extension. */
     issuerPublicKey: PublicKeyType;
     /** The issuing CA's signing key — a raw key, or an HSM/KMS-backed {@link CaSigner}. */

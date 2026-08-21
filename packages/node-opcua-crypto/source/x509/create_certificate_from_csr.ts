@@ -35,8 +35,14 @@ import { type CaSigner, resolveCaSigningKey } from "./ca_signer.js";
 export interface CreateCertificateFromCsrOptions {
     /** The CSR to sign, PEM or DER encoded. */
     csr: string | BufferSource;
-    /** The issuing CA's subject, e.g. `"CN=MyCA"`. */
-    issuerName: string;
+    /**
+     * The issuing CA's subject. Prefer passing the issuer's parsed
+     * `subjectName` (`X509Certificate.subjectName`, or the CSR's own for a
+     * self-signed root) over a string: re-parsing a string form can change
+     * the DER encoding, and an issuer that is not byte-identical to the
+     * issuer certificate's subject breaks chain building.
+     */
+    issuerName: x509.X509CertificateCreateParamsName;
     /** The issuing CA's public key, used to derive the Authority Key Identifier extension. */
     issuerPublicKey: PublicKeyType;
     /** The issuing CA's signing key — a raw key, or an HSM/KMS-backed {@link CaSigner}. */
@@ -90,11 +96,17 @@ export async function createCertificateFromCsr(
 
     const extensions: x509.Extension[] = [
         basicConstraints,
-        new x509.ExtendedKeyUsageExtension(keyUsageExtension, true),
+        // RFC 5280 4.2.1.12: extendedKeyUsage SHALL contain at least one
+        // KeyPurposeId. getAttributes yields an empty list for a CA
+        // certificate, so emitting it unconditionally would produce an
+        // empty critical extension that a strict validator must reject.
+        ...(keyUsageExtension.length > 0 ? [new x509.ExtendedKeyUsageExtension(keyUsageExtension, true)] : []),
         new x509.KeyUsagesExtension(usages, true),
         await x509.SubjectKeyIdentifierExtension.create(csr.publicKey),
         await buildAuthorityKeyIdentifierFromIssuer(options.issuerPublicKey, crypto),
-        new x509.SubjectAlternativeNameExtension(alternativeNameExtensions),
+        // an empty SubjectAlternativeName is an empty GeneralNames sequence,
+        // which RFC 5280 4.2.1.6 does not permit - omit the extension instead
+        ...(alternativeNameExtensions.length > 0 ? [new x509.SubjectAlternativeNameExtension(alternativeNameExtensions)] : []),
         ...(options.revocation ? buildRevocationExtensions(options.revocation) : []),
     ];
 
