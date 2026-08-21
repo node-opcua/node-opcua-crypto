@@ -32,10 +32,10 @@ describe("X509ExtKeyUsage", () => {
 
         const info = exploreCertificate(certificate);
         expect(info.tbsCertificate.extensions).toBeDefined();
-        expect(info.tbsCertificate.extensions!.extKeyUsage).toBeDefined();
+        expect(info.tbsCertificate.extensions?.extKeyUsage).toBeDefined();
 
-        expect(info.tbsCertificate.extensions!.extKeyUsage!.serverAuth).toEqual(true);
-        expect(info.tbsCertificate.extensions!.extKeyUsage!.clientAuth).toEqual(true);
+        expect(info.tbsCertificate.extensions?.extKeyUsage?.serverAuth).toEqual(true);
+        expect(info.tbsCertificate.extensions?.extKeyUsage?.clientAuth).toEqual(true);
     });
     it("should parse extKeyUsage 2", () => {
         const certificateFile = path.join(__dirname, "../test-fixtures/certificate_with_extKeyUsage2.pem");
@@ -43,11 +43,11 @@ describe("X509ExtKeyUsage", () => {
 
         const info = exploreCertificate(certificate);
         expect(info.tbsCertificate.extensions).toBeDefined();
-        expect(info.tbsCertificate.extensions!.extKeyUsage).toBeDefined();
+        expect(info.tbsCertificate.extensions?.extKeyUsage).toBeDefined();
 
-        expect(info.tbsCertificate.extensions!.extKeyUsage!.serverAuth).toEqual(true);
-        expect(info.tbsCertificate.extensions!.extKeyUsage!.clientAuth).toEqual(true);
+        expect(info.tbsCertificate.extensions?.extKeyUsage?.serverAuth).toEqual(true);
+        expect(info.tbsCertificate.extensions?.extKeyUsage?.clientAuth).toEqual(true);
 
-        console.log(info.tbsCertificate.extensions!.extKeyUsage);
+        console.log(info.tbsCertificate.extensions?.extKeyUsage);
     });
 });

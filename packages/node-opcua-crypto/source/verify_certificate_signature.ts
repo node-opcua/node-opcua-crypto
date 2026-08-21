@@ -75,7 +75,7 @@ export async function verifyCertificateChain(certificateChain: Certificate[]): P
         const keyUsage = certParentInfo.tbsCertificate.extensions?.keyUsage;
 
         // istanbul ignore next
-        if (!keyUsage || !keyUsage.keyCertSign) {
+        if (!keyUsage?.keyCertSign) {
             return {
                 status: "BadCertificateIssuerUseNotAllowed",
                 reason: "One of the certificate in the chain has not keyUsage set for Certificate Signing",

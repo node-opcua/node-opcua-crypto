@@ -74,7 +74,7 @@ function derToPem(der, label) {
     const base64 = (Buffer.isBuffer(der) ? der : Buffer.from(der)).toString("base64");
     let pem = `-----BEGIN ${label}-----\n`;
     for (let i = 0; i < base64.length; i += 64) {
-        pem += base64.substring(i, i + 64) + "\n";
+        pem += `${base64.substring(i, i + 64)}\n`;
     }
     pem += `-----END ${label}-----`;
     return pem;
@@ -176,7 +176,7 @@ function modulusLengthFromPrivateKeyDER(der, isPKCS8) {
 export function createPublicKey(input) {
     const pem = typeof input === "string"
         ? input
-        : (input && input.key) ? input.key.toString() : input.toString();
+        : (input?.key) ? input.key.toString() : input.toString();
 
     const isCert = pem.includes("BEGIN CERTIFICATE");
     const der = pemToDer(pem);
