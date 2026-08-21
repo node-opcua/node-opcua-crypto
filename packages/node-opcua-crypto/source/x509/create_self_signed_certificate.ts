@@ -25,7 +25,7 @@ import { AsnConvert, AsnUtf8StringConverter } from "@peculiar/asn1-schema";
 import type { CertificatePurpose } from "../common.js";
 import { Subject } from "../subject.js";
 import { buildPublicKey } from "./_build_public_key.js";
-import { getCrypto, x509 } from "./_crypto.js";
+import { ensurePemTrailingNewline, getCrypto, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
 
 export interface CreateSelfSignCertificateOptions {
@@ -125,5 +125,5 @@ export async function createSelfSignedCertificate({
         crypto as Crypto,
     );
 
-    return { cert: cert.toString("pem"), der: cert };
+    return { cert: ensurePemTrailingNewline(cert.toString("pem")), der: cert };
 }

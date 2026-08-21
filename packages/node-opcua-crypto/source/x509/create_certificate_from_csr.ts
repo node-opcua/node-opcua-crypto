@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 import type { PublicKeyType } from "@peculiar/x509";
 import type { CertificatePurpose } from "../common.js";
-import { getCrypto, x509 } from "./_crypto.js";
+import { ensurePemTrailingNewline, getCrypto, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
 import {
     buildAuthorityKeyIdentifierFromIssuer,
@@ -119,5 +119,5 @@ export async function createCertificateFromCsr(
         signingCrypto,
     );
 
-    return { cert: cert.toString("pem"), der: cert.rawData };
+    return { cert: ensurePemTrailingNewline(cert.toString("pem")), der: cert.rawData };
 }

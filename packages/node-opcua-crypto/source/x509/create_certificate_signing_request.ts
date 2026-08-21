@@ -24,7 +24,7 @@
 import type { CertificatePurpose } from "../common.js";
 import { Subject } from "../subject.js";
 import { buildPublicKey } from "./_build_public_key.js";
-import { getCrypto, x509 } from "./_crypto.js";
+import { ensurePemTrailingNewline, getCrypto, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
 
 interface CreateCertificateSigningRequestOptions {
@@ -94,5 +94,5 @@ export async function createCertificateSigningRequest({
         },
         crypto as Crypto,
     );
-    return { csr: csr.toString("pem"), der: csr };
+    return { csr: ensurePemTrailingNewline(csr.toString("pem")), der: csr };
 }

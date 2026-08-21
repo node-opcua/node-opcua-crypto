@@ -186,3 +186,63 @@ describe("createCertificateFromCsr / createCrl", { timeout: 60000 }, () => {
         expect(await crl.verify({ publicKey: caCert.publicKey })).toEqual(true);
     });
 });
+
+describe("PEM output always ends with a trailing newline", { timeout: 60000 }, () => {
+    // @peculiar/x509's toString("pem")/PemConverter.encode never terminate
+    // with "\n", unlike openssl CLI's PEM output. Code that concatenates
+    // PEM blocks by simple string concatenation (exactly how a certificate
+    // chain file is built) relies on every block already ending in "\n" —
+    // without it, two blocks glue together at the boundary with no
+    // separator ("-----END CERTIFICATE----------BEGIN CERTIFICATE-----"),
+    // corrupting the file. Found wiring node-opcua-pki's native CA backend
+    // up to these primitives: the resulting certificate chain file was
+    // unparseable.
+    it("createSelfSignedCertificate, createCertificateSigningRequest, createCertificateFromCsr, and createCrl all end in exactly one newline", async () => {
+        const { privateKey, publicKey } = await generateKeyPair();
+        const { cert: selfSignedPem } = await createSelfSignedCertificate({
+            privateKey,
+            subject: "CN=NewlineCA",
+            purpose: CertificatePurpose.ForCertificateAuthority,
+        });
+        expect(selfSignedPem.endsWith("\n")).toEqual(true);
+        expect(selfSignedPem.endsWith("\n\n")).toEqual(false);
+
+        const { csr } = await createCertificateSigningRequest({
+            privateKey,
+            subject: "CN=NewlineLeaf",
+            purpose: CertificatePurpose.ForApplication,
+        });
+        expect(csr.endsWith("\n")).toEqual(true);
+        expect(csr.endsWith("\n\n")).toEqual(false);
+
+        const { cert: signedPem } = await createCertificateFromCsr({
+            csr,
+            issuerName: "CN=NewlineCA",
+            issuerPublicKey: publicKey,
+            signingKey: privateKey,
+            signingAlgorithm: rsaAlgorithm,
+            purpose: CertificatePurpose.ForApplication,
+        });
+        expect(signedPem.endsWith("\n")).toEqual(true);
+        expect(signedPem.endsWith("\n\n")).toEqual(false);
+
+        const { crl: crlPem } = await createCrl({
+            issuerName: "CN=NewlineCA",
+            issuerPublicKey: publicKey,
+            signingKey: privateKey,
+            signingAlgorithm: rsaAlgorithm,
+            crlNumber: 1,
+            entries: [],
+        });
+        expect(crlPem.endsWith("\n")).toEqual(true);
+        expect(crlPem.endsWith("\n\n")).toEqual(false);
+
+        // the concatenation this whole thing exists for must actually work:
+        // parsing a naively-joined chain must find both certificates intact
+        const chain = signedPem + selfSignedPem;
+        const blocks = chain.split("-----BEGIN CERTIFICATE-----").filter((s) => s.trim().length > 0);
+        expect(blocks.length).toEqual(2);
+        expect(new x509.X509Certificate(signedPem).subject).toEqual("CN=NewlineLeaf");
+        expect(new x509.X509Certificate(selfSignedPem).subject).toEqual("CN=NewlineCA");
+    });
+});
