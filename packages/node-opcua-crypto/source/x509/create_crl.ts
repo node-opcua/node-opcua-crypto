@@ -85,5 +85,12 @@ export async function createCrl(options: CreateCrlOptions): Promise<{ crl: strin
         signingCrypto,
     );
 
-    return { crl: crl.toString("pem"), der: crl.rawData };
+    // Not crl.toString("pem"): @peculiar/x509 encodes CRLs under the PEM
+    // label "CRL", but openssl's own `crl` command (and RFC 7468 §2's
+    // table of well-known labels) only recognizes "X509 CRL" — a mismatch
+    // confirmed by directly feeding openssl a "-----BEGIN CRL-----" file
+    // ("Could not find CRL from ..."). Re-encoding under the standard
+    // label is what actually makes openssl able to read this CRL at all.
+    const crlPem = x509.PemConverter.encode(crl.rawData, "X509 CRL");
+    return { crl: crlPem, der: crl.rawData };
 }

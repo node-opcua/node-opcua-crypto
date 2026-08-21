@@ -137,6 +137,14 @@ describe("createCertificateFromCsr / createCrl", { timeout: 60000 }, () => {
 
         expect(crl.getExtension("2.5.29.20")).not.toBeNull();
         expect(crl.getExtension("2.5.29.35")).not.toBeNull(); // authorityKeyIdentifier
+
+        // @peculiar/x509's own X509Crl.toString("pem") emits the
+        // non-standard "-----BEGIN CRL-----" label; openssl's `crl` command
+        // only recognizes RFC 7468's "X509 CRL" label and rejects the
+        // other one outright ("Could not find CRL from ..."). This pins
+        // createCrl's output to the label openssl actually accepts.
+        expect(crlPem.startsWith("-----BEGIN X509 CRL-----")).toEqual(true);
+        expect(crlPem.trim().endsWith("-----END X509 CRL-----")).toEqual(true);
     });
 
     it("createCertificateFromCsr and createCrl accept a raw CryptoKey signingKey, not just a CaSigner", async () => {
