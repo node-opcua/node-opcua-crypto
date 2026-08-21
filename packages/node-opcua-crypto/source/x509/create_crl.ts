@@ -21,7 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 import type { PublicKeyType, X509CrlReason } from "@peculiar/x509";
-import { getCrypto, x509 } from "./_crypto.js";
+import { ensurePemTrailingNewline, getCrypto, x509 } from "./_crypto.js";
 import { buildAuthorityKeyIdentifierFromIssuer, buildCrlNumberExtension } from "./build_ca_extensions.js";
 import type { CaSignAlgorithm } from "./ca_signer.js";
 import { type CaSigner, resolveCaSigningKey } from "./ca_signer.js";
@@ -91,6 +91,6 @@ export async function createCrl(options: CreateCrlOptions): Promise<{ crl: strin
     // confirmed by directly feeding openssl a "-----BEGIN CRL-----" file
     // ("Could not find CRL from ..."). Re-encoding under the standard
     // label is what actually makes openssl able to read this CRL at all.
-    const crlPem = x509.PemConverter.encode(crl.rawData, "X509 CRL");
+    const crlPem = ensurePemTrailingNewline(x509.PemConverter.encode(crl.rawData, "X509 CRL"));
     return { crl: crlPem, der: crl.rawData };
 }
