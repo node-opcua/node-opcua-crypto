@@ -98,7 +98,11 @@ export async function createSelfSignedCertificate({
 
     const cert = await x509.X509CertificateGenerator.createSelfSigned(
         {
-            serialNumber: Date.now().toString(),
+            // no serialNumber: @peculiar/x509 generates a cryptographically
+            // random 16-byte serial when it is omitted. Date.now().toString()
+            // was read back as a HEX string by the generator, not decimal, so
+            // it produced a predictable, easily-colliding serial (two certs
+            // created in the same millisecond got the same value).
             name,
             notBefore,
             notAfter,

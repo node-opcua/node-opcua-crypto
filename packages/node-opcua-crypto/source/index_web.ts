@@ -40,6 +40,8 @@ export * from "./explore_private_key.js";
 export * from "./identify_der.js";
 export * from "./subject.js";
 export * from "./verify_certificate_signature.js";
+export { getCrypto, x509 } from "./x509/_crypto.js";
+export * from "./x509/ca_signer.js";
 export * from "./x509/coerce_private_key.js";
 export * from "./x509/create_certificate_signing_request.js";
 export * from "./x509/create_key_pair.js";
