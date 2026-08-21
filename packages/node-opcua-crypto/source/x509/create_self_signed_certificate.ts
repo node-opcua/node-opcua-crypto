@@ -115,7 +115,8 @@ export async function createSelfSignedCertificate({
                 new x509.Extension(ID_NETSCAPE_COMMENT, false, AsnConvert.serialize(AsnUtf8StringConverter.toASN(nsComment))),
                 // new x509.BasicConstraintsExtension(true, 2, true),
                 basicConstraints,
-                new x509.ExtendedKeyUsageExtension(keyUsageExtension, true),
+                // see RFC 5280 4.2.1.12 - an empty critical EKU is invalid
+                ...(keyUsageExtension.length > 0 ? [new x509.ExtendedKeyUsageExtension(keyUsageExtension, true)] : []),
                 new x509.KeyUsagesExtension(usages, true),
                 await x509.SubjectKeyIdentifierExtension.create(keys.publicKey),
                 await x509.AuthorityKeyIdentifierExtension.create(keys.publicKey),

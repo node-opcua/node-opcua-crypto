@@ -24,6 +24,8 @@
 import {
     type CaSignAlgorithm,
     type CaSigner,
+    CertificatePurpose,
+    createCertificateSigningRequest,
     generateKeyPair,
     LocalPrivateKeySigner,
     webCryptoFromSigner,
@@ -100,5 +102,32 @@ describe("CaSigner / LocalPrivateKeySigner / webCryptoFromSigner", { timeout: 60
         expect(signSpy).toHaveBeenCalledTimes(1);
         const valid = await cert.verify();
         expect(valid).toEqual(true);
+    });
+
+    it("createCertificateSigningRequest signs a CSR with a CaSigner, embedding the signer's own public key", async () => {
+        // A CA whose key is in an HSM still has to produce a CSR for its own
+        // key - to be signed by a parent, or self-signed into a root - and
+        // the proof-of-possession signature on it can only come from the
+        // signer. The public key must come from getPublicKey(), since the
+        // private half cannot be exported to derive it.
+        const { privateKey, publicKey } = await generateKeyPair();
+        const signer = new LocalPrivateKeySigner({ privateKey, publicKey }, rsaAlgorithm);
+        const signSpy = vi.spyOn(signer, "sign");
+
+        const { csr } = await createCertificateSigningRequest({
+            privateKey: signer,
+            subject: "CN=HsmCa",
+            purpose: CertificatePurpose.ForCertificateAuthority,
+        });
+
+        expect(signSpy).toHaveBeenCalledTimes(1);
+        const request = new x509.Pkcs10CertificateRequest(csr);
+        expect(request.subject).toEqual("CN=HsmCa");
+        // the CSR verifies against itself, i.e. the embedded public key really
+        // is the signer's and the signature really was made by its private half
+        expect(await request.verify()).toEqual(true);
+
+        const spki = await crypto.subtle.exportKey("spki", publicKey);
+        expect(Buffer.from(request.publicKey.rawData)).toEqual(Buffer.from(spki));
     });
 });
