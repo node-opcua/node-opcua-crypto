@@ -168,3 +168,34 @@ export async function webCryptoFromSigner(
 
     return { crypto, privateKeyHandle, publicKey };
 }
+
+/** True when `value` implements {@link CaSigner} rather than being a raw `CryptoKey`. */
+function isCaSigner(value: CryptoKey | CaSigner): value is CaSigner {
+    // a CryptoKey never carries methods — only `type`/`extractable`/`algorithm`/`usages`.
+    return typeof (value as CaSigner).sign === "function" && typeof (value as CaSigner).getPublicKey === "function";
+}
+
+/** The `crypto`/`signingKey` pair a `@peculiar/x509` generator needs, resolved from either a raw key or a {@link CaSigner}. */
+export interface ResolvedCaSigningKey {
+    crypto: Crypto;
+    signingKey: CryptoKey;
+}
+
+/**
+ * Resolves a `CryptoKey | CaSigner` union into the `{ crypto, signingKey }`
+ * pair a `@peculiar/x509` generator's `signingKey`/per-call `crypto`
+ * arguments need — a raw `CryptoKey` is passed through unchanged against
+ * `baseCrypto`; a {@link CaSigner} is adapted via {@link webCryptoFromSigner}.
+ * This is the single place CA-signing primitives (certificate, CSR, CRL
+ * generation) need to branch on which kind of signing key they were given.
+ */
+export async function resolveCaSigningKey(
+    signingKey: CryptoKey | CaSigner,
+    baseCrypto: Pick<Crypto, "subtle" | "getRandomValues"> = getCrypto() as unknown as Crypto,
+): Promise<ResolvedCaSigningKey> {
+    if (isCaSigner(signingKey)) {
+        const adapted = await webCryptoFromSigner(signingKey, baseCrypto);
+        return { crypto: adapted.crypto, signingKey: adapted.privateKeyHandle };
+    }
+    return { crypto: baseCrypto as Crypto, signingKey };
+}

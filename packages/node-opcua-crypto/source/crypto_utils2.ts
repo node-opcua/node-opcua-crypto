@@ -28,6 +28,7 @@ import assert from "node:assert";
 import { createPrivateKey, createPublicKey } from "node:crypto";
 import { isKeyObject, type KeyObject, type PrivateKey, type PrivateKeyPEM, type PublicKey, type PublicKeyPEM } from "./common.js";
 import { removeTrailingLF, toPem } from "./crypto_utils.js";
+import { pemToPrivateKey } from "./x509/create_key_pair.js";
 
 /***
  * @method rsaLengthPrivateKey
@@ -76,6 +77,22 @@ export function toPem2(raw_key: Buffer | string | KeyObject | PrivateKey, pem: s
 
 export function coercePrivateKeyPem(privateKey: PrivateKey): PrivateKeyPEM {
     return toPem2(privateKey, "PRIVATE KEY");
+}
+
+/**
+ * Bridges the Node-side {@link PrivateKey} envelope (from
+ * {@link readPrivateKey}/{@link readPrivateKeyAsync}, disk + optional
+ * passphrase) into a WebCrypto `CryptoKey`, so code that wants to hand a
+ * key to a `@peculiar/x509` generator — or wrap it in a
+ * {@link LocalPrivateKeySigner} — only has to deal with one key type. A
+ * `CryptoKey` passed in is returned unchanged.
+ */
+export async function privateKeyToCryptoKey(key: PrivateKey | CryptoKey): Promise<CryptoKey> {
+    if (!(typeof key === "object" && key !== null && "hidden" in key)) {
+        return key as CryptoKey;
+    }
+    const pem = coercePrivateKeyPem(key as PrivateKey);
+    return pemToPrivateKey(pem);
 }
 
 export function coercePublicKeyPem(publicKey: PublicKey | PublicKeyPEM): PublicKeyPEM {
