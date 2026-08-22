@@ -21,9 +21,25 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-import { type BlockInfo, readStruct, readTag, TagType } from "./asn1.js";
+import type { KeyObject as NodeKeyObject } from "node:crypto";
+import { type BlockInfo, getBlock, readBitString, readObjectIdentifier, readStruct, readTag, TagType } from "./asn1.js";
 import type { PrivateKey } from "./common.js";
+import { createPrivateKeyFromNodeJSCrypto } from "./common.js";
 import { convertPEMtoDER } from "./crypto_utils.js";
+
+/**
+ * resolve the `hidden` field of a PrivateKey to a real Node KeyObject.
+ *
+ * `PrivateKey["hidden"]` is typed against this package's minimal, browser-portable
+ * `KeyObject` interface, which deliberately omits `asymmetricKeyType` and the
+ * `"sec1"` export type. explorePrivateKey/exploreEcPrivateKey are Node-only (they use
+ * ASN.1 parsing not available in a browser build), so it is safe to reach for the
+ * fuller node:crypto KeyObject here.
+ */
+function toNodeKeyObject(privateKey2: PrivateKey): NodeKeyObject {
+    const hidden = privateKey2.hidden;
+    return typeof hidden === "string" ? createPrivateKeyFromNodeJSCrypto(hidden) : (hidden as unknown as NodeKeyObject);
+}
 
 export interface PrivateKeyInternals {
     /***/
@@ -35,6 +51,58 @@ export interface PrivateKeyInternals {
     prime2: Buffer;
     exponent1: Buffer;
     exponent2: Buffer;
+}
+
+export interface ECPrivateKeyInternals {
+    version: Buffer;
+    /** the curve name, e.g. "prime256v1", resolved from the SEC1 ECParameters OID */
+    namedCurve: string;
+    /** the private scalar "d" */
+    privateKey: Buffer;
+    /** the uncompressed public point, when present in the key */
+    publicKey?: Buffer;
+}
+
+/**
+ * explore the internal structure of an EC (SEC1) private key.
+ *
+ * ECPrivateKey ::= SEQUENCE {
+ *   version        INTEGER { ecPrivKeyVer1(1) },
+ *   privateKey     OCTET STRING,
+ *   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+ *   publicKey  [1] BIT STRING OPTIONAL
+ * }
+ */
+export function exploreEcPrivateKey(privateKey2: PrivateKey): ECPrivateKeyInternals {
+    const keyObject = toNodeKeyObject(privateKey2);
+    if (keyObject.asymmetricKeyType !== "ec") {
+        throw new Error(`exploreEcPrivateKey: expecting an EC private key but got a "${keyObject.asymmetricKeyType}" key`);
+    }
+    // exporting through Node's own crypto normalizes SEC1 and PKCS#8-wrapped EC keys to the same SEC1 DER shape
+    const privateKey = keyObject.export({ format: "der", type: "sec1" });
+
+    const block_info = readTag(privateKey, 0);
+    const blocks = readStruct(privateKey, block_info);
+
+    const version = getBlock(privateKey, blocks[0]);
+    const d = getBlock(privateKey, blocks[1]);
+
+    let namedCurve = "";
+    let publicKey: Buffer | undefined;
+    for (let i = 2; i < blocks.length; i++) {
+        const b = blocks[i];
+        if (b.tag === TagType.CONTEXT_SPECIFIC0) {
+            // [0] ECParameters: a single OBJECT IDENTIFIER naming the curve
+            const oidBlock = readTag(privateKey, b.position);
+            namedCurve = readObjectIdentifier(privateKey, oidBlock).name;
+        } else if (b.tag === TagType.CONTEXT_SPECIFIC1) {
+            // [1] publicKey BIT STRING
+            const bitStringBlock = readTag(privateKey, b.position);
+            publicKey = readBitString(privateKey, bitStringBlock).data;
+        }
+    }
+
+    return { version, namedCurve, privateKey: d, publicKey };
 }
 
 function f(buffer: Buffer, b: BlockInfo) {
@@ -57,6 +125,14 @@ const doDebug = !!process.env.DEBUG;
 }
  */
 export function explorePrivateKey(privateKey2: PrivateKey): PrivateKeyInternals {
+    const keyType = toNodeKeyObject(privateKey2).asymmetricKeyType;
+    if (keyType && keyType !== "rsa") {
+        throw new Error(
+            `explorePrivateKey: only RSA private keys are supported (got a "${keyType}" key). ` +
+                (keyType === "ec" ? "Use exploreEcPrivateKey() instead." : ""),
+        );
+    }
+
     const privateKey1 = privateKey2.hidden;
     const privateKey =
         typeof privateKey1 === "string" ? convertPEMtoDER(privateKey1) : privateKey1.export({ format: "der", type: "pkcs1" });
