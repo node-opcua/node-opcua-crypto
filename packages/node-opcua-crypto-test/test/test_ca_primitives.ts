@@ -86,6 +86,64 @@ describe("createCertificateFromCsr / createCrl", { timeout: 60000 }, () => {
         expect(chainIsValidAgainstWrongKey).toEqual(false);
     });
 
+    it("gives an issued end-entity certificate the usr_cert usages, not the self-signed ones", async () => {
+        // A CA-issued certificate is not a self-signed one, and the two
+        // profiles differ where it matters: keyCertSign would tell a
+        // validator this device may issue certificates of its own, and
+        // keyAgreement is what openssl's [usr_cert] grants instead. Getting
+        // this from getAttributes - which describes the self-signed case -
+        // put keyCertSign on every certificate a native CA issued.
+        const { signer, publicKey: issuerPublicKey } = await makeCa();
+        const { privateKey: leafPrivateKey } = await generateKeyPair();
+        const { csr } = await createCertificateSigningRequest({
+            privateKey: leafPrivateKey,
+            subject: "CN=UsagesLeaf",
+            purpose: CertificatePurpose.ForApplication,
+        });
+
+        const { cert } = await createCertificateFromCsr({
+            csr,
+            issuerName: "CN=TestCA",
+            issuerPublicKey,
+            signingKey: signer,
+            signingAlgorithm: rsaAlgorithm,
+            purpose: CertificatePurpose.ForApplication,
+        });
+
+        const leaf = new x509.X509Certificate(cert);
+        const keyUsage = leaf.getExtension(x509.KeyUsagesExtension);
+        expect(keyUsage).toBeDefined();
+        expect(keyUsage?.usages).toEqual(
+            x509.KeyUsageFlags.digitalSignature |
+                x509.KeyUsageFlags.nonRepudiation |
+                x509.KeyUsageFlags.keyEncipherment |
+                x509.KeyUsageFlags.dataEncipherment |
+                x509.KeyUsageFlags.keyAgreement,
+        );
+        expect((keyUsage?.usages ?? 0) & x509.KeyUsageFlags.keyCertSign).toEqual(0);
+
+        const basicConstraints = leaf.getExtension(x509.BasicConstraintsExtension);
+        expect(basicConstraints?.ca).toEqual(false);
+
+        // a subordinate CA still gets the CA profile from the same call
+        const { csr: caCsr } = await createCertificateSigningRequest({
+            privateKey: leafPrivateKey,
+            subject: "CN=SubCA",
+            purpose: CertificatePurpose.ForCertificateAuthority,
+        });
+        const { cert: subCaCert } = await createCertificateFromCsr({
+            csr: caCsr,
+            issuerName: "CN=TestCA",
+            issuerPublicKey,
+            signingKey: signer,
+            signingAlgorithm: rsaAlgorithm,
+            purpose: CertificatePurpose.ForCertificateAuthority,
+        });
+        const subCa = new x509.X509Certificate(subCaCert);
+        expect(subCa.getExtension(x509.BasicConstraintsExtension)?.ca).toEqual(true);
+        expect((subCa.getExtension(x509.KeyUsagesExtension)?.usages ?? 0) & x509.KeyUsageFlags.keyCertSign).not.toEqual(0);
+    });
+
     it("refuses to sign a CSR whose signature does not verify", async () => {
         const { signer, publicKey: issuerPublicKey } = await makeCa();
 

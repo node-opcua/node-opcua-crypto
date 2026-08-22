@@ -32,7 +32,20 @@ import { getCrypto } from "./_crypto.js";
  */
 export type CaSignAlgorithm =
     | { name: "RSASSA-PKCS1-v1_5"; hash: { name: "SHA-256" | "SHA-384" | "SHA-512" } }
-    | { name: "ECDSA"; hash: { name: "SHA-256" | "SHA-384" | "SHA-512" } };
+    | {
+          name: "ECDSA";
+          /**
+           * The curve the key lives on. Required, unlike in most WebCrypto
+           * signing parameters, because {@link webCryptoFromSigner} has to
+           * *import* the signer's public key, and `importKey` cannot infer a
+           * curve it was not given. Declaring it wrong is safe: the SPKI
+           * bytes returned by {@link CaSigner.getPublicKey} state the real
+           * curve, so the import fails rather than producing a key that
+           * signs into the void.
+           */
+          namedCurve: "P-256" | "P-384" | "P-521";
+          hash: { name: "SHA-256" | "SHA-384" | "SHA-512" };
+      };
 
 /**
  * Abstraction over "something that can produce a certificate/CRL signature",
@@ -54,9 +67,151 @@ export interface CaSigner {
 
     /**
      * Sign `tbs` (the to-be-signed bytes, e.g. a certificate or CRL's TBS
-     * DER encoding) and return the raw signature bytes.
+     * DER encoding) and return the signature.
+     *
+     * The signature must be encoded the way `SubtleCrypto.sign` encodes it,
+     * because that is what the certificate generators are given and what
+     * they know how to re-encode:
+     *
+     * - **RSA** - the signature bytes, with nothing to decide.
+     * - **ECDSA** - the fixed-width `r || s` pair of IEEE P1363, *not* the
+     *   `SEQUENCE { r, s }` of DER. Certificates carry the DER form, but the
+     *   conversion is done downstream; a signer that returns DER here
+     *   produces a certificate whose signature will not verify.
+     *
+     * That distinction matters for KMS-backed signers: Google Cloud KMS,
+     * AWS KMS and most PKCS#11 tokens return ECDSA signatures already in
+     * DER, so their adapters have to convert to `r || s` before returning.
+     * {@link ecdsaSignatureDerToP1363} does that conversion.
      */
     sign(tbs: Uint8Array): Promise<ArrayBuffer>;
+}
+
+/** Bytes per coordinate for each curve a {@link CaSignAlgorithm} can name. */
+const ECDSA_COORDINATE_BYTES: Record<"P-256" | "P-384" | "P-521", number> = {
+    "P-256": 32,
+    "P-384": 48,
+    // 521 bits is not a byte multiple, so each coordinate occupies 66 bytes
+    "P-521": 66,
+};
+
+/** Views any `BufferSource` as bytes, without copying where possible. */
+function asBytes(source: BufferSource): Uint8Array {
+    if (source instanceof Uint8Array) {
+        return source;
+    }
+    if (ArrayBuffer.isView(source)) {
+        return new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+    }
+    return new Uint8Array(source);
+}
+
+/** Reads a DER length, short or long form, advancing `cursor`. */
+function readDerLength(bytes: Uint8Array, cursor: { offset: number }): number {
+    const first = bytes[cursor.offset++];
+    if (first === undefined) {
+        throw new Error("malformed ECDSA signature: truncated length");
+    }
+    if (first < 0x80) {
+        return first;
+    }
+    const byteCount = first & 0x7f;
+    if (byteCount === 0 || byteCount > 4) {
+        throw new Error(`malformed ECDSA signature: unsupported length encoding (0x${first.toString(16)})`);
+    }
+    let length = 0;
+    for (let index = 0; index < byteCount; index++) {
+        const byte = bytes[cursor.offset++];
+        if (byte === undefined) {
+            throw new Error("malformed ECDSA signature: truncated length");
+        }
+        length = length * 256 + byte;
+    }
+    return length;
+}
+
+/** Reads one DER INTEGER, advancing `cursor`. */
+function readDerInteger(bytes: Uint8Array, cursor: { offset: number }): Uint8Array {
+    if (bytes[cursor.offset++] !== 0x02) {
+        throw new Error("malformed ECDSA signature: expected an INTEGER");
+    }
+    const length = readDerLength(bytes, cursor);
+    const end = cursor.offset + length;
+    if (length === 0 || end > bytes.length) {
+        throw new Error("malformed ECDSA signature: INTEGER runs past the end");
+    }
+    const value = bytes.subarray(cursor.offset, end);
+    cursor.offset = end;
+    return value;
+}
+
+/**
+ * Left-pads a DER INTEGER's magnitude to exactly `size` bytes. DER integers
+ * are signed and minimally encoded, so a coordinate arrives with a leading
+ * `0x00` when its top bit is set, and shorter than `size` when its leading
+ * bytes are zero.
+ */
+function toFixedWidth(value: Uint8Array, size: number, label: string): Uint8Array {
+    let start = 0;
+    while (start < value.length - 1 && value[start] === 0) {
+        start++;
+    }
+    const magnitude = value.subarray(start);
+    if (magnitude.length > size) {
+        throw new Error(`malformed ECDSA signature: ${label} is ${magnitude.length} bytes, too long for a ${size * 8}-bit curve`);
+    }
+    const padded = new Uint8Array(size);
+    padded.set(magnitude, size - magnitude.length);
+    return padded;
+}
+
+/**
+ * Convert a DER-encoded ECDSA signature, `SEQUENCE { INTEGER r, INTEGER s }`,
+ * into the fixed-width `r || s` form that WebCrypto - and therefore
+ * {@link CaSigner.sign} - is defined to return.
+ *
+ * Use it when adapting a signer that hands back DER, which is what Google
+ * Cloud KMS, AWS KMS and most PKCS#11 tokens do:
+ *
+ * ```ts
+ * async sign(tbs: Uint8Array): Promise<ArrayBuffer> {
+ *     const { signature } = await kms.asymmetricSign({ name: keyName, digest: { sha256: await sha256(tbs) } });
+ *     return ecdsaSignatureDerToP1363(signature, "P-256");
+ * }
+ * ```
+ *
+ * Passing an already-converted signature is not silently tolerated: `r || s`
+ * is not valid DER, so it is rejected rather than corrupted further.
+ *
+ * @param derSignature the signature as `SEQUENCE { r, s }`
+ * @param namedCurve   the curve the signing key lives on, which fixes the
+ *                     width each coordinate is padded to
+ */
+export function ecdsaSignatureDerToP1363(derSignature: BufferSource, namedCurve: "P-256" | "P-384" | "P-521"): ArrayBuffer {
+    const size = ECDSA_COORDINATE_BYTES[namedCurve];
+    if (size === undefined) {
+        throw new Error(`unsupported curve ${namedCurve}`);
+    }
+    const bytes = asBytes(derSignature);
+    const cursor = { offset: 0 };
+    if (bytes[cursor.offset++] !== 0x30) {
+        throw new Error("malformed ECDSA signature: expected a SEQUENCE (is it already in r||s form?)");
+    }
+    const sequenceLength = readDerLength(bytes, cursor);
+    if (cursor.offset + sequenceLength !== bytes.length) {
+        throw new Error("malformed ECDSA signature: SEQUENCE length does not match the data");
+    }
+
+    const r = toFixedWidth(readDerInteger(bytes, cursor), size, "r");
+    const s = toFixedWidth(readDerInteger(bytes, cursor), size, "s");
+    if (cursor.offset !== bytes.length) {
+        throw new Error("malformed ECDSA signature: trailing data after s");
+    }
+
+    const p1363 = new Uint8Array(size * 2);
+    p1363.set(r, 0);
+    p1363.set(s, size);
+    return p1363.buffer;
 }
 
 /**

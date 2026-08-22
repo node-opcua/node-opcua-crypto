@@ -21,7 +21,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
-
 // Now that we got a hash of the original certificate,
 // we need to verify if we can obtain the same hash by using the same hashing function
 // (in this case SHA-384). In order to do that, we need to extract just the body of
@@ -32,6 +31,40 @@ import { readAlgorithmIdentifier, readSignatureValueBin, readStruct, readTag } f
 import type { Certificate } from "./common.js";
 import { exploreCertificate, split_der } from "./crypto_explore_certificate.js";
 import { toPem } from "./crypto_utils.js";
+
+/**
+ * ECDSA signature algorithms, which `readAlgorithmIdentifier` reports as bare
+ * OIDs rather than names.
+ */
+const ECDSA_SIGNATURE_DIGESTS: Record<string, string> = {
+    "1.2.840.10045.4.1": "sha1",
+    "1.2.840.10045.4.3.1": "sha224",
+    "1.2.840.10045.4.3.2": "sha256",
+    "1.2.840.10045.4.3.3": "sha384",
+    "1.2.840.10045.4.3.4": "sha512",
+};
+
+/**
+ * The digest to verify a signature under, given its algorithm.
+ *
+ * `createVerify` wants a digest, and happens to accept `sha256WithRSAEncryption`
+ * because OpenSSL resolves that name to one. Nothing resolves
+ * `1.2.840.10045.4.3.2`, so an ECDSA-signed certificate used to fail with
+ * "Invalid digest" - the digest is named inside the algorithm either way, and
+ * naming it directly works for both key types.
+ *
+ * Anything unrecognized is passed through as before, so an algorithm whose
+ * digest is not in its identifier (RSASSA-PSS carries it in the parameters)
+ * behaves exactly as it did.
+ */
+function digestForSignatureAlgorithm(identifier: string): string {
+    const ecdsaDigest = ECDSA_SIGNATURE_DIGESTS[identifier];
+    if (ecdsaDigest) {
+        return ecdsaDigest;
+    }
+    const named = /sha-?(1|224|256|384|512)/i.exec(identifier);
+    return named ? `sha${named[1]}` : identifier;
+}
 
 export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parentCertificate: Certificate): boolean {
     const block_info = readTag(certificateOrCrl, 0);
@@ -45,7 +78,7 @@ export function verifyCertificateOrClrSignature(certificateOrCrl: Buffer, parent
     const p = split_der(parentCertificate)[0];
     //xx    const publicKey = extractPublicKeyFromCertificateSync(p);
     const certPem = toPem(p, "CERTIFICATE");
-    const verify = createVerify(signatureAlgorithm.identifier);
+    const verify = createVerify(digestForSignatureAlgorithm(signatureAlgorithm.identifier));
     verify.update(bufferToBeSigned);
     verify.end();
     return verify.verify(certPem, signatureValue);
