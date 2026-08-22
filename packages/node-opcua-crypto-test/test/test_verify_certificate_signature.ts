@@ -26,10 +26,12 @@ import path from "node:path";
 import {
     asn1,
     type Certificate,
-    type PrivateKey, readCertificateChain,
+    type PrivateKey,
+    readCertificateChain,
     readPrivateKey,
     toPem2,
-    verifyCertificateSignature
+    verifyCertificateSignature,
+    x509,
 } from "node-opcua-crypto";
 import { describe, expect, it } from "vitest";
 
@@ -81,29 +83,57 @@ function investigateCertificateSignature(certificate: Certificate, caPrivateKey?
 
 describe("Verify Certificate Signature", () => {
     it("WW investigate how certificate signature is build", () => {
-        const certificate1 = readCertificateChain(
-            path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
+        const certificate1 = readCertificateChain(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
         const caPrivateKey = readPrivateKey(path.join(__dirname, "../test-fixtures/certsChain/cakey.pem"));
         investigateCertificateSignature(certificate1, caPrivateKey);
     });
 
     it("WW should verify the signature of certificate signed by a CA", () => {
-        const certificate1 = readCertificateChain(
-            path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
-        const certificate2 = readCertificateChain(
-            path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"))[0];
+        const certificate1 = readCertificateChain(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
+        const certificate2 = readCertificateChain(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"))[0];
         expect(verifyCertificateSignature(certificate1, certificate2)).toEqual(true);
     });
     it("WW should verify the signature of a self-signed certificate", () => {
-        const certificate2 = readCertificateChain(
-            path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"))[0];
+        const certificate2 = readCertificateChain(path.join(__dirname, "../test-fixtures/certsChain/cacert.pem"))[0];
         expect(verifyCertificateSignature(certificate2, certificate2)).toEqual(true);
     });
     it("WW should fail when verifying a signature with the wrong parent certificate ", () => {
-        const certificate1 = readCertificateChain(
-            path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
-        const certificate2 = readCertificateChain(
-            path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"))[0];
+        const certificate1 = readCertificateChain(path.join(__dirname, "../test-fixtures/certsChain/1000.pem"))[0];
+        const certificate2 = readCertificateChain(path.join(__dirname, "../test-fixtures/certsChain/wrongcacert.pem"))[0];
         expect(verifyCertificateSignature(certificate1, certificate2)).toEqual(false);
+    });
+});
+
+describe("verifying ECDSA-signed certificates", { timeout: 60000 }, () => {
+    // An EC signature algorithm has no name in the OID table, so it used to
+    // reach createVerify as the bare OID "1.2.840.10045.4.3.2" and throw
+    // "Invalid digest" - every EC certificate was unverifiable, whether or
+    // not its signature was good.
+    async function makeEcCertificate(name: string, notAfterDays = 1) {
+        const keys = (await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, [
+            "sign",
+            "verify",
+        ])) as CryptoKeyPair;
+        const certificate = await x509.X509CertificateGenerator.createSelfSigned({
+            name,
+            serialNumber: "01",
+            notBefore: new Date(),
+            notAfter: new Date(Date.now() + notAfterDays * 24 * 60 * 60 * 1000),
+            signingAlgorithm: { name: "ECDSA", hash: { name: "SHA-256" } },
+            keys,
+        });
+        return Buffer.from(certificate.rawData);
+    }
+
+    it("verifies a self-signed ECDSA certificate", async () => {
+        const certificate = await makeEcCertificate("CN=EcSelfSigned");
+        expect(verifyCertificateSignature(certificate, certificate)).toEqual(true);
+    });
+
+    it("still rejects an ECDSA certificate held against the wrong issuer", async () => {
+        // the fix must not turn "cannot verify" into "verifies anything"
+        const certificate = await makeEcCertificate("CN=EcOne");
+        const other = await makeEcCertificate("CN=EcTwo", 2);
+        expect(verifyCertificateSignature(certificate, other)).toEqual(false);
     });
 });
