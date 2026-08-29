@@ -38,6 +38,7 @@ export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
 export * from "./explore_private_key.js";
 export * from "./identify_der.js";
+export * from "./key_operations/key_operations.js";
 export * from "./subject.js";
 export * from "./verify_certificate_signature.js";
 export { getCrypto, x509 } from "./x509/_crypto.js";
