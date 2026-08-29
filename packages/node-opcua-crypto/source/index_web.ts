@@ -38,6 +38,7 @@ export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
 export * from "./explore_private_key.js";
 export * from "./identify_der.js";
+export * from "./key_operations/decrypt_long.js";
 export * from "./key_operations/key_operations.js";
 export * from "./subject.js";
 export * from "./verify_certificate_signature.js";
@@ -62,6 +63,7 @@ export * from "./x509/create_self_signed_certificate.js";
 export * from "./crypto_utils.js";
 export * from "./crypto_utils2.js";
 export * from "./derived_keys.js";
+export * from "./key_operations/local_key_operations.js";
 export * from "./make_private_key_from_pem.js";
 export * from "./make_private_key_thumbprint.js";
 /**
