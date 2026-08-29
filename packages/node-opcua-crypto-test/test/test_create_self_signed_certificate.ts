@@ -27,6 +27,7 @@ import path from "node:path";
 import util from "node:util";
 import x509 from "@peculiar/x509";
 import {
+    type CaSigner,
     CertificatePurpose,
     convertPEMtoDER,
     createSelfSignedCertificate,
@@ -136,5 +137,38 @@ describe("creating X509 self-signed certificates", { timeout: 100000 }, () => {
             applicationUri: "urn:HOSTNAME:ServerDescription",
             purpose: CertificatePurpose.ForApplication,
         });
+    });
+
+    it("should create a self-signed certificate over a CaSigner, never touching the private key", async () => {
+        const rsaAlgorithm = { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } } as const;
+        const { privateKey, publicKey } = await generateKeyPair();
+
+        // signs only through sign(); the raw private key is never handed out
+        let signCalls = 0;
+        const signer: CaSigner = {
+            algorithm: rsaAlgorithm,
+            async getPublicKey() {
+                return crypto.subtle.exportKey("spki", publicKey);
+            },
+            async sign(tbs: Uint8Array) {
+                signCalls += 1;
+                return crypto.subtle.sign(rsaAlgorithm, privateKey, tbs as BufferSource);
+            },
+        };
+
+        const { cert } = await createSelfSignedCertificate({
+            privateKey: signer,
+            subject: "CN=OpaqueSelfSigned",
+            dns: ["localhost"],
+            applicationUri: "urn:test:opaque",
+            purpose: CertificatePurpose.ForApplication,
+        });
+
+        expect(signCalls).toEqual(1);
+        const certificate = new x509.X509Certificate(cert);
+        expect(certificate.subject).toEqual("CN=OpaqueSelfSigned");
+        // self-signed: it must verify against its own (i.e. the signer's) public key
+        expect(await certificate.verify()).toEqual(true);
+        expect(Buffer.from(certificate.publicKey.rawData)).toEqual(Buffer.from(await signer.getPublicKey()));
     });
 });

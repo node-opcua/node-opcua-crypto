@@ -24,12 +24,13 @@
 import { AsnConvert, AsnUtf8StringConverter } from "@peculiar/asn1-schema";
 import type { CertificatePurpose } from "../common.js";
 import { Subject } from "../subject.js";
-import { buildPublicKey } from "./_build_public_key.js";
-import { ensurePemTrailingNewline, getCrypto, x509 } from "./_crypto.js";
+import { type CaSigner, resolveCaKeyPair } from "./ca_signer.js";
+import { ensurePemTrailingNewline, x509 } from "./_crypto.js";
 import { getAttributes } from "./_get_attributes.js";
 
 export interface CreateSelfSignCertificateOptions {
-    privateKey: CryptoKey;
+    /** The key that signs the certificate and whose public half it carries — a raw key, or an HSM/KMS-backed {@link CaSigner}. */
+    privateKey: CryptoKey | CaSigner;
     notBefore?: Date;
     notAfter?: Date;
     validity?: number;
@@ -56,14 +57,11 @@ export async function createSelfSignedCertificate({
     applicationUri,
     purpose,
 }: CreateSelfSignCertificateOptions) {
-    const crypto = getCrypto();
-
-    const publicKey = await buildPublicKey(privateKey);
-
-    const keys = {
-        privateKey,
-        publicKey,
-    };
+    // resolves either kind of key to what the generator needs: for a raw
+    // CryptoKey this derives the public half and keeps the ambient crypto;
+    // for a CaSigner the public key comes from getPublicKey() and signing
+    // is routed through the signer (the key never exists in-process).
+    const { crypto, keys, signingAlgorithm } = await resolveCaKeyPair(privateKey);
 
     const { nsComment, basicConstraints, keyUsageExtension, usages } = getAttributes(purpose);
 
@@ -107,7 +105,9 @@ export async function createSelfSignedCertificate({
             notBefore,
             notAfter,
 
-            signingAlgorithm: { name: "RSASSA-PKCS1-v1_5", hash: { name: "SHA-256" } },
+            // for a raw key resolveCaKeyPair yields exactly the historical
+            // RSASSA-PKCS1-v1_5/SHA-256; for a CaSigner, the signer's declared algorithm
+            signingAlgorithm,
 
             keys,
 
