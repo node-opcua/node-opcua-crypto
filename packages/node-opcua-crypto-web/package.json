@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-crypto-web",
-    "version": "5.9.0",
+    "version": "5.10.0",
     "type": "module",
     "description": "Pre-bundled, zero-config browser build of node-opcua-crypto",
     "//why": "This package exists so node-opcua-crypto can stay lean for Node. The pre-bundled browser build inlines its polyfills (crypto-browserify, stream-browserify, ...) and weighs ~344 KB gzip - more than the entire node-opcua-crypto tarball. Shipping it there would make every Node consumer download a browser bundle they never import. Browser consumers install this package explicitly, or let node-opcua-crypto's \"browser\" export condition redirect to it (see node-opcua-crypto/browser/index.js).",
@@ -44,7 +44,7 @@
         "crypto-browserify": "^3.12.1",
         "esbuild": "^0.28.2",
         "events": "^3.3.0",
-        "node-opcua-crypto": "^5.9.0",
+        "node-opcua-crypto": "^5.10.0",
         "path-browserify": "^1.0.1",
         "process": "^0.11.10",
         "stream-browserify": "^3.0.0",
