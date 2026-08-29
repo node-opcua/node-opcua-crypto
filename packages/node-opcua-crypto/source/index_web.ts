@@ -38,6 +38,7 @@ export * from "./explore_certificate_revocation_list.js";
 export * from "./explore_certificate_signing_request.js";
 export * from "./explore_private_key.js";
 export * from "./identify_der.js";
+export * from "./key_operations/ca_signer_adapter.js";
 export * from "./key_operations/decrypt_long.js";
 export * from "./key_operations/key_operations.js";
 export * from "./subject.js";
