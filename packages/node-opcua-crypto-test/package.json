@@ -5,17 +5,14 @@
     "description": "Test suite for Crypto tools for Node-OPCUA",
     "scripts": {
         "build:tsup:esm": "tsup  ./test/test_*.ts  --shims --format esm --out-dir dist-esm --sourcemap --clean --dts",
-        "build:tsup:cjs": "tsup  ./test/test_*.ts  --shims --format cjs --out-dir dist-cjs --sourcemap --clean --dts",
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
-        "build": "npm run build:tsup:esm && npm run build:tsup:cjs",
+        "build": "npm run build:tsup:esm",
         "lint": "biome check",
         "lint:fix": "biome lint --fix",
         "format": "biome format --write",
         "test": "npx vitest run",
         "test:no-createkey": "cross-env NO_CREATE_PRIVATEKEY=1 npx vitest run",
-        "test:direct:cjs": "node test-cjs/test_cjs.js",
-        "test:direct:esm": "node test-esm/test_esm.mjs",
-        "test:direct": "npm run test:direct:cjs && npm run test:direct:esm",
+        "test:direct": "node test-esm/test_esm.mjs",
         "experiment": "tsc test/test_peculiar_edge_case.ts -t es2021 -m nodenext"
     },
     "keywords": [

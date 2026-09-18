@@ -6,7 +6,7 @@ export default defineConfig({
         "source/index_web": "source/index_web.ts",
         "source_nodejs/index": "source_nodejs/index.ts",
     },
-    format: ["esm", "cjs"],
+    format: ["esm"],
     dts: true,
     splitting: true,
     sourcemap: true,

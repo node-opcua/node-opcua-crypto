@@ -7,8 +7,8 @@
     "types": "./dist/index.d.ts",
     "main": "./dist/index.js",
     "//exports-web": "./web is the browser entry, and it is deliberately NOT pre-bundled: it shares chunk-BGGEFTMF.js with the Node entry, so it costs this package almost nothing. It does still import assert/constants/crypto/path/url, so the consumer's bundler must supply those. Anyone wanting a zero-config, fully pre-bundled browser build installs the separate node-opcua-crypto-web package instead - inlining it here would add ~344 KB gzip to every Node install for something Node consumers never import. NOTE: keep notes like this OUTSIDE the exports object - every key in there is a subpath pattern, and a non-'.' key alongside '.' keys invalidates the whole map.",
-    "//exports": "types are declared PER CONDITION on purpose. A single shared \"types\" key is resolved for BOTH import and require; since this package is \"type\": \"module\", a bare .d.ts is an ES module, so a CommonJS consumer got ESM types describing the real .cjs it requires. TypeScript reports that as TS1479 under module: node16, and attw as FalseESM. The .d.cts files already existed - tsup emits them from dts:true with format esm+cjs - the map simply never pointed at them.",
-    "//exports-browser": "the \"browser\" condition MUST stay first - conditions are matched in declaration order, and import/require would otherwise win and hand a browser bundler the Node build. It resolves to a ~60 byte stub that re-exports the optional node-opcua-crypto-web peer, so Node consumers pay nothing for it. If a browser consumer has not installed that peer, their bundler fails at build time with an unresolved 'node-opcua-crypto-web' - that is the intended signal; ./web remains available as the bring-your-own-polyfills path that needs no peer.",
+    "//esm-only": "This package is ESM-only: tsup emits ESM only (no dist/*.cjs, no dist/*.d.cts) and the exports map carries no \"require\" condition. A CommonJS consumer uses dynamic import(), or on Node 22.12+ require() of an ES module (the built graph has no top-level await). Dropping require() was a semver-major change; the ESM smoke test lives in packages/node-opcua-crypto-test/test-esm.",
+    "//exports-browser": "the \"browser\" condition MUST stay first - conditions are matched in declaration order, and import would otherwise win and hand a browser bundler the Node build. It resolves to a ~60 byte stub that re-exports the optional node-opcua-crypto-web peer, so Node consumers pay nothing for it. If a browser consumer has not installed that peer, their bundler fails at build time with an unresolved 'node-opcua-crypto-web' - that is the intended signal; ./web remains available as the bring-your-own-polyfills path that needs no peer.",
     "exports": {
         ".": {
             "browser": {
@@ -18,30 +18,18 @@
             "import": {
                 "types": "./dist/index.d.ts",
                 "default": "./dist/index.js"
-            },
-            "require": {
-                "types": "./dist/index.d.cts",
-                "default": "./dist/index.cjs"
             }
         },
         "./web": {
             "import": {
                 "types": "./dist/source/index_web.d.ts",
                 "default": "./dist/source/index_web.js"
-            },
-            "require": {
-                "types": "./dist/source/index_web.d.cts",
-                "default": "./dist/source/index_web.cjs"
             }
         },
         "./node": {
             "import": {
                 "types": "./dist/source_nodejs/index.d.ts",
                 "default": "./dist/source_nodejs/index.js"
-            },
-            "require": {
-                "types": "./dist/source_nodejs/index.d.cts",
-                "default": "./dist/source_nodejs/index.cjs"
             }
         },
         "./package.json": "./package.json"
