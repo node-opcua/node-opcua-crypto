@@ -39,7 +39,7 @@
         "cross-env": "^10.1.0",
         "jsrsasign": "^11.1.5",
         "lorem-ipsum": "^3.0.0",
-        "node-opcua-crypto": "^5.11.0",
+        "node-opcua-crypto": "^5.10.1",
         "reflect-metadata": "^0.2.2",
         "sshpk": "^1.18.0"
     },

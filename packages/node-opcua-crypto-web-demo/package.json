@@ -24,7 +24,7 @@
         "node": ">=18.0"
     },
     "dependencies": {
-        "node-opcua-crypto": "^5.11.0"
+        "node-opcua-crypto": "^5.10.1"
     },
     "repository": {
         "type": "git",
