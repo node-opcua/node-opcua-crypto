@@ -1,22 +1,17 @@
 {
     "compilerOptions": {
-        // tsup's dts build injects `baseUrl: "."` into the compiler options it hands to
-        // TypeScript (see node_modules/tsup/dist/rollup.js), and baseUrl is deprecated in
-        // TS 6.0 (TS5101). We can't drop an option we never set, so silence it here.
-        // Remove once tsup stops injecting baseUrl.
-        "ignoreDeprecations": "6.0",
+        // Unbundled per-file emit with tsc, mirroring the node-opcua monorepo scheme
+        // (NodeNext module + resolution). The source already carries explicit ".js"
+        // extensions on every relative import, which NodeNext requires.
         "target": "es2022",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "moduleResolution": "bundler",
-        "module": "esnext",
         "verbatimModuleSyntax": true,
+        "declaration": true,
         "sourceMap": true,
         "strict": true,
-        "listFiles": false,
-        "traceResolution": false,
-        "types": ["node"],
-        "rootDir": "."
-    },
-    "include": ["index.ts", "source/**/*.ts", "source_nodejs/**/*.ts"]
+        "types": ["node"]
+    }
 }

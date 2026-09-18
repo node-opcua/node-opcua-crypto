@@ -25,6 +25,7 @@ import assert from "node:assert";
 import { createPrivateKey, createPublicKey } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import sshpk from "sshpk";
 import type {
     Certificate,
@@ -324,7 +325,9 @@ export function setCertificateStore(store: string): string {
 }
 export function getCertificateStore(): string {
     if (!_g_certificate_store) {
-        _g_certificate_store = path.join(__dirname, "../../certificates/");
+        // ESM-safe equivalent of `path.join(__dirname, "../../certificates/")`.
+        // tsup used to inject a __dirname shim; under tsc/NodeNext we derive it from import.meta.url.
+        _g_certificate_store = fileURLToPath(new URL("../../certificates/", import.meta.url));
     }
     return _g_certificate_store;
 }

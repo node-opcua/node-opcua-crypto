@@ -1,4 +1,12 @@
 {
     "extends": "./tsconfig.common.json",
-    "include": ["index.ts", "source/index.ts", "source_nodejs/index.ts"]
+    "compilerOptions": {
+        "rootDir": ".",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true,
+        "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
+    },
+    "include": ["index.ts", "source/**/*.ts", "source_nodejs/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
 }

@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { type BlockInfo, readObjectIdentifier, readStruct, readValue } from "./asn1";
+import { type BlockInfo, readObjectIdentifier, readStruct, readValue } from "./asn1.js";
 
 /**
  * One attribute of a Distinguished Name, as it appears in the certificate.

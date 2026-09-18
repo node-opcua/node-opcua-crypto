@@ -1,5 +1,5 @@
-import { type BlockInfo, readStruct, readTag, TagType } from "./asn1";
-import { hexDump } from "./crypto_utils";
+import { type BlockInfo, readStruct, readTag, TagType } from "./asn1.js";
+import { hexDump } from "./crypto_utils.js";
 
 function t(tag: number) {
     // convert Asn1 tag to string
