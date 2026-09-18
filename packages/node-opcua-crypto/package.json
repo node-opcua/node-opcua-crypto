@@ -101,7 +101,7 @@
     },
     "//peerDependencies": "optional on purpose: only browser consumers resolving the \"browser\" condition need it, and npm must not pull it into a Node install. See browser/index.js. NOTE: `lerna version` rewrites sibling ranges in dependencies/devDependencies but NOT in peerDependencies - bump this by hand at each release. A stale caret range still resolves, so nothing breaks loudly; it just drifts.",
     "peerDependencies": {
-        "node-opcua-crypto-web": "^5.4.0"
+        "node-opcua-crypto-web": "^6.0.0"
     },
     "peerDependenciesMeta": {
         "node-opcua-crypto-web": {
