@@ -37,7 +37,7 @@
     "license": "MIT",
     "//devDependencies": "every one of these is inlined into dist/ at build time (tsup noExternal), so this package has no runtime dependencies at all.",
     "devDependencies": {
-        "@types/node": "^24.13.5",
+        "@types/node": "^24.19.0",
         "assert": "^2.1.0",
         "buffer": "^6.0.3",
         "constants-browserify": "^1.0.0",

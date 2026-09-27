@@ -32,7 +32,7 @@
         "@peculiar/webcrypto": "^1.7.1",
         "@peculiar/x509": "^2.1.0",
         "@types/jsrsasign": "^10.5.15",
-        "@types/node": "^24.13.5",
+        "@types/node": "^24.19.0",
         "cross-env": "^10.1.0",
         "jsrsasign": "^11.1.5",
         "lorem-ipsum": "^3.0.0",
@@ -48,9 +48,9 @@
         "url": "https://github.com/node-opcua/node-opcua-crypto/issues"
     },
     "devDependencies": {
-        "@peculiar/asn1-pfx": "^2.9.4",
-        "@peculiar/asn1-schema": "^2.9.4",
-        "@vitest/coverage-v8": "^5.0.1",
+        "@peculiar/asn1-pfx": "^2.10.0",
+        "@peculiar/asn1-schema": "^2.10.0",
+        "@vitest/coverage-v8": "^5.0.2",
         "asn1js": "^3.0.10"
     }
 }
