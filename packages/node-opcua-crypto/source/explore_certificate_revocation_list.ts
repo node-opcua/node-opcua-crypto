@@ -30,6 +30,7 @@ import {
     readAlgorithmIdentifier,
     readIntegerValue,
     readLongIntegerValue,
+    readObjectIdentifier,
     readSignatureValueBin,
     readStruct,
     readTag,
@@ -54,10 +55,52 @@ export type Version = string;
 export type Name = DirectoryName;
 export type CertificateSerialNumber = string;
 export type Extensions = Record<string, unknown>;
+
+/**
+ * CRLReason, RFC 5280 §5.3.1 (value 7 is unused).
+ */
+export type CRLReason =
+    | "unspecified"
+    | "keyCompromise"
+    | "cACompromise"
+    | "affiliationChanged"
+    | "superseded"
+    | "cessationOfOperation"
+    | "certificateHold"
+    | "removeFromCRL"
+    | "privilegeWithdrawn"
+    | "aACompromise";
+
+const crlReasonNames: Record<number, CRLReason> = {
+    0: "unspecified",
+    1: "keyCompromise",
+    2: "cACompromise",
+    3: "affiliationChanged",
+    4: "superseded",
+    5: "cessationOfOperation",
+    6: "certificateHold",
+    8: "removeFromCRL",
+    9: "privilegeWithdrawn",
+    10: "aACompromise",
+};
+
+/**
+ * Decoded crlEntryExtensions (RFC 5280 §5.3).
+ * Known extensions get a named field; any other extension is kept under its
+ * dotted OID as the raw extnValue bytes.
+ */
+export interface CrlEntryExtensions extends Extensions {
+    /** reasonCode (2.5.29.21); a value outside RFC 5280 is reported as `unknown(<n>)` */
+    reasonCode?: CRLReason | `unknown(${number})`;
+    /** invalidityDate (2.5.29.24) */
+    invalidityDate?: Date;
+}
+
 export interface RevokedCertificate {
     userCertificate: CertificateSerialNumber;
     revocationDate: Date;
-    crlEntryExtensions?: Extensions;
+    /** present only when the entry carries extensions */
+    crlEntryExtensions?: CrlEntryExtensions;
 }
 export interface TBSCertList {
     version?: Version; //OPTIONAL; // must be 2
@@ -79,6 +122,58 @@ export function readNameForCrl(buffer: Buffer, block: BlockInfo): DirectoryName 
     return readDirectoryName(buffer, block);
 }
 
+/*
+ Extension  ::=  SEQUENCE  {
+     extnID      OBJECT IDENTIFIER,
+     critical    BOOLEAN DEFAULT FALSE,
+     extnValue   OCTET STRING }
+ */
+function _readCrlEntryExtensions(buffer: Buffer, block: BlockInfo): CrlEntryExtensions {
+    const result: CrlEntryExtensions = {};
+    for (const extensionBlock of readStruct(buffer, block)) {
+        const inner = readStruct(buffer, extensionBlock);
+        const { oid } = readObjectIdentifier(buffer, inner[0]);
+        const extnValue = inner[inner.length - 1];
+        // extnValue is an OCTET STRING wrapping the DER of the actual value
+        const value = readTag(buffer, extnValue.position);
+        switch (oid) {
+            case "2.5.29.21": {
+                // CRLReason ::= ENUMERATED
+                const code = readIntegerValue(buffer, { ...value, tag: TagType.INTEGER });
+                result.reasonCode = crlReasonNames[code] ?? `unknown(${code})`;
+                break;
+            }
+            case "2.5.29.24":
+                // InvalidityDate ::= GeneralizedTime
+                result.invalidityDate = readTime(buffer, value) as Date;
+                break;
+            default:
+                result[oid] = getBlock(buffer, extnValue);
+        }
+    }
+    return result;
+}
+
+/*
+ revokedCertificates     SEQUENCE OF SEQUENCE  {
+     userCertificate         CertificateSerialNumber,
+     revocationDate          Time,
+     crlEntryExtensions      Extensions OPTIONAL }
+ */
+function _readRevokedCertificates(buffer: Buffer, block: BlockInfo): RevokedCertificate[] {
+    return readStruct(buffer, block).map((r) => {
+        const rr = readStruct(buffer, r);
+        const revokedCertificate: RevokedCertificate = {
+            revocationDate: readTime(buffer, rr[1]) as Date,
+            userCertificate: formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, rr[0])),
+        };
+        if (rr[2]) {
+            revokedCertificate.crlEntryExtensions = _readCrlEntryExtensions(buffer, rr[2]);
+        }
+        return revokedCertificate;
+    });
+}
+
 function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
     const blocks = readStruct(buffer, blockInfo);
 
@@ -96,17 +191,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
         const revokedCertificates: RevokedCertificate[] = [];
 
         if (blocks[5] && blocks[5].tag < 0x80) {
-            const list = readStruct(buffer, blocks[5]);
-            for (const r of list) {
-                // sometime blocks[5] doesn't exits .. in this case
-                const rr = readStruct(buffer, r);
-                const userCertificate = formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, rr[0]));
-                const revocationDate = readTime(buffer, rr[1]) as Date;
-                revokedCertificates.push({
-                    revocationDate,
-                    userCertificate,
-                });
-            }
+            revokedCertificates.push(..._readRevokedCertificates(buffer, blocks[5]));
         }
 
         const _ext0 = findBlockAtIndex(blocks, 0);
@@ -122,17 +207,7 @@ function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
         const revokedCertificates: RevokedCertificate[] = [];
 
         if (blocks[4] && blocks[4].tag < 0x80) {
-            const list = readStruct(buffer, blocks[4]);
-            for (const r of list) {
-                // sometime blocks[5] doesn't exits .. in this case
-                const rr = readStruct(buffer, r);
-                const userCertificate = formatBuffer2DigitHexWithColum(readLongIntegerValue(buffer, rr[0]));
-                const revocationDate = readTime(buffer, rr[1]) as Date;
-                revokedCertificates.push({
-                    revocationDate,
-                    userCertificate,
-                });
-            }
+            revokedCertificates.push(..._readRevokedCertificates(buffer, blocks[4]));
         }
         return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
     }
