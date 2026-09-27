@@ -114,6 +114,45 @@ describe("Explore Certificate Revocation List", () => {
     });
 });
 
+// Fixtures generated with `openssl ca -revoke -crl_reason <reason>` (and -crl_compromise
+// for keyCompromise, which also adds an invalidityDate), then `openssl ca -gencrl`.
+describe("CRL entry extensions (RFC 5280 §5.3)", () => {
+    it("should decode reasonCode and invalidityDate of each revoked entry (v2 CRL)", async () => {
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/crl_with_reason_codes.pem");
+        const crl = await readCertificateRevocationList(crlFilename);
+        const issuer = await readCertificate(path.join(__dirname, "../test-fixtures/crl/crl_with_reason_codes_issuer.pem"));
+        expect(verifyCrlIssuedByCertificate(crl, issuer)).toBe(true);
+
+        const crlInfo = exploreCertificateRevocationList(crl);
+        expect(crlInfo.tbsCertList.version).toBeUndefined(); // unchanged: version is not surfaced
+        const entries = crlInfo.tbsCertList.revokedCertificates;
+
+        expect(entries.map((e) => [e.userCertificate, e.crlEntryExtensions?.reasonCode])).toEqual([
+            ["10:00", "keyCompromise"],
+            ["10:01", "cACompromise"],
+            ["10:02", "affiliationChanged"],
+            ["10:03", "superseded"],
+            ["10:04", "cessationOfOperation"],
+            ["10:05", "certificateHold"],
+            ["10:06", undefined],
+        ]);
+
+        expect(entries[0].crlEntryExtensions?.invalidityDate?.toISOString()).toEqual("2024-01-15T10:30:00.000Z");
+        expect(entries[1].crlEntryExtensions).toEqual({ reasonCode: "cACompromise" });
+        // an entry without extensions keeps the pre-existing shape
+        expect(Object.keys(entries[6]).sort()).toEqual(["revocationDate", "userCertificate"]);
+    });
+
+    it("should read revoked entries of a v1 CRL (no version field, no entry extensions)", async () => {
+        const crlFilename = path.join(__dirname, "../test-fixtures/crl/crl_version_1_with_revoked_entry.pem");
+        const crl = await readCertificateRevocationList(crlFilename);
+        const crlInfo = exploreCertificateRevocationList(crl);
+        expect(crlInfo.tbsCertList.revokedCertificates.length).toEqual(1);
+        expect(crlInfo.tbsCertList.revokedCertificates[0].userCertificate).toEqual("10:06");
+        expect(crlInfo.tbsCertList.revokedCertificates[0].crlEntryExtensions).toBeUndefined();
+    });
+});
+
 describe("CRL-to-Issuer Matching", () => {
     const crl1Filename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list1.crl");
     const crl3Filename = path.join(__dirname, "../test-fixtures/crl/certificate_revocation_list3.pem");
