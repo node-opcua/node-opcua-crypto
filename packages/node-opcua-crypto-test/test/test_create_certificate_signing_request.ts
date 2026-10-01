@@ -64,4 +64,17 @@ describe("creating X509 certificate signing requests", { timeout: 100000 }, () =
         });
         expect(csrInfo.extensionRequest.basicConstraints.cA).toEqual(false);
     });
+
+    it("should encode a non-ASCII subject value as UTF-8, not U+FFFD", async () => {
+        const { privateKey } = await generateKeyPair();
+        const { der } = await createCertificateSigningRequest({
+            privateKey,
+            subject: "/CN=Test/O=Sterfive/L=Orléans/C=FR",
+            applicationUri: "urn:HOSTNAME:ServerDescription",
+            purpose: CertificatePurpose.ForApplication,
+        });
+        const csrDer = Buffer.from(der.rawData);
+        expect(csrDer.includes(Buffer.from("Orléans", "utf8"))).toEqual(true);
+        expect(csrDer.includes(Buffer.from("�", "utf8"))).toEqual(false);
+    });
 });
