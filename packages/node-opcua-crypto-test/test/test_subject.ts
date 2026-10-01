@@ -94,4 +94,13 @@ describe("Subject", () => {
         expect(subject.commonName).toEqual("Hello/Hallo");
         expect(subject.toStringInternal(", ")).toEqual('C=FR, L=Orleans, O=Sterfive, CN="Hello/Hallo"');
     });
+
+    it("should keep non-ASCII characters when parsing a subject string", () => {
+        const subject = new Subject("/CN=Serveur/O=Société Générale/L=Orléans/C=FR");
+        expect(subject.locality).toEqual("Orléans");
+        expect(subject.organization).toEqual("Société Générale");
+        expect(subject.toString()).toEqual("/C=FR/L=Orléans/O=Société Générale/CN=Serveur");
+        // parsing what toString() produced must be lossless
+        expect(new Subject(subject.toString()).toString()).toEqual(subject.toString());
+    });
 });

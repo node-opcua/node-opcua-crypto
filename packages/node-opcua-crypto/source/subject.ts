@@ -95,7 +95,9 @@ export class Subject implements SubjectOptions {
                 throw new Error(`Invalid field found in subject name ${s[0]}`);
             }
             const value = s[1];
-            options[longName] = unquote(Buffer.from(value, "ascii").toString("utf8"));
+            // the value is already a JS string: no byte transcoding, which
+            // would turn any non-ASCII character (é) into U+FFFD
+            options[longName] = unquote(value);
         });
         return options as SubjectOptions;
     }
