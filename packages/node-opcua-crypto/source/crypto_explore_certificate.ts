@@ -234,7 +234,8 @@ function readBasicConstraint2_5_29_19(buffer: Buffer, _block: BlockInfo): BasicC
     const block_info = readTag(buffer, 0);
     const inner_blocks = readStruct(buffer, block_info).slice(0, 2);
     let cA = false;
-    let pathLengthConstraint = 0;
+    // absent means "no limit" (RFC 5280 4.2.1.9), which is not the same as 0
+    let pathLengthConstraint: number | undefined;
     let breakControl = 0;
 
     for (const inner_block of inner_blocks) {
@@ -731,7 +732,8 @@ export interface SubjectPublicKeyInfo {
 export interface BasicConstraints {
     critical: boolean;
     cA: boolean;
-    pathLengthConstraint?: number; // 0 Unlimited
+    /** Maximum number of CA certificates below this one; undefined when the certificate sets no limit. */
+    pathLengthConstraint?: number;
 }
 
 export interface AuthorityKeyIdentifier {

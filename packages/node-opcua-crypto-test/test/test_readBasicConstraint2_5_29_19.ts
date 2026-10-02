@@ -1,4 +1,5 @@
-import { asn1, coerceCertificate, readTbsCertificate } from "node-opcua-crypto";
+import { asn1, coerceCertificate, exploreCertificate, readTbsCertificate } from "node-opcua-crypto";
+import { CertificatePurpose, createSelfSignedCertificate, generateKeyPair, x509 } from "node-opcua-crypto/web";
 import { describe, expect, it } from "vitest";
 
 /*
@@ -148,6 +149,8 @@ describe("Testing basicConstraint field", () => {
         expect(basicConstraints).toBeDefined();
         if (basicConstraints) {
             expect(basicConstraints.cA).toBe(false);
+            // no pathlen in the certificate: no limit, which is not 0
+            expect(basicConstraints.pathLengthConstraint).toBeUndefined();
         }
     });
 
@@ -178,5 +181,24 @@ describe("Testing basicConstraint field", () => {
             expect(basicConstraints.cA).toBe(true);
             expect(basicConstraints.pathLengthConstraint).toBe(0);
         }
+    });
+
+    it("Should report no pathLengthConstraint for a CA certificate that sets none", async () => {
+        const { privateKey } = await generateKeyPair(2048);
+        const { der } = await createSelfSignedCertificate({
+            privateKey,
+            subject: "/CN=readBasicConstraint.ca-without-pathlen.test",
+            validity: 30,
+            purpose: CertificatePurpose.ForCertificateAuthority
+        });
+        const certificate = Buffer.from(der.rawData);
+
+        // what an independent parser reads in the same certificate
+        const reference = new x509.X509Certificate(new Uint8Array(certificate)).getExtension(x509.BasicConstraintsExtension);
+        expect(reference?.ca).toBe(true);
+
+        const basicConstraints = exploreCertificate(certificate).tbsCertificate.extensions?.basicConstraints;
+        expect(basicConstraints?.cA).toBe(true);
+        expect(basicConstraints?.pathLengthConstraint).toEqual(reference?.pathLength);
     });
 });
