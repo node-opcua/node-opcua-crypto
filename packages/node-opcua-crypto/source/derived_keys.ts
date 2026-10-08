@@ -25,7 +25,7 @@
  * @module node_opcua_crypto
  */
 import assert from "node:assert";
-import { createCipheriv, createDecipheriv, createHmac } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHmac, createSecretKey, type KeyObject } from "node:crypto";
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import type { Nonce } from "./common.js";
@@ -244,6 +244,21 @@ export function computePaddingFooter(buffer: Buffer, derivedKeys: DerivedKeys): 
     return padding;
 }
 
+// The KeyObject of each derived key, made once. Handing node:crypto a Buffer as key makes it check and wrap
+// that key on every call, which costs more than signing or encrypting an 8 KiB chunk. A derived key is
+// never modified once computed, so its Buffer stands for its KeyObject. (crypto-browserify, in the web
+// build, has no createSecretKey: the Buffer is used as it is there.)
+const keyObjects = new WeakMap<Buffer, KeyObject>();
+function keyObjectOf(key: Buffer): KeyObject | Buffer {
+    if (typeof createSecretKey !== "function") return key;
+    let keyObject = keyObjects.get(key);
+    if (!keyObject) {
+        keyObject = createSecretKey(key);
+        keyObjects.set(key, keyObject);
+    }
+    return keyObject;
+}
+
 function derivedKeys_algorithm(derivedKeys: DerivedKeys) {
     assert(Object.hasOwn(derivedKeys, "algorithm"));
     const algorithm = derivedKeys.algorithm || "aes-128-cbc";
@@ -255,28 +270,25 @@ export function encryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
-    const cipher = createCipheriv(algorithm, key, initVector);
+    const cipher = createCipheriv(algorithm, keyObjectOf(key), initVector);
 
     cipher.setAutoPadding(false);
-    const encrypted_chunks: Buffer[] = [];
-    encrypted_chunks.push(cipher.update(buffer));
-    encrypted_chunks.push(cipher.final());
-    return Buffer.concat(encrypted_chunks);
+    const encrypted = cipher.update(buffer);
+    // without padding, a buffer of whole blocks is all in the output of update()
+    const tail = cipher.final();
+    return tail.length === 0 ? encrypted : Buffer.concat([encrypted, tail]);
 }
 
 export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
-    const cipher = createDecipheriv(algorithm, key, initVector);
+    const cipher = createDecipheriv(algorithm, keyObjectOf(key), initVector);
 
     cipher.setAutoPadding(false);
-
-    const decrypted_chunks: Buffer[] = [];
-    decrypted_chunks.push(cipher.update(buffer));
-    decrypted_chunks.push(cipher.final());
-
-    return Buffer.concat(decrypted_chunks);
+    const decrypted = cipher.update(buffer);
+    const tail = cipher.final();
+    return tail.length === 0 ? decrypted : Buffer.concat([decrypted, tail]);
 }
 
 /**
@@ -290,7 +302,7 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
     assert(Buffer.isBuffer(derivedKeys.signingKey));
     assert(typeof derivedKeys.sha1or256 === "string");
     assert(derivedKeys.sha1or256 === "SHA1" || derivedKeys.sha1or256 === "SHA256");
-    const signature = createHmac(derivedKeys.sha1or256, derivedKeys.signingKey).update(message).digest();
+    const signature = createHmac(derivedKeys.sha1or256, keyObjectOf(derivedKeys.signingKey)).update(message).digest();
     assert(signature.length === derivedKeys.signatureLength);
     return signature;
 }
@@ -305,5 +317,5 @@ export function verifyChunkSignatureWithDerivedKeys(chunk: Buffer, derivedKeys: 
     const message = chunk.subarray(0, chunk.length - derivedKeys.signatureLength);
     const expectedSignature = chunk.subarray(chunk.length - derivedKeys.signatureLength);
     const computedSignature = makeMessageChunkSignatureWithDerivedKeys(message, derivedKeys);
-    return computedSignature.toString("hex") === expectedSignature.toString("hex");
+    return computedSignature.equals(expectedSignature);
 }
