@@ -30,6 +30,8 @@ export const createDiffieHellman = cryptoBrowserify.createDiffieHellman;
 export const createECDH = cryptoBrowserify.createECDH;
 export const randomFillSync = cryptoBrowserify.randomFillSync;
 export const randomFill = cryptoBrowserify.randomFill;
+// crypto-browserify has no KeyObject: derived_keys.ts then hands the key Buffer as it is
+export const createSecretKey = undefined;
 
 // ---------- Minimal DER/ASN1 helpers ----------
 

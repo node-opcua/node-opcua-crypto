@@ -21,6 +21,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ---------------------------------------------------------------------------------------------------------------------
 
+import { createCipheriv, createHmac } from "node:crypto";
 import * as loremIpsum1 from "lorem-ipsum";
 import {
     type ComputeDerivedKeysOptions,
@@ -167,6 +168,31 @@ describe("test derived key making", () => {
         const seed1 = Buffer.from("LmF9Mjf9lYMa9YkxZDjaRFe6iMAfReKjzhLHDx376jA=", "base64");
         const key = makePseudoRandomBuffer(secret1, seed1, 256 / 8, "SHA1");
         expect(key.toString("base64")).toEqual("ZMOP1NFa5VKTQ8I2awGXDjzKP+686eujiangAgf5N+Q=");
+    });
+
+    it("signs, encrypts and decrypts as node:crypto does with the key bytes, call after call", () => {
+        const derivedKeys = computeDerivedKeys(secret, seed, options_AES_256_CBC_SHA256);
+        const other = computeDerivedKeys(seed, secret, options_AES_256_CBC_SHA256);
+        const chunk = Buffer.alloc(8192, 0x5a);
+        const reference = (keys: typeof derivedKeys) => {
+            const cipher = createCipheriv(keys.algorithm, keys.encryptingKey, keys.initializationVector);
+            cipher.setAutoPadding(false);
+            return {
+                encrypted: Buffer.concat([cipher.update(chunk), cipher.final()]),
+                signature: createHmac(keys.sha1or256, keys.signingKey).update(chunk).digest(),
+            };
+        };
+        // the second call reuses what the first made: same output, and each key set keeps its own
+        for (let k = 0; k < 2; k++) {
+            for (const keys of [derivedKeys, other]) {
+                const expected = reference(keys);
+                const encrypted = encryptBufferWithDerivedKeys(chunk, keys);
+                expect(encrypted.equals(expected.encrypted)).toBe(true);
+                expect(decryptBufferWithDerivedKeys(encrypted, keys).equals(chunk)).toBe(true);
+                expect(makeMessageChunkSignatureWithDerivedKeys(chunk, keys).equals(expected.signature)).toBe(true);
+            }
+        }
+        expect(encryptBufferWithDerivedKeys(chunk, derivedKeys).equals(encryptBufferWithDerivedKeys(chunk, other))).toBe(false);
     });
 
     it("should create derived keys (computeDerivedKeys)", () => {
