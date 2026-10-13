@@ -25,12 +25,21 @@
  * @module node_opcua_crypto
  */
 import assert from "node:assert";
-import { createCipheriv, createDecipheriv, createHmac, createSecretKey, type KeyObject } from "node:crypto";
+import {
+    type Cipheriv,
+    createCipheriv,
+    createDecipheriv,
+    createHmac,
+    createSecretKey,
+    type Decipheriv,
+    type KeyObject,
+} from "node:crypto";
 
 import { createFastUninitializedBuffer } from "./buffer_utils.js";
 import type { Nonce } from "./common.js";
 import { type VerifyMessageChunkSignatureOptions, verifyMessageChunkSignature } from "./crypto_utils.js";
 import { exploreCertificateInfo } from "./explore_certificate.js";
+import { KeyedHmacSha256 } from "./hmac_sha256.js";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
     return createHmac(sha1or256, secret).update(message).digest();
@@ -266,10 +275,74 @@ function derivedKeys_algorithm(derivedKeys: DerivedKeys) {
     return algorithm;
 }
 
+// One long-lived Cipher and Decipher per encrypting key. node:crypto has no way to rewind a CBC cipher to its IV,
+// and creating one per chunk (context allocation, key schedule, four calls into C++) costs several times the AES
+// work on a small chunk. Every chunk of a token is encrypted from the same IV, so the cipher is never finalised:
+// one extra block, fed before each chunk, brings its chaining state back to the IV.
+//  - encrypting X = D_k(IV) xor C_prev gives E_k(X xor C_prev) = IV, which becomes the chaining state;
+//  - decrypting IV as a ciphertext block makes IV the chaining state.
+// The output of that extra block is dropped. Only for whole blocks (anything else is refused by final() anyway),
+// and only with node:crypto: the web build keeps one cipher per chunk.
+interface SymmetricCipherState {
+    initializationVector: Buffer;
+    encrypt?: { cipher: Cipheriv; decryptedIv: Buffer; lastBlock: Buffer };
+    decrypt?: Decipheriv;
+}
+const cipherStates = new WeakMap<Buffer, SymmetricCipherState>();
+const canKeepCiphers = typeof createSecretKey === "function";
+
+function cipherStateOf(derivedKeys: DerivedKeys): SymmetricCipherState {
+    let state = cipherStates.get(derivedKeys.encryptingKey);
+    if (!state || state.initializationVector !== derivedKeys.initializationVector) {
+        state = { initializationVector: derivedKeys.initializationVector };
+        cipherStates.set(derivedKeys.encryptingKey, state);
+    }
+    return state;
+}
+
+// the reset block and the chunk side by side, for a single update() call (cheaper than two calls); one buffer for
+// the whole process rather than one per channel, as every call completes synchronously
+let scratch = Buffer.alloc(0);
+function withLeadingBlock(block: Buffer, buffer: Buffer): Buffer {
+    const length = block.length + buffer.length;
+    if (scratch.length < length) {
+        scratch = Buffer.alloc(Math.max(length, 2 * scratch.length));
+    }
+    block.copy(scratch, 0);
+    buffer.copy(scratch, block.length);
+    return scratch.subarray(0, length);
+}
+
+function isWholeBlocks(buffer: Buffer, derivedKeys: DerivedKeys): boolean {
+    const blockSize = derivedKeys.initializationVector.length;
+    return blockSize === 16 && buffer.length > 0 && buffer.length % blockSize === 0;
+}
+
 export function encryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: DerivedKeys): Buffer {
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
+    if (canKeepCiphers && isWholeBlocks(buffer, derivedKeys)) {
+        const state = cipherStateOf(derivedKeys);
+        if (!state.encrypt) {
+            const blockDecipher = createDecipheriv(algorithm.replace("-cbc", "-ecb"), keyObjectOf(key), null);
+            blockDecipher.setAutoPadding(false);
+            const decryptedIv = blockDecipher.update(initVector);
+            const cipher = createCipheriv(algorithm, keyObjectOf(key), initVector);
+            cipher.setAutoPadding(false);
+            // a new cipher chains from the IV already: the reset block of the first chunk turns it into the IV again
+            state.encrypt = { cipher, decryptedIv, lastBlock: initVector };
+        }
+        const encrypt = state.encrypt;
+        const blockSize = initVector.length;
+        const reset = Buffer.allocUnsafe(blockSize);
+        for (let i = 0; i < blockSize; i++) {
+            reset[i] = encrypt.decryptedIv[i] ^ encrypt.lastBlock[i];
+        }
+        const encrypted = encrypt.cipher.update(withLeadingBlock(reset, buffer));
+        encrypt.lastBlock = encrypted.subarray(encrypted.length - blockSize);
+        return encrypted.subarray(blockSize);
+    }
     const cipher = createCipheriv(algorithm, keyObjectOf(key), initVector);
 
     cipher.setAutoPadding(false);
@@ -283,12 +356,35 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     const algorithm = derivedKeys_algorithm(derivedKeys);
     const key = derivedKeys.encryptingKey;
     const initVector = derivedKeys.initializationVector;
+    if (canKeepCiphers && isWholeBlocks(buffer, derivedKeys)) {
+        const state = cipherStateOf(derivedKeys);
+        if (!state.decrypt) {
+            state.decrypt = createDecipheriv(algorithm, keyObjectOf(key), initVector);
+            state.decrypt.setAutoPadding(false);
+        }
+        // decrypting the IV as a block makes it the chaining state; its own output is dropped
+        return state.decrypt.update(withLeadingBlock(initVector, buffer)).subarray(initVector.length);
+    }
     const cipher = createDecipheriv(algorithm, keyObjectOf(key), initVector);
 
     cipher.setAutoPadding(false);
     const decrypted = cipher.update(buffer);
     const tail = cipher.final();
     return tail.length === 0 ? decrypted : Buffer.concat([decrypted, tail]);
+}
+
+// Up to this size a chunk is signed by KeyedHmacSha256 (key pads compressed once) rather than by a new node:crypto
+// Hmac: on a small chunk creating the Hmac costs more than hashing. Above it the native SHA-256 is faster.
+// Measured on a Celeron J4125, Node 24: 128 B 6.0 us against 10.3 us; 1 KiB 20.7 us against 11.4 us.
+const KEYED_HMAC_MAX_MESSAGE = 256;
+const keyedHmacs = new WeakMap<Buffer, KeyedHmacSha256>();
+function keyedHmacOf(signingKey: Buffer): KeyedHmacSha256 {
+    let hmac = keyedHmacs.get(signingKey);
+    if (!hmac) {
+        hmac = new KeyedHmacSha256(signingKey);
+        keyedHmacs.set(signingKey, hmac);
+    }
+    return hmac;
 }
 
 /**
@@ -302,7 +398,11 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
     assert(Buffer.isBuffer(derivedKeys.signingKey));
     assert(typeof derivedKeys.sha1or256 === "string");
     assert(derivedKeys.sha1or256 === "SHA1" || derivedKeys.sha1or256 === "SHA256");
-    const signature = createHmac(derivedKeys.sha1or256, keyObjectOf(derivedKeys.signingKey)).update(message).digest();
+    const useKeyedHmac =
+        derivedKeys.sha1or256 === "SHA256" && message.length <= KEYED_HMAC_MAX_MESSAGE && derivedKeys.signingKey.length <= 64;
+    const signature = useKeyedHmac
+        ? keyedHmacOf(derivedKeys.signingKey).digest(message)
+        : createHmac(derivedKeys.sha1or256, keyObjectOf(derivedKeys.signingKey)).update(message).digest();
     assert(signature.length === derivedKeys.signatureLength);
     return signature;
 }
@@ -317,5 +417,13 @@ export function verifyChunkSignatureWithDerivedKeys(chunk: Buffer, derivedKeys: 
     const message = chunk.subarray(0, chunk.length - derivedKeys.signatureLength);
     const expectedSignature = chunk.subarray(chunk.length - derivedKeys.signatureLength);
     const computedSignature = makeMessageChunkSignatureWithDerivedKeys(message, derivedKeys);
-    return computedSignature.equals(expectedSignature);
+    if (computedSignature.length !== expectedSignature.length) {
+        return false;
+    }
+    // every byte is compared, whatever the first difference
+    let difference = 0;
+    for (let i = 0; i < computedSignature.length; i++) {
+        difference |= computedSignature[i] ^ expectedSignature[i];
+    }
+    return difference === 0;
 }
