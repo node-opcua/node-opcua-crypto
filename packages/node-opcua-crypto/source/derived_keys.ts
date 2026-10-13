@@ -25,6 +25,7 @@
  * @module node_opcua_crypto
  */
 import assert from "node:assert";
+import * as nodeCrypto from "node:crypto";
 import {
     type Cipheriv,
     createCipheriv,
@@ -373,11 +374,61 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     return tail.length === 0 ? decrypted : Buffer.concat([decrypted, tail]);
 }
 
-// Up to this size a chunk is signed by KeyedHmacSha256 (key pads compressed once) rather than by a new node:crypto
-// Hmac: on a small chunk creating the Hmac costs more than hashing. Above it the native SHA-256 is faster.
-// Measured on a Celeron J4125, Node 24: 128 B 6.0 us against 10.3 us; 1 KiB 20.7 us against 11.4 us.
+// Up to this size a SHA256 chunk is signed by KeyedHmacSha256 (key pads compressed once) rather than by a native
+// HMAC: on a small chunk the call into node:crypto costs more than the hashing. Measured on a 4-core benchmark
+// machine, 128 B: 3.8 us (Node 24) / 4.4 us (Node 22), against 8.1 / 5.8 for the one-shot hashes below and 9.5 / 7.7
+// for createHmac; the JS hash falls behind between 256 B (Node 22) and 512 B (Node 24).
 const KEYED_HMAC_MAX_MESSAGE = 256;
 const keyedHmacs = new WeakMap<Buffer, KeyedHmacSha256>();
+
+// Above that size, and for SHA1, the HMAC is two one-shot hashes, H(opad || H(ipad || message)): node:crypto hash()
+// (Node 20.12 and 21.7 on) is one native call without the Hmac object, about 1.3 us cheaper than createHmac on a
+// KeyObject at every size, measured on a 4-core benchmark machine with Node 22 and 24. Where it is missing (older
+// Node, the web build) createHmac stays.
+const oneShotHash = (nodeCrypto as { hash?: (algorithm: string, data: Buffer, outputEncoding: "buffer") => Buffer }).hash;
+const HMAC_BLOCK_SIZE = 64; // SHA1 and SHA256
+interface HmacPads {
+    innerPad: Buffer;
+    /** the outer pad followed by room for the inner digest */
+    outer: Buffer;
+}
+const hmacPads = new WeakMap<Buffer, HmacPads>();
+// the inner pad and the message side by side; one buffer for the process, as every call completes synchronously
+let innerScratch = Buffer.alloc(0);
+
+function hmacPadsOf(signingKey: Buffer, digestLength: number): HmacPads {
+    let pads = hmacPads.get(signingKey);
+    if (!pads) {
+        const innerPad = Buffer.alloc(HMAC_BLOCK_SIZE, 0x36);
+        const outer = Buffer.alloc(HMAC_BLOCK_SIZE + digestLength, 0);
+        outer.fill(0x5c, 0, HMAC_BLOCK_SIZE);
+        for (let i = 0; i < signingKey.length; i++) {
+            innerPad[i] ^= signingKey[i];
+            outer[i] ^= signingKey[i];
+        }
+        pads = { innerPad, outer };
+        hmacPads.set(signingKey, pads);
+    }
+    return pads;
+}
+
+function hmacWithOneShotHash(
+    hash: (algorithm: string, data: Buffer, outputEncoding: "buffer") => Buffer,
+    algorithm: "sha1" | "sha256",
+    signingKey: Buffer,
+    message: Buffer,
+    digestLength: number,
+): Buffer {
+    const pads = hmacPadsOf(signingKey, digestLength);
+    const length = HMAC_BLOCK_SIZE + message.length;
+    if (innerScratch.length < length) {
+        innerScratch = Buffer.alloc(Math.max(length, 2 * innerScratch.length));
+    }
+    pads.innerPad.copy(innerScratch, 0);
+    message.copy(innerScratch, HMAC_BLOCK_SIZE);
+    hash(algorithm, innerScratch.subarray(0, length), "buffer").copy(pads.outer, HMAC_BLOCK_SIZE);
+    return hash(algorithm, pads.outer, "buffer");
+}
 function keyedHmacOf(signingKey: Buffer): KeyedHmacSha256 {
     let hmac = keyedHmacs.get(signingKey);
     if (!hmac) {
@@ -398,11 +449,18 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
     assert(Buffer.isBuffer(derivedKeys.signingKey));
     assert(typeof derivedKeys.sha1or256 === "string");
     assert(derivedKeys.sha1or256 === "SHA1" || derivedKeys.sha1or256 === "SHA256");
-    const useKeyedHmac =
-        derivedKeys.sha1or256 === "SHA256" && message.length <= KEYED_HMAC_MAX_MESSAGE && derivedKeys.signingKey.length <= 64;
-    const signature = useKeyedHmac
-        ? keyedHmacOf(derivedKeys.signingKey).digest(message)
-        : createHmac(derivedKeys.sha1or256, keyObjectOf(derivedKeys.signingKey)).update(message).digest();
+    const signingKey = derivedKeys.signingKey;
+    const sha256 = derivedKeys.sha1or256 === "SHA256";
+    let signature: Buffer;
+    if (signingKey.length > HMAC_BLOCK_SIZE) {
+        signature = createHmac(derivedKeys.sha1or256, keyObjectOf(signingKey)).update(message).digest();
+    } else if (sha256 && message.length <= KEYED_HMAC_MAX_MESSAGE) {
+        signature = keyedHmacOf(signingKey).digest(message);
+    } else if (oneShotHash) {
+        signature = hmacWithOneShotHash(oneShotHash, sha256 ? "sha256" : "sha1", signingKey, message, sha256 ? 32 : 20);
+    } else {
+        signature = createHmac(derivedKeys.sha1or256, keyObjectOf(signingKey)).update(message).digest();
+    }
     assert(signature.length === derivedKeys.signatureLength);
     return signature;
 }
