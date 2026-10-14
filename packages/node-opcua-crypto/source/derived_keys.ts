@@ -41,6 +41,7 @@ import type { Nonce } from "./common.js";
 import { type VerifyMessageChunkSignatureOptions, verifyMessageChunkSignature } from "./crypto_utils.js";
 import { exploreCertificateInfo } from "./explore_certificate.js";
 import { KeyedHmacSha256 } from "./hmac_sha256.js";
+import { WasmHmacSha256 } from "./hmac_sha256_wasm.js";
 
 function HMAC_HASH(sha1or256: "SHA1" | "SHA256", secret: Buffer, message: Buffer) {
     return createHmac(sha1or256, secret).update(message).digest();
@@ -374,12 +375,15 @@ export function decryptBufferWithDerivedKeys(buffer: Buffer, derivedKeys: Derive
     return tail.length === 0 ? decrypted : Buffer.concat([decrypted, tail]);
 }
 
-// Up to this size a SHA256 chunk is signed by KeyedHmacSha256 (key pads compressed once) rather than by a native
-// HMAC: on a small chunk the call into node:crypto costs more than the hashing. Measured on a 4-core benchmark
-// machine, 128 B: 3.8 us (Node 24) / 4.4 us (Node 22), against 8.1 / 5.8 for the one-shot hashes below and 9.5 / 7.7
-// for createHmac; the JS hash falls behind between 256 B (Node 22) and 512 B (Node 24).
+// Up to these sizes a SHA256 chunk is signed by a keyed HMAC (key pads compressed once) rather than by a native one:
+// on a small chunk the call into node:crypto costs more than the hashing. Measured on a 4-core benchmark machine,
+// 128 B: WasmHmacSha256 2.5 to 2.7 us, KeyedHmacSha256 3.7 to 4.5 us, the one-shot hashes below 5.5 to 8.2 us
+// (Node 22 to 26); the WebAssembly one falls behind them between 512 B and 1 KiB. Only the Node build, which can
+// compile WebAssembly synchronously, uses it; the web build keeps KeyedHmacSha256.
 const KEYED_HMAC_MAX_MESSAGE = 256;
-const keyedHmacs = new WeakMap<Buffer, KeyedHmacSha256>();
+const WASM_HMAC_MAX_MESSAGE = 512;
+type KeyedHmac = { digest(message: Uint8Array): Buffer };
+const keyedHmacs = new WeakMap<Buffer, KeyedHmac>();
 
 // Above that size, and for SHA1, the HMAC is two one-shot hashes, H(opad || H(ipad || message)): node:crypto hash()
 // (Node 20.12 and 21.7 on) is one native call without the Hmac object, about 1.3 us cheaper than createHmac on a
@@ -429,13 +433,20 @@ function hmacWithOneShotHash(
     hash(algorithm, innerScratch.subarray(0, length), "buffer").copy(pads.outer, HMAC_BLOCK_SIZE);
     return hash(algorithm, pads.outer, "buffer");
 }
-function keyedHmacOf(signingKey: Buffer): KeyedHmacSha256 {
+
+/** the keyed HMAC of a signing key: WebAssembly in the Node build when it compiles, JavaScript otherwise */
+function keyedHmacOf(signingKey: Buffer): KeyedHmac {
     let hmac = keyedHmacs.get(signingKey);
     if (!hmac) {
-        hmac = new KeyedHmacSha256(signingKey);
+        hmac = (canKeepCiphers ? WasmHmacSha256.create(signingKey) : null) ?? new KeyedHmacSha256(signingKey);
         keyedHmacs.set(signingKey, hmac);
     }
     return hmac;
+}
+
+/** the largest SHA256 chunk signed by keyedHmacOf */
+function keyedHmacMaxMessage(): number {
+    return canKeepCiphers && WasmHmacSha256.available() ? WASM_HMAC_MAX_MESSAGE : KEYED_HMAC_MAX_MESSAGE;
 }
 
 /**
@@ -454,7 +465,7 @@ export function makeMessageChunkSignatureWithDerivedKeys(message: Buffer, derive
     let signature: Buffer;
     if (signingKey.length > HMAC_BLOCK_SIZE) {
         signature = createHmac(derivedKeys.sha1or256, keyObjectOf(signingKey)).update(message).digest();
-    } else if (sha256 && message.length <= KEYED_HMAC_MAX_MESSAGE) {
+    } else if (sha256 && message.length <= keyedHmacMaxMessage()) {
         signature = keyedHmacOf(signingKey).digest(message);
     } else if (oneShotHash) {
         signature = hmacWithOneShotHash(oneShotHash, sha256 ? "sha256" : "sha1", signingKey, message, sha256 ? 32 : 20);

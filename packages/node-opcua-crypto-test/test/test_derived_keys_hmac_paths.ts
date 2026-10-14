@@ -7,7 +7,8 @@
 // This  project is licensed under the terms of the MIT license.
 // ---------------------------------------------------------------------------------------------------------------------
 
-// makeMessageChunkSignatureWithDerivedKeys signs with KeyedHmacSha256 (SHA256, small chunks), with two one-shot
+// makeMessageChunkSignatureWithDerivedKeys signs with WasmHmacSha256 (SHA256 up to 512 bytes, Node build) or
+// KeyedHmacSha256 (up to 256 bytes where WebAssembly is missing), with two one-shot
 // hashes (larger chunks, SHA1) or with createHmac (keys longer than a block). Whatever the path, the signature must be
 // the HMAC node:crypto computes, and verifyChunkSignatureWithDerivedKeys must accept it and refuse a changed byte.
 import { createHmac, randomBytes } from "node:crypto";
@@ -20,7 +21,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 const cases: [string, ComputeDerivedKeysOptions][] = [];
-for (const signingKeyLength of [16, 24, 32, 64, 80]) {
+for (const signingKeyLength of [1, 16, 24, 32, 63, 64, 80]) {
     cases.push([
         `SHA256, ${signingKeyLength}-byte key`,
         {

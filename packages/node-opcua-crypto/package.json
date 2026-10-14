@@ -51,6 +51,7 @@
         "build:clean": "npx rimraf ./dist ./dist-* *.tsbuildinfo",
         "build:demo": "node web/esbuild.mjs",
         "build": "tsc -b",
+        "generate:sha256-wasm": "node scripts/generate_sha256_wasm.mjs",
         "prepare": "npm run build",
         "lint": "biome check",
         "lint:fix": "biome lint --fix",
