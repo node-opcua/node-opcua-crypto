@@ -32,6 +32,7 @@ import {
     verifyCertificateRevocationListSignature,
     verifyCertificateSignature,
     verifyCrlIssuedByCertificate,
+    x509,
 } from "node-opcua-crypto";
 import { describe, expect, it } from "vitest";
 
@@ -195,5 +196,44 @@ describe("CRL-to-Issuer Matching", () => {
         const crl = await readCertificateRevocationList(crl3Filename);
         const issuerCert = await readCertificate(issuerCertFilename);
         expect(verifyCrlIssuedByCertificate(crl, issuerCert)).toBe(false);
+    });
+});
+
+describe("Explore a CRL without nextUpdate", () => {
+    // nextUpdate is OPTIONAL in RFC 5280's TBSCertList (CAs MUST include
+    // it, yet CRLs without it exist). Read at a fixed index, its absence
+    // put the revokedCertificates SEQUENCE where a Time was expected:
+    // "Invalid tag 0x30".
+    async function makeCrlWithoutNextUpdate(serialNumbers: string[]) {
+        const keys = (await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, [
+            "sign",
+            "verify",
+        ])) as CryptoKeyPair;
+        const crl = await x509.X509CrlGenerator.create({
+            issuer: "CN=NoNextUpdateCA",
+            thisUpdate: new Date("2026-01-01T00:00:00Z"),
+            entries: serialNumbers.map((serialNumber) => ({
+                serialNumber,
+                revocationDate: new Date("2026-01-02T00:00:00Z"),
+            })),
+            signingKey: keys.privateKey,
+            signingAlgorithm: { name: "ECDSA", hash: "SHA-256" },
+        });
+        return Buffer.from(crl.rawData);
+    }
+
+    it("explores a CRL without nextUpdate that lists revoked certificates", async () => {
+        const crlInfo = exploreCertificateRevocationList(await makeCrlWithoutNextUpdate(["0a", "0b"]));
+        expect(crlInfo.tbsCertList.thisUpdate.toISOString()).toEqual("2026-01-01T00:00:00.000Z");
+        expect(crlInfo.tbsCertList.nextUpdate).toBeUndefined();
+        expect(crlInfo.tbsCertList.revokedCertificates.map((r) => r.userCertificate)).toEqual(["0A", "0B"]);
+        expect(crlInfo.tbsCertList.revokedCertificates[0].revocationDate.toISOString()).toEqual("2026-01-02T00:00:00.000Z");
+    });
+
+    it("explores a CRL without nextUpdate and without revoked certificates", async () => {
+        const crlInfo = exploreCertificateRevocationList(await makeCrlWithoutNextUpdate([]));
+        expect(crlInfo.tbsCertList.thisUpdate.toISOString()).toEqual("2026-01-01T00:00:00.000Z");
+        expect(crlInfo.tbsCertList.nextUpdate).toBeUndefined();
+        expect(crlInfo.tbsCertList.revokedCertificates).toEqual([]);
     });
 });

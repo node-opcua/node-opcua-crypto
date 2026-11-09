@@ -24,7 +24,6 @@
 import {
     type AlgorithmIdentifier,
     type BlockInfo,
-    findBlockAtIndex,
     formatBuffer2DigitHexWithColum,
     getBlock,
     readAlgorithmIdentifier,
@@ -174,43 +173,42 @@ function _readRevokedCertificates(buffer: Buffer, block: BlockInfo): RevokedCert
     });
 }
 
+/*
+ TBSCertList  ::=  SEQUENCE  {
+     version                 Version OPTIONAL, -- if present, MUST be v2
+     signature               AlgorithmIdentifier,
+     issuer                  Name,
+     thisUpdate              Time,
+     nextUpdate              Time OPTIONAL,
+     revokedCertificates     SEQUENCE OF SEQUENCE { ... } OPTIONAL,
+     crlExtensions           [0] EXPLICIT Extensions OPTIONAL }
+ */
+function _isTime(block: BlockInfo | undefined): boolean {
+    return block?.tag === TagType.UTCTime || block?.tag === TagType.GeneralizedTime;
+}
+
 function _readTbsCertList(buffer: Buffer, blockInfo: BlockInfo): TBSCertList {
     const blocks = readStruct(buffer, blockInfo);
 
-    const hasOptionalVersion = blocks[0].tag === TagType.INTEGER;
-
-    if (hasOptionalVersion) {
-        const _version = readIntegerValue(buffer, blocks[0]);
-        const signature = readAlgorithmIdentifier(buffer, blocks[1]);
-        const issuer = readNameForCrl(buffer, blocks[2]);
-        const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, blocks[2])));
-
-        const thisUpdate = readTime(buffer, blocks[3]);
-        const nextUpdate = readTime(buffer, blocks[4]);
-
-        const revokedCertificates: RevokedCertificate[] = [];
-
-        if (blocks[5] && blocks[5].tag < 0x80) {
-            revokedCertificates.push(..._readRevokedCertificates(buffer, blocks[5]));
-        }
-
-        const _ext0 = findBlockAtIndex(blocks, 0);
-        return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
-    } else {
-        const signature = readAlgorithmIdentifier(buffer, blocks[0]);
-        const issuer = readNameForCrl(buffer, blocks[1]);
-        const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, blocks[1])));
-
-        const thisUpdate = readTime(buffer, blocks[2]);
-        const nextUpdate = readTime(buffer, blocks[3]);
-
-        const revokedCertificates: RevokedCertificate[] = [];
-
-        if (blocks[4] && blocks[4].tag < 0x80) {
-            revokedCertificates.push(..._readRevokedCertificates(buffer, blocks[4]));
-        }
-        return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates } as TBSCertList;
+    // optional fields are recognised by their tag, not by a fixed index
+    let index = 0;
+    if (blocks[index].tag === TagType.INTEGER) {
+        index++; // version
     }
+    const signature = readAlgorithmIdentifier(buffer, blocks[index++]);
+    const issuerBlock = blocks[index++];
+    const issuer = readNameForCrl(buffer, issuerBlock);
+    const issuerFingerprint = formatBuffer2DigitHexWithColum(makeSHA1Thumbprint(getBlock(buffer, issuerBlock)));
+
+    const thisUpdate = readTime(buffer, blocks[index++]) as Date;
+    const nextUpdate = _isTime(blocks[index]) ? (readTime(buffer, blocks[index++]) as Date) : undefined;
+
+    const revokedCertificates: RevokedCertificate[] = [];
+    if (blocks[index]?.tag === TagType.SEQUENCE) {
+        revokedCertificates.push(..._readRevokedCertificates(buffer, blocks[index++]));
+    }
+    // the remaining block, if any, is crlExtensions ([0], tag 0xa0): not decoded here
+    return { issuer, issuerFingerprint, thisUpdate, nextUpdate, signature, revokedCertificates };
 }
 // see https://tools.ietf.org/html/rfc5280
 
