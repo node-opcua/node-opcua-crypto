@@ -22,17 +22,11 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 import fs from "node:fs";
-import type { CertificateRevocationList } from "../source/common.js";
-import { convertPEMtoDER } from "../source/crypto_utils.js";
+import { derOrPemToDer } from "./_der_or_pem.js";
 
 export type CertificateSigningRequest = Buffer;
 
 export async function readCertificateSigningRequest(filename: string): Promise<CertificateSigningRequest> {
     const csr = await fs.promises.readFile(filename);
-    if (csr[0] === 0x30 && csr[1] === 0x82) {
-        // der format
-        return csr as CertificateRevocationList;
-    }
-    const raw_crl = csr.toString();
-    return convertPEMtoDER(raw_crl);
+    return derOrPemToDer(csr) as CertificateSigningRequest;
 }

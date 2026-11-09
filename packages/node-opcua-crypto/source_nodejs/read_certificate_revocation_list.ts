@@ -23,14 +23,9 @@
 
 import fs from "node:fs";
 import type { CertificateRevocationList } from "../source/common.js";
-import { convertPEMtoDER } from "../source/crypto_utils.js";
+import { derOrPemToDer } from "./_der_or_pem.js";
 
 export async function readCertificateRevocationList(filename: string): Promise<CertificateRevocationList> {
     const crl = await fs.promises.readFile(filename);
-    if (crl[0] === 0x30 && crl[1] === 0x82) {
-        // der format
-        return crl as CertificateRevocationList;
-    }
-    const raw_crl = crl.toString();
-    return convertPEMtoDER(raw_crl);
+    return derOrPemToDer(crl) as CertificateRevocationList;
 }
