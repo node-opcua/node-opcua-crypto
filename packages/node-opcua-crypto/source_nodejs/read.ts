@@ -235,12 +235,31 @@ function myCreatePrivateKey(rawKey: string | Buffer, passphrase?: string | Buffe
     // see https://askubuntu.com/questions/1409458/openssl-config-cuases-error-in-node-js-crypto-how-should-the-config-be-updated
     const backup = process.env.OPENSSL_CONF;
     process.env.OPENSSL_CONF = "/dev/null";
-    const retValue =
-        passphrase !== undefined
-            ? createPrivateKey({ key: rawKey as string, format: "pem", passphrase })
-            : createPrivateKey(rawKey);
-    process.env.OPENSSL_CONF = backup;
-    return { hidden: retValue };
+    try {
+        const retValue =
+            passphrase !== undefined
+                ? createPrivateKey({ key: rawKey as string, format: "pem", passphrase })
+                : createPrivateKey(rawKey);
+        return { hidden: retValue };
+    } finally {
+        restoreEnv("OPENSSL_CONF", backup);
+    }
+}
+
+/**
+ * Put back an environment variable saved before a temporary change.
+ *
+ * `process.env` turns every value it is given into a string, so assigning
+ * `undefined` back stores the text "undefined": a child process that reads
+ * the variable (an `openssl` command reads OPENSSL_CONF) then looks for a
+ * file of that name. A variable that was unset is deleted instead.
+ */
+function restoreEnv(name: string, value: string | undefined): void {
+    if (value === undefined) {
+        delete process.env[name];
+    } else {
+        process.env[name] = value;
+    }
 }
 
 function ensureTrailingLF(str: string): string {
