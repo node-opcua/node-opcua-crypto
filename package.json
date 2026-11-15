@@ -25,7 +25,9 @@
         "check:package:web": "cd packages/node-opcua-crypto-web && npx -y publint && npx -y @arethetypeswrong/cli --pack . --ignore-rules cjs-resolves-to-esm",
         "check:package": "npm run check:package:crypto && npm run check:package:web",
         "//check:browser": "proves through a real bundler that the \"browser\" export condition redirects to node-opcua-crypto-web and that the Node build stays polyfill-free. Neither tsc nor the vitest suite can see this - it only manifests during bundling. Run after build.",
-        "check:browser": "node scripts/check-browser-redirect.mjs"
+        "check:browser": "node scripts/check-browser-redirect.mjs",
+        "//check:imports": "gates the issue-#99 class of bug: scans the files that actually ship (the files-glob directories of every publishable package, e.g. dist/ and browser/) and fails if any bare import is not in dependencies/peerDependencies/optionalDependencies. An undeclared import only resolves via hoisting and breaks with ERR_MODULE_NOT_FOUND under non-hoisted layouts (pnpm isolated). Run after build.",
+        "check:imports": "node scripts/check-declared-imports.mjs"
     },
     "keywords": [
         "OPCUA",

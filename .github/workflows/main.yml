@@ -105,6 +105,12 @@ jobs:
             - name: Check browser/node split
               run: npm run check:browser
 
+            # Fails if any shipped file imports a package that is not declared in
+            # dependencies/peerDependencies - the issue #99 class of bug (asn1js was
+            # imported but undeclared; it only resolved through hoisting).
+            - name: Check declared imports
+              run: npm run check:imports
+
     test-new:
         needs: build
         strategy:
