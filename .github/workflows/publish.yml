@@ -52,6 +52,11 @@ jobs:
       - name: Check browser/node split
         run: npm run check:browser
 
+      # Fails the release before anything reaches npm if a shipped file imports an
+      # undeclared package (issue #99 class of bug).
+      - name: Check declared imports
+        run: npm run check:imports
+
       - name: Set up Git user
         run: |
           git config user.name "${{ github.actor }}"
